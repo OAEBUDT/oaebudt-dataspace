@@ -1,0 +1,15 @@
+[versions]
+edc = "0.11.1"
+[libraries]
+# upstream EDC dependencies
+edc-vault-hashicorp = { module = "org.eclipse.edc:vault-hashicorp", version.ref = "edc" }
+
+# BOM modules
+edc-bom-controlplane = { module = "org.eclipse.edc:controlplane-dcp-bom", version.ref = "edc" }
+edc-bom-dataplane = { module = "org.eclipse.edc:dataplane-base-bom", version.ref = "edc" }
+edc-bom-controlplane-sql = { module = "org.eclipse.edc:controlplane-feature-sql-bom", version.ref = "edc" }
+edc-bom-dataplane-sql = { module = "org.eclipse.edc:dataplane-feature-sql-bom", version.ref = "edc" }
+edc-iam-mock = { module = "org.eclipse.edc:iam-mock", version.ref = "edc" }
+
+[plugins]
+shadow = { id = "com.gradleup.shadow", version = "8.3.6" }

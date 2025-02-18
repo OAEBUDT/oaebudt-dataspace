@@ -1,19 +1,25 @@
 plugins {
-    id("java")
+    `java-library`
+    id("application")
+    alias(libs.plugins.shadow)
 }
 
 group = "org.oaebudt.edc"
-version = "1.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    testImplementation(platform("org.junit:junit-bom:5.10.0"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
+    runtimeOnly(libs.edc.bom.controlplane)
 }
 
-tasks.test {
-    useJUnitPlatform()
+tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
+    exclude("**/pom.properties", "**/pom.xml")
+    mergeServiceFiles()
+    archiveFileName.set("${project.name}.jar")
+}
+
+application {
+    mainClass.set("org.eclipse.edc.boot.system.runtime.BaseRuntime")
 }

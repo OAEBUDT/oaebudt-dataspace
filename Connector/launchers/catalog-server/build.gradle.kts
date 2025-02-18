@@ -1,5 +1,7 @@
 plugins {
-    id("java")
+    `java-library`
+    id("application")
+    alias(libs.plugins.shadow)
 }
 
 group = "org.oaebudt.edc"

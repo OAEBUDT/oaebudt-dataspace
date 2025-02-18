@@ -1,4 +1,4 @@
 rootProject.name = "Connector"
-include(":launchers:catalog-server")
 include(":launchers:controlplane")
 include(":launchers:dataplane")
+include(":launchers:runtime-embedded")

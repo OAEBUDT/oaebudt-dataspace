@@ -22,9 +22,9 @@ dependencies {
         // this will remove the RemoteDataPlaneSelectorService
         exclude(group = "org.eclipse.edc", "data-plane-selector-client")
     }
-//    runtimeOnly(libs.edc.vault.hashicorp)
-//    runtimeOnly(libs.edc.bom.controlplane.sql)
-//    runtimeOnly(libs.edc.bom.dataplane.sql)
+    runtimeOnly(libs.edc.vault.hashicorp)
+    runtimeOnly(libs.edc.bom.controlplane.sql)
+    runtimeOnly(libs.edc.bom.dataplane.sql)
     implementation(libs.edc.iam.mock)
 }
 

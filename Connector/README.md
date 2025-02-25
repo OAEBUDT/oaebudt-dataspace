@@ -1,1 +1,0 @@
-![Design Diagram](./docs/PoC-Proposal-architecture.png)

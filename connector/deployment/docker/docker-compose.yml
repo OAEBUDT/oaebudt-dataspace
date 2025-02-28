@@ -38,6 +38,7 @@ services:
       - "21001:11001"
     restart: unless-stopped
     depends_on:
+      - participant-a-connector
       - participant-b-db
       - participant-b-vault
     networks:
@@ -87,14 +88,13 @@ services:
     cap_add:
       - IPC_LOCK
     volumes:
-      - participant-a-vault-data:/vault/data
       - ./init/seed-vault.sh:/seed-vault.sh
     networks:
       - oaebudt-mvd
     entrypoint:
       - sh
       - -c
-      - 'apk add --no-cache openssl && vault server -dev & sleep 5 && sh /seed-vault.sh && tail -f /dev/null'
+      - 'apk add --no-cache openssl && vault server -dev & sleep 5 && sh /seed-vault.sh participant-a && tail -f /dev/null'
 
   # Vault instance for participant B
   participant-b-vault:
@@ -108,15 +108,17 @@ services:
     cap_add:
       - IPC_LOCK
     volumes:
-      - participant-b-vault-data:/vault/data
+      - ./init/seed-vault.sh:/seed-vault.sh
     networks:
       - oaebudt-mvd
+    entrypoint:
+      - sh
+      - -c
+      - 'apk add --no-cache openssl && vault server -dev & sleep 5 && sh /seed-vault.sh participant-b && tail -f /dev/null'
 
 volumes:
   participant-a-db-data:
   participant-b-db-data:
-  participant-a-vault-data:
-  participant-b-vault-data:
 
 networks:
   oaebudt-mvd:

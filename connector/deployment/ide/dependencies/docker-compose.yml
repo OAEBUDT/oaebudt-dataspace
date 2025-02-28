@@ -41,7 +41,6 @@ services:
 
 volumes:
   participants-db-data:
-  participants-vault-data:
 
 networks:
   oaebudt-mvd:

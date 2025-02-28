@@ -78,7 +78,6 @@ public class OaebudtParticipant extends Participant {
         return ConfigFactory.fromMap(map);
     }
 
-    @Override
     public RequestSpecification baseManagementRequest() {
         final RequestSpecification request = RestAssured.given().baseUri(this.controlPlaneManagement.get().toString());
         return this.enrichManagementRequest.apply(request);

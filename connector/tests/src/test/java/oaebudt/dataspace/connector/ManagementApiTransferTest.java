@@ -18,7 +18,9 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import oaebudt.dataspace.connector.utils.HashiCorpVaultEndToEndExtension;
 import oaebudt.dataspace.connector.utils.OaebudtParticipant;
+import oaebudt.dataspace.connector.utils.PostgresEndToEndExtension;
 import org.assertj.core.api.Assertions;
 import org.eclipse.edc.connector.controlplane.test.system.utils.PolicyFixtures;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
@@ -26,24 +28,18 @@ import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.eclipse.edc.spi.system.ServiceExtension;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockserver.integration.ClientAndServer;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
-import org.testcontainers.vault.VaultContainer;
 
 
 @Testcontainers
 @EndToEndTest
 public class ManagementApiTransferTest {
 
-    private static final String VAULT_IMAGE_NAME = "hashicorp/vault:latest";
-    private static final String VAULT_TOKEN = "root";
-    private static final int VAULT_PORT = 8200;
-    private static final int POSTGRES_PORT = 5432;
     private static final String CONNECTOR_MODULE_PATH = ":launcher:runtime-embedded";
 
     private static final OaebudtParticipant PROVIDER = OaebudtParticipant.Builder.newInstance()
@@ -54,34 +50,38 @@ public class ManagementApiTransferTest {
             .id("consumer").name("consumer")
             .build();
 
-    @Container
-    protected static VaultContainer<?> vaultContainer = new VaultContainer<>(DockerImageName.parse(VAULT_IMAGE_NAME))
-            .withExposedPorts(VAULT_PORT)
-            .withVaultToken(VAULT_TOKEN);
+    @Order(0)
+    @RegisterExtension
+    static final PostgresEndToEndExtension PROVIDER_POSTGRESQL_EXTENSION = new PostgresEndToEndExtension();
 
-    @Container
-    protected static PostgreSQLContainer<?> providerPostgresContainer = new PostgreSQLContainer<>("postgres")
-            .withDatabaseName("db")
-            .withExposedPorts(POSTGRES_PORT)
-            .withUsername("password")
-            .withPassword("password");
+    @Order(1)
+    @RegisterExtension
+    static final PostgresEndToEndExtension CONSUMER_POSTGRESQL_EXTENSION = new PostgresEndToEndExtension();
 
-    @Container
-    protected static PostgreSQLContainer<?> consumerPostgresContainer = new PostgreSQLContainer<>("postgres")
-            .withDatabaseName("db")
-            .withExposedPorts(POSTGRES_PORT)
-            .withUsername("password")
-            .withPassword("password");
+    @Order(2)
+    @RegisterExtension
+    static final BeforeAllCallback CREATE_DATABASES = context -> {
+        PROVIDER_POSTGRESQL_EXTENSION.createDatabase(PROVIDER.getName());
+        CONSUMER_POSTGRESQL_EXTENSION.createDatabase(CONSUMER.getName());
+    };
+
+    @Order(3)
+    @RegisterExtension
+    static final HashiCorpVaultEndToEndExtension VAULT_EXTENSION = new HashiCorpVaultEndToEndExtension();
 
     @RegisterExtension
     static RuntimeExtension consumer = new RuntimePerClassExtension(
         new EmbeddedRuntime("consumer", CONNECTOR_MODULE_PATH)
-                .configurationProvider(() -> CONSUMER.getConfiguration(getVaultPort(), getPostgresPort(consumerPostgresContainer))));
+                .configurationProvider(CONSUMER::getConfiguration)
+                .configurationProvider(() -> CONSUMER_POSTGRESQL_EXTENSION.configFor(CONSUMER.getName()))
+                .configurationProvider(VAULT_EXTENSION::config));
 
     @RegisterExtension
     protected static RuntimeExtension provider = new RuntimePerClassExtension(
             new EmbeddedRuntime("provider", CONNECTOR_MODULE_PATH)
-                    .configurationProvider(() -> PROVIDER.getConfiguration(getVaultPort(), getPostgresPort(providerPostgresContainer)))
+                    .configurationProvider(PROVIDER::getConfiguration)
+                    .configurationProvider(() -> PROVIDER_POSTGRESQL_EXTENSION.configFor(PROVIDER.getName()))
+                    .configurationProvider(VAULT_EXTENSION::config)
                     .registerSystemExtension(ServiceExtension.class, PROVIDER.seedVaultKeys()));
 
     @Test
@@ -185,25 +185,5 @@ public class ManagementApiTransferTest {
                         .build())
                 .build();
     }
-
-
-    private static int getVaultPort() {
-
-        if (!vaultContainer.isRunning()) {
-            vaultContainer.start();
-        }
-
-        return vaultContainer.getMappedPort(VAULT_PORT);
-    }
-
-    private static int getPostgresPort(final PostgreSQLContainer<?> postgres) {
-
-        if (!postgres.isRunning()) {
-            postgres.start();
-        }
-
-        return postgres.getFirstMappedPort();
-    }
-
 
 }

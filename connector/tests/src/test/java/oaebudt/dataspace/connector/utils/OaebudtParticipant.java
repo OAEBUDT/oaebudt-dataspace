@@ -47,7 +47,7 @@ public class OaebudtParticipant extends Participant {
         }
     }
 
-    public Config getConfiguration(final int vaultPort, final int postgresPort) {
+    public Config getConfiguration() {
         final var map = Map.ofEntries(
                 entry("edc.participant.id", id),
                 entry("web.http.path", "/api"),
@@ -72,14 +72,7 @@ public class OaebudtParticipant extends Participant {
                 entry("web.http.catalog.port", getFreePort() + ""),
                 entry("web.http.catalog.path", "/catalog"),
                 entry("edc.runtime.id", id),
-                entry("edc.dpf.selector.url", "http://localhost:" + getFreePort() + "/control/v1/dataplanes"),
-                entry("edc.vault.hashicorp.url", "http://localhost:" + vaultPort),
-                entry("edc.vault.hashicorp.token", "root"),
-                entry("edc.vault.hashicorp.health.check.enabled", "false"),
-                entry("edc.datasource.default.url", "jdbc:postgresql://localhost:" + postgresPort + "/db"),
-                entry("edc.datasource.default.user", "password"),
-                entry("edc.datasource.default.password", "password"),
-                entry("edc.sql.schema.autocreate", "true")
+                entry("edc.dpf.selector.url", "http://localhost:" + getFreePort() + "/control/v1/dataplanes")
         );
 
         return ConfigFactory.fromMap(map);

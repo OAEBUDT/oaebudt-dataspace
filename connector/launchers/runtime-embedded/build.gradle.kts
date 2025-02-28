@@ -4,9 +4,6 @@ plugins {
     alias(libs.plugins.shadow)
 }
 
-group = "org.oaebudt.edc"
-project.version = "0.11.1"
-
 repositories {
     mavenCentral()
 }

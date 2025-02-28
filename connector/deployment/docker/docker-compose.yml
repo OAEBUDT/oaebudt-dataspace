@@ -88,13 +88,13 @@ services:
       - IPC_LOCK
     volumes:
       - participant-a-vault-data:/vault/data
-      - ./init/init-vault.sh:/init-vault.sh
+      - ./init/seed-vault.sh:/seed-vault.sh
     networks:
       - oaebudt-mvd
     entrypoint:
       - sh
       - -c
-      - 'apk add --no-cache openssl && vault server -dev & sleep 5 && sh /init-vault.sh && tail -f /dev/null'
+      - 'apk add --no-cache openssl && vault server -dev & sleep 5 && sh /seed-vault.sh && tail -f /dev/null'
 
   # Vault instance for participant B
   participant-b-vault:

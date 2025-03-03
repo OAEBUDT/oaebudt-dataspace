@@ -5,22 +5,20 @@
 name: Connector E2E Tests
 
 on:
-#  pull_request:
-#    branches:
-#      - "develop"
-#    types:
-#      - opened
-#      - synchronize
-#    paths:
-#      - "connector/**"  # Trigger only if changes are made under the 'connector' directory
+  pull_request:
+    branches:
+      - "develop"
+    types:
+      - opened
+      - synchronize
+    paths:
+      - "connector/**"  # Trigger only if changes are made under the 'connector' directory
   push:
     branches:
-      - "*"
-#      - "develop"  # Trigger when changes are pushed to the 'develop' branch (e.g., after a PR is merged)
+      - "develop"  # Trigger when changes are pushed to the 'develop' branch (e.g., after a PR is merged)
     paths:
       - "connector/**"
   workflow_dispatch:  # Allow manual triggering
-
 
 jobs:
   build-and-test:

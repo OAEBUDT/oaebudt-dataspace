@@ -12,12 +12,11 @@ on:
       - opened
       - synchronize
     paths:
-      - "connector/**"  # Trigger only if changes are made under the 'connector' directory
-    paths-ignore:
-      - "**.md"
-      - "docs/**"
-      - "CODEOWNERS"
-      - "LICENSE"
+      - "connector/**"
+      - "!**.md"
+      - "!docs/**"
+      - "!CODEOWNERS"
+      - "!LICENSE"
   workflow_dispatch:  # Allow manual triggering
 
 jobs:

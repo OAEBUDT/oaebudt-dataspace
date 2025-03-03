@@ -2,7 +2,7 @@
 # openings and synchronization, ensuring that the changes introduced by the PR are validated and do not break the
 # connector's functionality.
 
-name: Connector E2E Tests
+name: Connector PR Validation
 
 on:
   pull_request:

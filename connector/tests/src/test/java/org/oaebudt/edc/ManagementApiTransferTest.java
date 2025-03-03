@@ -1,4 +1,4 @@
-package oaebudt.dataspace.connector;
+package org.oaebudt.edc;
 
 import static io.restassured.RestAssured.given;
 import static org.awaitility.Awaitility.await;
@@ -18,9 +18,9 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import oaebudt.dataspace.connector.utils.HashiCorpVaultEndToEndExtension;
-import oaebudt.dataspace.connector.utils.OaebudtParticipant;
-import oaebudt.dataspace.connector.utils.PostgresEndToEndExtension;
+import org.oaebudt.edc.utils.HashiCorpVaultEndToEndExtension;
+import org.oaebudt.edc.utils.OaebudtParticipant;
+import org.oaebudt.edc.utils.PostgresEndToEndExtension;
 import org.assertj.core.api.Assertions;
 import org.eclipse.edc.connector.controlplane.test.system.utils.PolicyFixtures;
 import org.eclipse.edc.junit.annotations.EndToEndTest;

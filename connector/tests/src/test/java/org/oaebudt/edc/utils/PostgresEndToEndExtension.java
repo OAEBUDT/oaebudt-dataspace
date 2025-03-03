@@ -1,4 +1,4 @@
-package oaebudt.dataspace.connector.utils;
+package org.oaebudt.edc.utils;
 
 import static java.lang.String.format;
 

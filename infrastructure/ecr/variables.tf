@@ -18,18 +18,7 @@ variable "aws_tags" {
   }
 }
 
-variable "tfstate_bucket_name" {
-  type        = string
-  description = "Name of the S3 bucket to store Terraform state"
-}
-
-variable "tfstate_key" {
-  type        = string
-  description = "Key (file path) for storing the Terraform state in the S3 bucket"
-}
-
 variable "ecr_name" {
   type        = string
   description = "Name of the Amazon ECR repository where Docker images and Helm charts will be stored"
 }
-

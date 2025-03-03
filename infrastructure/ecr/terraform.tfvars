@@ -5,6 +5,4 @@ aws_tags = {
   project       = "oaebudt-dataspace"
   tier          = "ecr"
 }
-tfstate_bucket_name = "oaebudt-dataspace-infra-terraform-state"
-tfstate_key         = "ecr.tfstate"
 ecr_name            = "oaebudt-dataspace"

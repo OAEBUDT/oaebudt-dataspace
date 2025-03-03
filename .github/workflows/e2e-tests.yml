@@ -8,9 +8,7 @@ on:
   pull_request:
     branches:
       - "develop"
-    types:
-      - opened
-      - synchronize
+    types: [opened, reopened, synchronize]
     paths:
       - "connector/**"
       - "!**.md"

@@ -13,11 +13,6 @@ on:
       - synchronize
     paths:
       - "connector/**"  # Trigger only if changes are made under the 'connector' directory
-  push:
-    branches:
-      - "develop"  # Trigger when changes are pushed to the 'develop' branch (e.g., after a PR is merged)
-    paths:
-      - "connector/**"
   workflow_dispatch:  # Allow manual triggering
 
 jobs:

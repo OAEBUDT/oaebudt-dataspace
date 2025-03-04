@@ -26,7 +26,7 @@ jobs:
         working-directory: ./connector  # Set default working directory for all run steps
 
     permissions:
-      contents: read
+      contents: write-all
 
     steps:
       - name: Checkout code

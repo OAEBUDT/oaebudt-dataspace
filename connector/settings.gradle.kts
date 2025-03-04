@@ -1,4 +1,4 @@
-rootProject.name = "Connector"
+rootProject.name = "connector"
 
 pluginManagement {
     repositories {
@@ -13,7 +13,6 @@ dependencyResolutionManagement {
         mavenLocal()
     }
 }
-
 
 include(":launchers:controlplane")
 include(":launchers:dataplane")

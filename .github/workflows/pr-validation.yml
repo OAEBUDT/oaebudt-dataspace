@@ -38,6 +38,18 @@ jobs:
           java-version: '23'
           distribution: 'temurin'
 
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: java
+          queries: +security-and-quality
+
+      - name: Build
+        run: ./gradlew compileJava --no-daemon
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 

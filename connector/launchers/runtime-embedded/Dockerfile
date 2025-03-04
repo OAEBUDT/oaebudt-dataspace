@@ -4,16 +4,13 @@ FROM eclipse-temurin:23.0.2_7-jdk-alpine AS builder
 WORKDIR /app
 
 # Copy the Gradle configuration files
-COPY ./gradlew ./gradlew
+COPY ./gradlew  ./build.gradle.kts ./gradle.properties ./settings.gradle.kts ./
 COPY ./gradle ./gradle
-COPY ./build.gradle.kts ./build.gradle.kts
-COPY ./gradle.properties ./gradle.properties
-COPY ./settings.gradle.kts ./settings.gradle.kts
 
 # Make gradlew executable and download dependencies as a separate step to leverage Docker cache
 RUN chmod +x ./gradlew && ./gradlew dependencies --no-daemon
 
-# Copy conntecor sources
+# Copy connector sources
 COPY ./launchers/controlplane ./launchers/controlplane
 COPY ./launchers/dataplane ./launchers/dataplane
 COPY ./launchers/runtime-embedded ./launchers/runtime-embedded
@@ -23,9 +20,6 @@ RUN ./gradlew clean :launchers:runtime-embedded:build --parallel --no-daemon
 
 # Stage 2: Create the runtime image
 FROM eclipse-temurin:23.0.2_7-jre-alpine
-
-# Install curl package
-RUN apk --no-cache add curl
 
 WORKDIR /app
 
@@ -43,7 +37,7 @@ ENV WEB_HTTP_PORT="8080" \
 
 EXPOSE ${WEB_HTTP_PORT}
 
-HEALTHCHECK --interval=5s --timeout=5s --retries=10 CMD curl --fail http://localhost:${WEB_HTTP_PORT}${WEB_HTTP_PATH}/check/health
+HEALTHCHECK --interval=5s --timeout=5s --retries=10 CMD wget --spider --quiet --timeout=5 --tries=1 http://localhost:${WEB_HTTP_PORT}${WEB_HTTP_PATH}/check/health || exit 1
 
 # Use "exec" for graceful termination (SIGINT) to reach JVM.
 ENTRYPOINT [ "sh", "-c", "exec java ${JVM_ARGS} -jar connector.jar --log-level=debug"]

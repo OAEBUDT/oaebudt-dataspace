@@ -39,20 +39,20 @@ jobs:
           java-version: '23'
           distribution: 'temurin'
 
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
           languages: java
           queries: +security-and-quality
 
-      - name: Build
+      - name: Compile
         run: ./gradlew compileJava --no-daemon
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
 
       - name: Cache SonarQube packages
         uses: actions/cache@v4

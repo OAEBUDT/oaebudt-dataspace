@@ -62,6 +62,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '23'
+          distribution: 'temurin'
       # Add any setup steps before running the `github/codeql-action/init` action.
       # This includes steps like installing compilers or runtimes (`actions/setup-node`
       # or others). This is typically only required for manual builds.
@@ -73,6 +77,10 @@ jobs:
         uses: github/codeql-action/init@v3
         with:
           languages: java
+
+      # Compiles production Java source (without tests)
+      - name: Build
+        run: ./gradlew compileJava --no-daemon
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3

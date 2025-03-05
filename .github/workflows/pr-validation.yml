@@ -79,6 +79,15 @@ jobs:
       - name: Run E2E Tests
         run: ./gradlew test -DincludeTags="EndToEndTest"
 
+      - name: Publish E2E Tests Results
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
+        with:
+          name: E2E Tests Results
+          path: '**/build/test-results/test/TEST-*.xml'
+          reporter: java-junit
+          fail-on-error: 'false'
+
       - name: Upload test results
         if: always()  # Run even if previous steps failed
         uses: actions/upload-artifact@v4

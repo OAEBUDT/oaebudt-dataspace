@@ -28,6 +28,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - uses: benjlevesque/short-sha@v3.0
+        id: short-sha
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -42,9 +45,6 @@ jobs:
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
-
-      - uses: benjlevesque/short-sha@v3.0
-        id: short-sha
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3

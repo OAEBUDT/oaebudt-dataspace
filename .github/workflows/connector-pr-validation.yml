@@ -24,9 +24,8 @@ on:
       - "!LICENSE"
   workflow_dispatch:  # Allow manual triggering
 
-
 jobs:
-  build-and-test:
+  build-and-validate:
     name: Build and Validate Connector
     runs-on: ubuntu-latest
     defaults:
@@ -69,7 +68,6 @@ jobs:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
-
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3

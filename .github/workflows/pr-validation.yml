@@ -1,7 +1,3 @@
-# This workflow builds the connector project and executes E2E tests using Gradle. It is triggered by pull request
-# openings and synchronization, ensuring that the changes introduced by the PR are validated and do not break the
-# connector's functionality.
-
 name: Connector PR Validation
 
 on:

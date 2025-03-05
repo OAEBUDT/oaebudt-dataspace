@@ -1,0 +1,67 @@
+name: Connector build
+
+on:
+  push:
+    branches:
+      - "develop"
+    paths:
+      - "connector/**"
+      - "!**.md"
+      - "!docs/**"
+  workflow_dispatch:  # Allow manual triggering
+
+env:
+  AWS_REGION: us-east-1
+
+jobs:
+  build-push-connector:
+    name: Build and Push Connector
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./connector  # Set default working directory for all run steps
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::766316668091:role/krypton-operator-github-access
+          role-session-name: krypton_operator_github_access
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Sts GetCallerIdentity
+        run: |
+          aws sts get-caller-identity
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - uses: benjlevesque/short-sha@v3.0
+        id: short-sha
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and Push Image
+        uses: docker/build-push-action@v6
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ steps.short-sha.outputs.sha }}
+        with:
+          context: .
+          file: ./launchers/runtime-embedded/Dockerfile
+          tags: ${{ steps.login-ecr.outputs.registry }}/connector:$IMAGE_TAG
+          platforms: linux/amd64
+          push: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

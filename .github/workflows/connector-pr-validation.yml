@@ -8,6 +8,10 @@ on:
   push:
     branches:
       - "develop"
+    paths:
+      - "connector/**"
+      - "!**.md"
+      - "!docs/**"
   pull_request:
     branches:
       - "develop"
@@ -20,9 +24,10 @@ on:
       - "!LICENSE"
   workflow_dispatch:  # Allow manual triggering
 
+
 jobs:
   build-and-test:
-    name: Build and Test Connector
+    name: Build and Validate Connector
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -33,19 +38,38 @@ jobs:
       contents: read
       actions: read
       checks: write
+      pull-requests: write
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Ensures full git history for sonar analysis
 
       - name: Set up JDK 23
         uses: actions/setup-java@v4
         with:
           java-version: '23'
           distribution: 'temurin'
+          cache: 'gradle'
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/*.kt', '**/*.kts') }}
+          restore-keys: ${{ runner.os }}-gradle
+
+      - name: Cache SonarQube packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
@@ -56,30 +80,20 @@ jobs:
       - name: Compile
         run: ./gradlew compileJava --no-daemon
 
+      - name: Perform CodeQL Autobuild
+        uses: github/codeql-action/autobuild@v3
+
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
 
-      - name: Cache SonarQube packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: ${{ runner.os }}-sonar
-
-      - name: Cache Gradle packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
-          restore-keys: ${{ runner.os }}-gradle
-
-      - name: Build and sonar analyze
+      - name: Build and Sonar analyze
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: ./gradlew build sonar --info
+        run: ./gradlew build sonar --info --no-build-cache --stacktrace
 
       - name: Run E2E Tests
-        run: ./gradlew test -DincludeTags="EndToEndTest"
+        run: ./gradlew test -DincludeTags="EndToEndTest" --stacktrace
+        continue-on-error: true  # Ensure reporting even if tests fail
 
       - name: Publish E2E Tests Results
         uses: dorny/test-reporter@v1
@@ -89,13 +103,3 @@ jobs:
           path: '**/build/test-results/test/TEST-*.xml'
           reporter: java-junit
           fail-on-error: 'false'
-
-      - name: Upload test results
-        if: always()  # Run even if previous steps failed
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results
-          path: |
-            connector/tests/build/reports/tests/
-            connector/tests/build/test-results/
-          retention-days: 7

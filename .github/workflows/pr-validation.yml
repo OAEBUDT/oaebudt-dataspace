@@ -5,6 +5,9 @@
 name: Connector PR Validation
 
 on:
+  push:
+    branches:
+      - "develop"
   pull_request:
     branches:
       - "develop"
@@ -68,7 +71,7 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
           restore-keys: ${{ runner.os }}-gradle
 
-      - name: Build and analyze
+      - name: Build and sonar analyze
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: ./gradlew build sonar --info

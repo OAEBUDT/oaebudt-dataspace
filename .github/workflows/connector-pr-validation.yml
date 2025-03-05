@@ -55,13 +55,6 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Cache Gradle packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/*.kt', '**/*.kts') }}
-          restore-keys: ${{ runner.os }}-gradle
-
       - name: Cache SonarQube packages
         uses: actions/cache@v4
         with:
@@ -75,19 +68,16 @@ jobs:
           languages: java
           queries: +security-and-quality
 
-      - name: Compile
-        run: ./gradlew compileJava --no-daemon
-
-      - name: Perform CodeQL Autobuild
-        uses: github/codeql-action/autobuild@v3
+      - name: Build project
+        run: ./gradlew build -DexcludeTags="EndToEndTest" --no-daemon
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
 
-      - name: Build and Sonar analyze
+      - name: SonarQube Analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: ./gradlew build sonar --info --no-build-cache --stacktrace
+        run: ./gradlew sonar --info --no-build-cache --stacktrace
 
       - name: Run E2E Tests
         run: ./gradlew test -DincludeTags="EndToEndTest" --stacktrace

@@ -104,8 +104,8 @@ public class ManagementApiTransferTest {
                 .execute();
 
         await().untilAsserted(() -> {
-            providerDataSource.verify(request("/source").withMethod("GET"));
-            consumerDataDestination.verify(request("/destination").withBody(binary("data".getBytes())));
+            providerDataSource.verify(request("/wrong-source").withMethod("GET"));
+            consumerDataDestination.verify(request("/destination").withBody(binary("wrong data".getBytes())));
         });
 
         consumerDataDestination.stop();

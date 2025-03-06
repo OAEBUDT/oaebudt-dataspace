@@ -81,11 +81,10 @@ jobs:
 
       - name: Run E2E Tests
         run: ./gradlew test -DincludeTags="EndToEndTest" --stacktrace
-        continue-on-error: true  # Ensure reporting even if tests fail
 
       - name: Publish E2E Tests Results
         uses: dorny/test-reporter@v1
-        if: success() || failure()
+        if: always() # Ensures the results are published regardless of test outcome
         with:
           name: E2E Tests Results
           path: '**/build/test-results/test/TEST-*.xml'

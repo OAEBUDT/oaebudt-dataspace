@@ -9,6 +9,10 @@ repositories {
 }
 
 dependencies {
+    runtimeOnly(project(":launchers:api")) {
+        // this will remove the RemoteDataPlaneSelectorService
+        exclude(group = "org.eclipse.edc", "data-plane-selector-client")
+    }
     runtimeOnly(project(":launchers:controlplane")) {
         // this will remove the RemoteDataPlaneSelectorService
         exclude(group = "org.eclipse.edc", "data-plane-selector-client")

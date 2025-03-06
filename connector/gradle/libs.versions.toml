@@ -10,6 +10,10 @@ testcontainers = "1.20.0"
 [libraries]
 # upstream EDC dependencies
 edc-vault-hashicorp = { module = "org.eclipse.edc:vault-hashicorp", version.ref = "edc" }
+edc-web-spi = { module = "org.eclipse.edc:web-spi", version.ref = "edc" }
+edc-core-spi = { module = "org.eclipse.edc:core-spi", version.ref = "edc" }
+edc-auth-spi = { module = "org.eclipse.edc:auth-spi", version.ref = "edc" }
+edc-data-plane-spi = { module = "org.eclipse.edc:data-plane-spi", version.ref = "edc" }
 
 # BOM modules
 edc-bom-controlplane = { module = "org.eclipse.edc:controlplane-base-bom", version.ref = "edc" }
@@ -17,6 +21,8 @@ edc-bom-dataplane = { module = "org.eclipse.edc:dataplane-base-bom", version.ref
 edc-bom-controlplane-sql = { module = "org.eclipse.edc:controlplane-feature-sql-bom", version.ref = "edc" }
 edc-bom-dataplane-sql = { module = "org.eclipse.edc:dataplane-feature-sql-bom", version.ref = "edc" }
 edc-iam-mock = { module = "org.eclipse.edc:iam-mock", version.ref = "edc" }
+edc-lib-http = { module = "org.eclipse.edc:http-lib", version.ref = "edc" }
+edc-spi-token = { module = "org.eclipse.edc:token-spi", version.ref = "edc" }
 
 # Test Dependencies
 edc-boot-lib = { module = "org.eclipse.edc:boot-lib", version.ref = "edc" }

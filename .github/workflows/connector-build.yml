@@ -28,17 +28,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - uses: benjlevesque/short-sha@v3.0
+      - name: Generate short SHA
+        uses: benjlevesque/short-sha@v3.0
         id: short-sha
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::766316668091:role/krypton-operator-github-access
-          role-session-name: krypton_operator_github_access
+          role-to-assume: arn:aws:iam::605134435349:role/github-actions-assume-role
+          role-session-name: github-actions-assume-role
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Sts GetCallerIdentity
+      - name: Verify AWS credentials
         run: |
           aws sts get-caller-identity
 
@@ -60,7 +61,7 @@ jobs:
         with:
           context: .
           file: ./launchers/runtime-embedded/Dockerfile
-          tags: ${{ steps.login-ecr.outputs.registry }}/connector:$IMAGE_TAG
+          tags: ${{ env.ECR_REGISTRY }}/connector:${{ env.IMAGE_TAG }} ${{ env.ECR_REGISTRY }}/connector:latest
           platforms: linux/amd64
           push: true
           cache-from: type=gha

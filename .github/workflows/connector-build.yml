@@ -12,6 +12,7 @@ on:
 
 env:
   AWS_REGION: us-east-1
+  AWS_OIDC_ROLE_TO_ASSUME: arn:aws:iam::605134435349:role/github-actions-assume-role
 
 jobs:
   build-push-connector:
@@ -23,6 +24,7 @@ jobs:
 
     permissions:
       contents: read
+      id-token: write
 
     steps:
       - name: Checkout code
@@ -35,7 +37,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::605134435349:role/github-actions-assume-role
+          role-to-assume: ${{ env.AWS_OIDC_ROLE_TO_ASSUME }}
           role-session-name: github-actions-assume-role
           aws-region: ${{ env.AWS_REGION }}
 

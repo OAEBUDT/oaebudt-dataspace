@@ -3,10 +3,7 @@ resource "aws_iam_openid_connect_provider" "github_oidc" {
 
   client_id_list = ["sts.amazonaws.com"]
 
-  tags = {
-    tier    = "iam"
-    purpose = "github-oidc"
-  }
+  tags = var.github_oidc_tags
 }
 
 resource "aws_iam_role" "github_actions_assume_role" {
@@ -33,10 +30,7 @@ resource "aws_iam_role" "github_actions_assume_role" {
     ]
   })
 
-  tags = {
-    tier    = "iam"
-    purpose = "github-oidc"
-  }
+  tags = var.github_oidc_tags
 }
 
 data "aws_iam_policy_document" "ecr_access_permission_policy" {

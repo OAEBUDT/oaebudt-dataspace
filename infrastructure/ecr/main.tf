@@ -3,6 +3,11 @@ locals {
   github_oidc_repo_name           = "OAEBUDT/oaebudt-dataspace"
   iam_github_oidc_name            = "github-actions-assume-role"
   iam_github_oidc_ecr_policy_name = "github-actions-ecr-policy"
+
+  github_oidc_tags = {
+    tier    = "iam"
+    purpose = "github-oidc"
+  }
 }
 
 resource "aws_ecr_repository" "oaebudt_dataspace_ecr" {
@@ -25,4 +30,6 @@ module "github_oidc" {
   github_oidc_repo_name           = local.github_oidc_repo_name
   iam_github_oidc_name            = local.iam_github_oidc_name
   iam_github_oidc_ecr_policy_name = local.iam_github_oidc_ecr_policy_name
+
+  github_oidc_tags = local.github_oidc_tags
 }

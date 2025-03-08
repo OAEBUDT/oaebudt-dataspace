@@ -6,7 +6,7 @@ resource "aws_vpc" "main" {
   enable_dns_hostnames = true
 
   tags = {
-    Name = "${var.vpc_name}-vpc"
+    Name = "${var.vpc_name}-${var.eks_environment}-vpc"
     tier = "vpc"
   }
 }
@@ -16,7 +16,7 @@ resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.main.id
 
   tags = {
-    Name = "${var.vpc_name}-igw"
+    Name = "${var.vpc_name}-${var.eks_environment}-igw"
     tier = "igw"
   }
 }
@@ -35,9 +35,9 @@ resource "aws_subnet" "private_zone" {
   availability_zone = each.value.availability_zone
 
   tags = {
-    "Name"                                                         = "${var.eks_environment}-private-${each.value.availability_zone}"
+    "Name"                                                         = "${var.vpc_name}-${var.eks_environment}-private-${each.value.availability_zone}"
     "kubernetes.io/role/internal-elb"                              = "1"
-    "kubernetes.io/cluster/${var.eks_environment}-${var.eks_name}" = "owned"
+    "kubernetes.io/cluster/${var.eks_name}-${var.eks_environment}" = "owned"
     tier                                                           = "private-subnet"
   }
 }
@@ -57,9 +57,9 @@ resource "aws_subnet" "public_zone" {
   map_public_ip_on_launch = true
 
   tags = {
-    "Name"                                                         = "${var.eks_environment}-public-${each.value.availability_zone}"
+    "Name"                                                         = "${var.eks_name}-${var.eks_environment}-public-${each.value.availability_zone}"
     "kubernetes.io/role/elb"                                       = "1"
-    "kubernetes.io/cluster/${var.eks_environment}-${var.eks_name}" = "owned"
+    "kubernetes.io/cluster/${var.eks_name}-${var.eks_environment}" = "owned"
     tier                                                           = "public-subnet"
   }
 }
@@ -77,7 +77,7 @@ resource "aws_nat_gateway" "nat_gw" {
   subnet_id     = aws_subnet.public_zone[var.eks_availability_zones[0]].id
 
   tags = {
-    Name = "${var.vpc_name}-natgw"
+    Name = "${var.eks_name}-${var.eks_environment}-natgw"
   }
 
   depends_on = [aws_internet_gateway.igw]
@@ -93,7 +93,7 @@ resource "aws_route_table" "rt_private_zone" {
   }
 
   tags = {
-    Name = "${var.vpc_name}-private-route"
+    Name = "${var.eks_name}-${var.eks_environment}-private-route"
   }
 }
 
@@ -107,7 +107,7 @@ resource "aws_route_table" "rt_public_zone" {
   }
 
   tags = {
-    Name = "${var.vpc_name}-public-route"
+    Name = "${var.eks_name}-${var.eks_environment}-public-route"
   }
 }
 

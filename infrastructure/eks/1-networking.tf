@@ -57,7 +57,7 @@ resource "aws_subnet" "public_zone" {
   map_public_ip_on_launch = true
 
   tags = {
-    "Name"                                                         = "${var.eks_name}-${var.eks_environment}-public-${each.value.availability_zone}"
+    "Name"                                                         = "${var.vpc_name}-${var.eks_environment}-public-${each.value.availability_zone}"
     "kubernetes.io/role/elb"                                       = "1"
     "kubernetes.io/cluster/${var.eks_name}-${var.eks_environment}" = "owned"
     tier                                                           = "public-subnet"
@@ -77,7 +77,7 @@ resource "aws_nat_gateway" "nat_gw" {
   subnet_id     = aws_subnet.public_zone[var.eks_availability_zones[0]].id
 
   tags = {
-    Name = "${var.eks_name}-${var.eks_environment}-natgw"
+    Name = "${var.vpc_name}-${var.eks_environment}-natgw"
   }
 
   depends_on = [aws_internet_gateway.igw]
@@ -93,7 +93,7 @@ resource "aws_route_table" "rt_private_zone" {
   }
 
   tags = {
-    Name = "${var.eks_name}-${var.eks_environment}-private-route"
+    Name = "${var.vpc_name}-${var.eks_environment}-private-route"
   }
 }
 
@@ -107,7 +107,7 @@ resource "aws_route_table" "rt_public_zone" {
   }
 
   tags = {
-    Name = "${var.eks_name}-${var.eks_environment}-public-route"
+    Name = "${var.vpc_name}-${var.eks_environment}-public-route"
   }
 }
 

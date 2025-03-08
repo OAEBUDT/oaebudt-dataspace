@@ -42,7 +42,7 @@ resource "aws_subnet" "private_zone" {
 resource "aws_subnet" "public_zone" {
   for_each = {
     for idx, az in var.eks_availability_zones : az => {
-      subnet_cidr_block = var.subnet_cidr_blocks[idx + 2]
+      subnet_cidr_block = var.subnet_cidr_blocks[idx + length(var.eks_availability_zones)]
       availability_zone = az
     }
   }
@@ -108,7 +108,7 @@ resource "aws_route_table" "rt_public_zone" {
 resource "aws_route_table_association" "rt_private_zone" {
   for_each = {
     for idx, az in var.eks_availability_zones : az => {
-      subnet_id = aws_subnet.private_zone[var.eks_availability_zones[idx]].id
+      subnet_id = aws_subnet.private_zone[az].id
     }
   }
   subnet_id      = each.value.subnet_id
@@ -118,7 +118,7 @@ resource "aws_route_table_association" "rt_private_zone" {
 resource "aws_route_table_association" "rt_public_zone" {
   for_each = {
     for idx, az in var.eks_availability_zones : az => {
-      subnet_id = aws_subnet.public_zone[var.eks_availability_zones[idx + 2]].id
+      subnet_id = aws_subnet.public_zone[az].id
     }
   }
   subnet_id      = each.value.subnet_id

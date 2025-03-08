@@ -1,3 +1,4 @@
+# Define local variables for GitHub OIDC configuration
 locals {
   github_oidc_provider_url        = "https://token.actions.githubusercontent.com"
   github_oidc_repo_name           = "OAEBUDT/oaebudt-dataspace"
@@ -10,6 +11,7 @@ locals {
   }
 }
 
+# AWS ECR Repository
 resource "aws_ecr_repository" "oaebudt_dataspace_ecr" {
   name                 = var.ecr_name
   image_tag_mutability = "MUTABLE"
@@ -23,6 +25,7 @@ resource "aws_ecr_repository" "oaebudt_dataspace_ecr" {
   }
 }
 
+# Module to set up GitHub OIDC integration with AWS
 module "github_oidc" {
   source = "./modules/github_oidc"
 

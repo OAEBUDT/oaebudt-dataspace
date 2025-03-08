@@ -14,6 +14,7 @@ edc-web-spi = { module = "org.eclipse.edc:web-spi", version.ref = "edc" }
 edc-core-spi = { module = "org.eclipse.edc:core-spi", version.ref = "edc" }
 edc-auth-spi = { module = "org.eclipse.edc:auth-spi", version.ref = "edc" }
 edc-data-plane-spi = { module = "org.eclipse.edc:data-plane-spi", version.ref = "edc" }
+edc-data-plane-public-api = { module = "org.eclipse.edc:data-plane-public-api-v2", version.ref = "edc" }
 
 # BOM modules
 edc-bom-controlplane = { module = "org.eclipse.edc:controlplane-base-bom", version.ref = "edc" }

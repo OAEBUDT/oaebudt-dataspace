@@ -8,7 +8,7 @@ import jakarta.ws.rs.core.MediaType;
 
 @Consumes({ MediaType.APPLICATION_JSON })
 @Produces({ MediaType.APPLICATION_JSON })
-@Path("/v1/foo/bar")
+@Path("/")
 public class ProxyController {
 
     @POST

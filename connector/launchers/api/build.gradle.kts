@@ -9,12 +9,14 @@ repositories {
 }
 
 dependencies {
-    implementation(libs.edc.data.plane.spi)
-    implementation(libs.edc.web.spi)
-    implementation(libs.edc.core.spi)
     implementation(libs.edc.auth.spi)
-    implementation(libs.edc.lib.http)
+    implementation(libs.edc.web.spi)
     implementation(libs.edc.spi.token)
+    implementation(libs.edc.data.plane.public.api)
+
+
+    implementation("com.nimbusds:nimbus-jose-jwt:9.37.3")
+    implementation("com.nimbusds:oauth2-oidc-sdk:11.3")
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {

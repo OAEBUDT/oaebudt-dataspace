@@ -66,7 +66,7 @@ resource "aws_subnet" "public_zone" {
 
 # Static Elastic IP for NAT Gateway
 data "aws_eip" "eip_nat" {
-  public_ip = "52.205.124.194"
+  public_ip = var.static_eip_nat
 }
 
 # The NAT Gateway uses a manually provisioned Elastic IP to ensure a stable, static public IP for outbound traffic.

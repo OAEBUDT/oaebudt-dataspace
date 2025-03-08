@@ -51,3 +51,8 @@ variable "subnet_cidr_blocks" {
   description = "List of CIDR blocks to use for subnets"
   type        = list(string)
 }
+
+variable "static_eip_nat" {
+  description = "EIP to associate with the NAT gateway"
+  type        = string
+}

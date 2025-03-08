@@ -74,7 +74,7 @@ data "aws_eip" "eip_nat" {
 # and partner-side whitelisting configurations.
 resource "aws_nat_gateway" "nat_gw" {
   allocation_id = data.aws_eip.eip_nat.id
-  subnet_id     = aws_subnet.public_zone[var.eks_availability_zones[0]].id
+  subnet_id     = aws_subnet.public_zone[var.eks_availability_zones[1]].id
 
   tags = {
     Name = "${var.vpc_name}-${var.eks_environment}-natgw"

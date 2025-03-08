@@ -1,3 +1,4 @@
+# VPC Configuration
 resource "aws_vpc" "main" {
   cidr_block = var.vpc_cidr_block
 
@@ -10,6 +11,7 @@ resource "aws_vpc" "main" {
   }
 }
 
+# Internet Gateway
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.main.id
 
@@ -19,6 +21,7 @@ resource "aws_internet_gateway" "igw" {
   }
 }
 
+# Private Subnets
 resource "aws_subnet" "private_zone" {
   for_each = {
     for idx, az in var.eks_availability_zones : az => {
@@ -39,6 +42,7 @@ resource "aws_subnet" "private_zone" {
   }
 }
 
+# Public Subnets
 resource "aws_subnet" "public_zone" {
   for_each = {
     for idx, az in var.eks_availability_zones : az => {
@@ -60,7 +64,7 @@ resource "aws_subnet" "public_zone" {
   }
 }
 
-
+# Static Elastic IP for NAT Gateway
 data "aws_eip" "eip_nat" {
   public_ip = "52.205.124.194"
 }
@@ -79,6 +83,7 @@ resource "aws_nat_gateway" "nat_gw" {
   depends_on = [aws_internet_gateway.igw]
 }
 
+# Route Tables for Private Subnets
 resource "aws_route_table" "rt_private_zone" {
   vpc_id = aws_vpc.main.id
 
@@ -92,6 +97,7 @@ resource "aws_route_table" "rt_private_zone" {
   }
 }
 
+# Route Table for Public Subnets
 resource "aws_route_table" "rt_public_zone" {
   vpc_id = aws_vpc.main.id
 
@@ -105,6 +111,7 @@ resource "aws_route_table" "rt_public_zone" {
   }
 }
 
+# Route Table Associations for Private Subnets
 resource "aws_route_table_association" "rt_private_zone" {
   for_each = {
     for idx, az in var.eks_availability_zones : az => {
@@ -115,6 +122,7 @@ resource "aws_route_table_association" "rt_private_zone" {
   route_table_id = aws_route_table.rt_private_zone.id
 }
 
+# Route Table Associations for Public Subnets
 resource "aws_route_table_association" "rt_public_zone" {
   for_each = {
     for idx, az in var.eks_availability_zones : az => {

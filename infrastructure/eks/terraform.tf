@@ -23,6 +23,7 @@ provider "aws" {
       project     = var.project_name
       environment = var.project_environment
       purpose     = "eks"
+      tf-managed  = "true"
     }
   }
 }

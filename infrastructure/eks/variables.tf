@@ -9,13 +9,9 @@ variable "project_name" {
   description = "Name of the project"
 }
 
-variable "aws_tags" {
-  description = "A map of tags to apply to AWS resources"
-  type        = map(string)
-  default = {
-    environment = "development"
-    project     = "oaebudt-dataspace"
-  }
+variable "project_environment" {
+  type        = string
+  description = "Project environment or stage"
 }
 
 variable "vpc_name" {
@@ -51,7 +47,7 @@ variable "eks_version" {
 variable "vpc_cidr_block" {
   description = "The CIDR block to use for the vpc"
   type        = string
-  default = "10.0.0.0/16"
+  default     = "10.0.0.0/16"
 }
 
 variable "subnet_cidr_blocks" {

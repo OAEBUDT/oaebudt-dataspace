@@ -14,6 +14,8 @@ provider "aws" {
   default_tags {
     tags = {
       project = var.project_name
+      environment = var.project_environment
+      tf-managed  = "true"
     }
   }
 }

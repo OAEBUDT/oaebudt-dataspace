@@ -9,13 +9,9 @@ variable "project_name" {
   description = "Name of the project"
 }
 
-variable "aws_tags" {
-  description = "A map of tags to apply to AWS resources"
-  type        = map(string)
-  default = {
-    environment = "development"
-    project     = "oaebudt-dataspace"
-  }
+variable "project_environment" {
+  type        = string
+  description = "Project environment or stage"
 }
 
 variable "ecr_name" {

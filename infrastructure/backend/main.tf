@@ -2,9 +2,11 @@
 resource "aws_s3_bucket" "terraform_state_bucket" {
   bucket = var.tfstate_bucket_name
   lifecycle {
-    prevent_destroy = false
+    prevent_destroy = true
   }
-  tags = var.aws_tags
+  tags = {
+    tier = "terraform"
+  }
 }
 
 # Enable Terraform state S3 bucket versioning

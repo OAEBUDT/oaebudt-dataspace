@@ -28,6 +28,7 @@ public class KeycloakAuthenticationService  implements AuthenticationService {
         this.jwksPublicKey = jwksPublicKeyUrl;
     }
 
+    @Override
     public boolean isAuthenticated(final Map<String, List<String>> headers) {
         if (headers == null || headers.isEmpty()) {
             final var msg = "Headers were null or empty";

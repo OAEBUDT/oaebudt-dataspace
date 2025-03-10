@@ -1,5 +1,5 @@
 aws_region             = "us-east-1"
-project_name           = "oebudt-dataspace"
+project_name           = "oaebudt-dataspace"
 project_environment    = "development"
 vpc_name               = "oaebudt-ds"
 eks_environment        = "dev"
@@ -8,4 +8,4 @@ eks_name               = "oaebudt-ds"
 eks_version            = "1.32"
 vpc_cidr_block         = "10.0.0.0/16"
 subnet_cidr_blocks     = ["10.0.0.0/20", "10.0.16.0/20", "10.0.32.0/20", "10.0.48.0/20"]
-static_eip_nat         = "52.205.124.194"
+static_eip_nat         = "34.231.215.146"

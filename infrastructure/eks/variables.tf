@@ -119,3 +119,8 @@ variable "aws_lbc_chart_version" {
   type        = string
   description = "Version of the AWS Load Balancer Controller Helm chart"
 }
+
+variable "aws_ebs_csi_driver_addon_version" {
+  type        = string
+  description = "Version of the EKS EBS CSI Driver Addon"
+}

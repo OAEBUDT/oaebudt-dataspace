@@ -21,6 +21,7 @@ eks_node_scaling_config = {
   max_size     = 2
   min_size     = 1
 }
-metrics_server_chart_version = "3.12.2"
-pod_identity_addon_version   = "v1.3.5-eksbuild.2"
-aws_lbc_chart_version        = "1.11.0"
+metrics_server_chart_version     = "3.12.2"
+pod_identity_addon_version       = "v1.3.5-eksbuild.2"
+aws_lbc_chart_version            = "1.11.0"
+aws_ebs_csi_driver_addon_version = "v1.40.0-eksbuild.1"

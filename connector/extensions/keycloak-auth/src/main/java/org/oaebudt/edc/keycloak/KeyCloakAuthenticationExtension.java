@@ -1,4 +1,4 @@
-package org.oaebudt.edc.api;
+package org.oaebudt.edc.keycloak;
 
 import static org.eclipse.edc.web.spi.configuration.ApiContext.MANAGEMENT;
 
@@ -12,7 +12,7 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.web.spi.WebService;
 
-public class CustomProxyDataPlaneExtension implements ServiceExtension {
+public class KeyCloakAuthenticationExtension implements ServiceExtension {
 
     @Configuration
     private KeycloakConfiguration keycloakConfiguration;

@@ -12,6 +12,8 @@ dependencies {
     testImplementation(libs.testcontainers.junit)
     testImplementation(libs.testcontainers.postgresql)
     testImplementation(libs.testcontainers.hashicorp.vault)
+    testImplementation(libs.testcontainers.keycloak)
 
+    testImplementation(project(":extensions:keycloak-auth"))
     testRuntimeOnly(project(":launchers:runtime-embedded"))
 }

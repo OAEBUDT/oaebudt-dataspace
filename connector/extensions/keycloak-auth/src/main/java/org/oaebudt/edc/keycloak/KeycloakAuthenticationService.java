@@ -1,4 +1,4 @@
-package org.oaebudt.edc.api;
+package org.oaebudt.edc.keycloak;
 
 import com.nimbusds.jose.proc.JWSAlgorithmFamilyJWSKeySelector;
 import com.nimbusds.jose.proc.JWSKeySelector;
@@ -21,9 +21,7 @@ public class KeycloakAuthenticationService  implements AuthenticationService {
     private final Monitor monitor;
     private final String jwksPublicKey;
 
-    private static final String KEYCLOAK_JWKS_URL = "http://localhost:8080/realms/myrealm/protocol/openid-connect/certs";
-
-    public KeycloakAuthenticationService(final Monitor monitor, String jwksPublicKeyUrl) {
+    public KeycloakAuthenticationService(final Monitor monitor, final String jwksPublicKeyUrl) {
         this.monitor = monitor;
         this.jwksPublicKey = jwksPublicKeyUrl;
     }

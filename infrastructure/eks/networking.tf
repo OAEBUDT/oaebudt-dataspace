@@ -37,7 +37,7 @@ resource "aws_subnet" "private_zone" {
   tags = {
     "Name"                                                         = "${var.vpc_name}-${var.eks_environment}-private-${each.value.availability_zone}"
     "kubernetes.io/role/internal-elb"                              = "1"
-    "kubernetes.io/cluster/${var.eks_name}-${var.eks_environment}" = "owned"
+    "kubernetes.io/cluster/${var.eks_environment}-${var.eks_name}" = "owned"
     tier                                                           = "private-subnet"
   }
 }
@@ -59,7 +59,7 @@ resource "aws_subnet" "public_zone" {
   tags = {
     "Name"                                                         = "${var.vpc_name}-${var.eks_environment}-public-${each.value.availability_zone}"
     "kubernetes.io/role/elb"                                       = "1"
-    "kubernetes.io/cluster/${var.eks_name}-${var.eks_environment}" = "owned"
+    "kubernetes.io/cluster/${var.eks_environment}-${var.eks_name}" = "owned"
     tier                                                           = "public-subnet"
   }
 }

@@ -1,3 +1,4 @@
+# EKS control plane IAM Role
 resource "aws_iam_role" "eks_control_plane" {
   name = "${var.eks_environment}-${var.eks_name}-eks-control-plane"
   assume_role_policy = jsonencode({
@@ -15,6 +16,10 @@ resource "aws_iam_role" "eks_control_plane" {
       },
     ]
   })
+
+  tags = {
+    tier = "iam"
+  }
 }
 
 resource "aws_iam_role_policy_attachment" "eks_control_plane" {
@@ -22,6 +27,7 @@ resource "aws_iam_role_policy_attachment" "eks_control_plane" {
   role       = aws_iam_role.eks_control_plane.name
 }
 
+# EKS cluster
 resource "aws_eks_cluster" "eks_cluster" {
   name     = "${var.eks_environment}-${var.eks_name}"
   version  = var.eks_version
@@ -45,8 +51,13 @@ resource "aws_eks_cluster" "eks_cluster" {
   depends_on = [
     aws_iam_role_policy_attachment.eks_control_plane,
   ]
+
+  tags = {
+    tier = "eks"
+  }
 }
 
+# EKS worker node IAM Role
 resource "aws_iam_role" "eks_worker_nodes" {
   name = "${var.eks_environment}-${var.eks_name}-eks-nodes"
   assume_role_policy = jsonencode({
@@ -63,6 +74,10 @@ resource "aws_iam_role" "eks_worker_nodes" {
       },
     ]
   })
+
+  tags = {
+    tier = "iam"
+  }
 }
 
 resource "aws_iam_role_policy_attachment" "eks_worker_node_policy" {
@@ -80,6 +95,7 @@ resource "aws_iam_role_policy_attachment" "ec2_ecr_ro" {
   role       = aws_iam_role.eks_worker_nodes.name
 }
 
+# Node Groups - General Purpose
 resource "aws_eks_node_group" "eks_worker_nodes" {
   cluster_name    = aws_eks_cluster.eks_cluster.name
   version         = var.eks_version
@@ -105,7 +121,8 @@ resource "aws_eks_node_group" "eks_worker_nodes" {
   }
 
   labels = {
-    role = "general"
+    role        = "general"
+    environment = var.eks_environment
   }
 
   depends_on = [
@@ -116,6 +133,10 @@ resource "aws_eks_node_group" "eks_worker_nodes" {
 
   # Allow autoscale changes without Terraform plan difference
   lifecycle {
-    ignore_changes = [scaling_config.0.desired_size]
+    ignore_changes = [scaling_config[0].desired_size]
+  }
+
+  tags = {
+    tier = "eks"
   }
 }

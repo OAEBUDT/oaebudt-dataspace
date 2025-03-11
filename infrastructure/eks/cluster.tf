@@ -1,7 +1,6 @@
 # EKS Control Plane IAM Role
 resource "aws_iam_role" "eks_control_plane" {
   name = "${var.eks_environment}-${var.eks_name}-eks-control-plane"
-  description = ""
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -23,12 +22,13 @@ resource "aws_iam_role" "eks_control_plane" {
   }
 }
 
+# Attaching AmazonEKSClusterPolicy to Control Plane Role
 resource "aws_iam_role_policy_attachment" "eks_control_plane" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
   role       = aws_iam_role.eks_control_plane.name
 }
 
-# EKS Cluster
+# EKS Cluster Resource
 resource "aws_eks_cluster" "eks_cluster" {
   name     = "${var.eks_environment}-${var.eks_name}"
   version  = var.eks_version
@@ -81,16 +81,19 @@ resource "aws_iam_role" "eks_worker_nodes" {
   }
 }
 
+# Attaching AmazonEKSWorkerNodePolicy to Worker Node IAM Role
 resource "aws_iam_role_policy_attachment" "eks_worker_node_policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
   role       = aws_iam_role.eks_worker_nodes.name
 }
 
+# Attaching AmazonEKS_CNI_Policy to Worker Node IAM Role
 resource "aws_iam_role_policy_attachment" "eks_cni_policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
   role       = aws_iam_role.eks_worker_nodes.name
 }
 
+# Attaching AmazonEC2ContainerRegistryReadOnly policy to Worker Node IAM Role
 resource "aws_iam_role_policy_attachment" "ec2_ecr_ro" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
   role       = aws_iam_role.eks_worker_nodes.name

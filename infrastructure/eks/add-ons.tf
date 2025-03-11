@@ -1,8 +1,5 @@
 locals {
-  metrics_server_chart_version = "3.12.2"
   addons_namespace             = "kube-system"
-  pod_identity_addon_version   = "v1.3.5-eksbuild.2"
-  aws_lbc_chart_version        = "1.11.0"
   aws_lbc_service_account      = "aws-load-balancer-controller"
 }
 
@@ -14,7 +11,7 @@ resource "helm_release" "metrics_server" {
   repository  = "https://kubernetes-sigs.github.io/metrics-server/"
   chart       = "metrics-server"
   namespace   = local.addons_namespace
-  version     = local.metrics_server_chart_version
+  version     = var.metrics_server_chart_version
   max_history = 3
 
   values = [file("${path.module}/resources/helm-values/metrics-server.yaml")]
@@ -26,7 +23,7 @@ resource "helm_release" "metrics_server" {
 resource "aws_eks_addon" "pod_identity" {
   cluster_name  = aws_eks_cluster.eks_cluster.name
   addon_name    = "eks-pod-identity-agent"
-  addon_version = local.pod_identity_addon_version
+  addon_version = var.pod_identity_addon_version
 
   tags = {
     tier = "eks"
@@ -90,7 +87,7 @@ resource "helm_release" "aws_lbc" {
   repository  = "https://aws.github.io/eks-charts"
   chart       = "aws-load-balancer-controller"
   namespace   = local.addons_namespace
-  version     = local.aws_lbc_chart_version
+  version     = var.aws_lbc_chart_version
   max_history = 3
 
 

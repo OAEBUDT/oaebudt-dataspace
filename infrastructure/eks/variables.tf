@@ -104,3 +104,18 @@ variable "eks_node_group_name" {
   description = "The name of the EKS node group"
   type        = string
 }
+
+variable "metrics_server_chart_version" {
+  type        = string
+  description = "Version of the Metrics Server Helm chart"
+}
+
+variable "pod_identity_addon_version" {
+  type        = string
+  description = "Version of the EKS Pod Identity Addon"
+}
+
+variable "aws_lbc_chart_version" {
+  type        = string
+  description = "Version of the AWS Load Balancer Controller Helm chart"
+}

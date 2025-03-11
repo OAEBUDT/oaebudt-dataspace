@@ -78,29 +78,29 @@ variable "eks_node_scaling_config" {
 }
 
 variable "eks_endpoint_private_access" {
-  description = "Enable private access to the endpoint"
+  description = "Enable private access to the EKS endpoint"
   type        = bool
   default     = false
 }
 
 variable "eks_endpoint_public_access" {
-  description = "Enable public access to the endpoint"
+  description = "Enable public access to the EKS endpoint"
   type        = bool
   default     = true
 }
 
 variable "eks_authentication_mode" {
-  description = "Authentication mode for access configuration"
+  description = "Authentication mode for EKS access configuration"
   type        = string
 }
 
 variable "eks_bootstrap_cluster_creator_admin_permissions" {
-  description = "Enable admin permissions for cluster creator"
+  description = "Enable admin permissions for the EKS cluster creator"
   type        = bool
   default     = true
 }
 
 variable "eks_node_group_name" {
-  description = "The name of the node group"
+  description = "The name of the EKS node group"
   type        = string
 }

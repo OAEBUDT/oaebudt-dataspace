@@ -1,6 +1,6 @@
 locals {
   metrics_server_chart_version = "3.12.2"
-  add-ons_namespace            = "kube-system"
+  addons_namespace             = "kube-system"
   pod_identity_addon_version   = "v1.3.5-eksbuild.2"
   aws_lbc_chart_version        = "1.11.0"
   aws_lbc_service_account      = "aws-load-balancer-controller"
@@ -13,7 +13,7 @@ resource "helm_release" "metrics_server" {
 
   repository  = "https://kubernetes-sigs.github.io/metrics-server/"
   chart       = "metrics-server"
-  namespace   = local.add-ons_namespace
+  namespace   = local.addons_namespace
   version     = local.metrics_server_chart_version
   max_history = 3
 
@@ -75,7 +75,7 @@ resource "aws_iam_role_policy_attachment" "aws_lbc" {
 
 resource "aws_eks_pod_identity_association" "aws_lbc" {
   cluster_name    = aws_eks_cluster.eks_cluster.name
-  namespace       = local.add-ons_namespace
+  namespace       = local.addons_namespace
   service_account = local.aws_lbc_service_account
   role_arn        = aws_iam_role.aws_lbc.arn
 
@@ -89,24 +89,18 @@ resource "helm_release" "aws_lbc" {
 
   repository  = "https://aws.github.io/eks-charts"
   chart       = "aws-load-balancer-controller"
-  namespace   = local.add-ons_namespace
+  namespace   = local.addons_namespace
   version     = local.aws_lbc_chart_version
   max_history = 3
 
-  set {
-    name  = "clusterName"
-    value = aws_eks_cluster.eks_cluster.name
-  }
 
-  set {
-    name  = "serviceAccount.name"
-    value = local.aws_lbc_service_account
-  }
-
-  set {
-    name  = "vpcId"
-    value = aws_vpc.main.id
-  }
+  values = [
+    templatefile("${path.module}/resources/helm-values/aws-lbc.yaml", {
+      cluster_name    = aws_eks_cluster.eks_cluster.name
+      service_account = local.aws_lbc_service_account
+      vpc_id          = aws_vpc.main.id
+    })
+  ]
 
   depends_on = [helm_release.metrics_server]
 }

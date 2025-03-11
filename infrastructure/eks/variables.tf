@@ -56,3 +56,23 @@ variable "static_eip_nat" {
   description = "EIP to associate with the NAT gateway"
   type        = string
 }
+
+variable "eks_node_ec2_capacity_type" {
+  description = "The capacity type for eks worker nodes ec2 instances"
+  type        = string
+  default     = "ON_DEMAND"
+}
+
+variable "eks_node_ec2_instance_types" {
+  description = "List of eks worker nodes ec2 instances types"
+  type        = list(string)
+}
+
+variable "eks_node_scaling_config" {
+  description = "Scaling configuration for the cluster"
+  type = object({
+    desired_size = number
+    max_size     = number
+    min_size     = number
+  })
+}

@@ -35,8 +35,8 @@ resource "aws_eks_cluster" "eks_cluster" {
   role_arn = aws_iam_role.eks_control_plane.arn
 
   vpc_config {
-    endpoint_private_access = false
-    endpoint_public_access  = true
+    endpoint_private_access = var.eks_endpoint_private_access
+    endpoint_public_access  = var.eks_endpoint_public_access
 
     subnet_ids = [
       for idx in range(length(var.eks_availability_zones)) :
@@ -45,8 +45,8 @@ resource "aws_eks_cluster" "eks_cluster" {
   }
 
   access_config {
-    authentication_mode                         = "API"
-    bootstrap_cluster_creator_admin_permissions = true
+    authentication_mode                         = var.eks_authentication_mode
+    bootstrap_cluster_creator_admin_permissions = var.eks_bootstrap_cluster_creator_admin_permissions
   }
 
   depends_on = [
@@ -103,7 +103,7 @@ resource "aws_iam_role_policy_attachment" "ec2_ecr_ro" {
 resource "aws_eks_node_group" "eks_worker_nodes" {
   cluster_name    = aws_eks_cluster.eks_cluster.name
   version         = var.eks_version
-  node_group_name = "general-purpose"
+  node_group_name = var.eks_node_group_name
   node_role_arn   = aws_iam_role.eks_worker_nodes.arn
 
   subnet_ids = [

@@ -1,6 +1,7 @@
-# EKS control plane IAM Role
+# EKS Control Plane IAM Role
 resource "aws_iam_role" "eks_control_plane" {
   name = "${var.eks_environment}-${var.eks_name}-eks-control-plane"
+  description = ""
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -27,7 +28,7 @@ resource "aws_iam_role_policy_attachment" "eks_control_plane" {
   role       = aws_iam_role.eks_control_plane.name
 }
 
-# EKS cluster
+# EKS Cluster
 resource "aws_eks_cluster" "eks_cluster" {
   name     = "${var.eks_environment}-${var.eks_name}"
   version  = var.eks_version
@@ -57,7 +58,7 @@ resource "aws_eks_cluster" "eks_cluster" {
   }
 }
 
-# EKS worker node IAM Role
+# EKS Worker Node IAM Role
 resource "aws_iam_role" "eks_worker_nodes" {
   name = "${var.eks_environment}-${var.eks_name}-eks-nodes"
   assume_role_policy = jsonencode({

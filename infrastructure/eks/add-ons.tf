@@ -5,9 +5,9 @@ locals {
   external_dns_service_account     = "external-dns"
   external_secrets_service_account = "external-secrets"
 }
-#########################################################
-# Metrics Server community Addon
-#########################################################
+########################
+# Metrics Server Addon
+########################
 resource "helm_release" "metrics_server" {
   name        = "metrics-server"
   description = "Kubernetes Metrics Server for collecting resource metrics"
@@ -36,9 +36,9 @@ resource "aws_eks_addon" "pod_identity" {
   }
 }
 
-#################################################
+######################################
 # AWS Load Balancer Controller Addon
-#################################################
+######################################
 resource "aws_iam_role" "aws_lbc" {
   name = "${aws_eks_cluster.eks_cluster.name}-aws-lbc"
 
@@ -109,7 +109,7 @@ resource "helm_release" "aws_lbc" {
   depends_on = [helm_release.metrics_server]
 }
 ################################
-# EKS EBS CSI Driver AWS Addon
+# EBS CSI Driver AWS Addon
 ################################
 resource "aws_iam_role" "ebs_csi_driver" {
   name = "${aws_eks_cluster.eks_cluster.name}-ebs-csi-driver"
@@ -161,9 +161,9 @@ resource "aws_eks_addon" "ebs_csi_driver" {
   }
 }
 
-################
-# External DNS
-################
+######################
+# External DNS Addon
+######################
 resource "aws_iam_role" "external_dns" {
   name = "${aws_eks_cluster.eks_cluster.name}-external-dns"
 
@@ -234,9 +234,9 @@ resource "helm_release" "external_dns" {
   depends_on = [helm_release.aws_lbc]
 }
 
-#####################
-# External Secrets
-#####################
+##########################
+# External Secrets Addon
+##########################
 resource "aws_iam_role" "external_secrets" {
   name = "${aws_eks_cluster.eks_cluster.name}-external-secrets"
 

@@ -29,7 +29,7 @@ resource "aws_eks_addon" "pod_identity" {
   addon_version = var.pod_identity_addon_version
 
   tags = {
-    tier = "eks-addon"
+    tier     = "eks-addon"
     category = "observability"
   }
 }
@@ -154,7 +154,7 @@ resource "aws_eks_addon" "ebs_csi_driver" {
   depends_on = [aws_eks_node_group.eks_worker_nodes]
 
   tags = {
-    tier = "eks-addon"
+    tier     = "eks-addon"
     category = "storage"
   }
 }

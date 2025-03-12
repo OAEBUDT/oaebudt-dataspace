@@ -37,7 +37,7 @@ resource "aws_eks_addon" "pod_identity" {
 }
 
 #################################################
-# AWS Load Balancer Controller Helm chart Addon
+# AWS Load Balancer Controller Addon
 #################################################
 resource "aws_iam_role" "aws_lbc" {
   name = "${aws_eks_cluster.eks_cluster.name}-aws-lbc"

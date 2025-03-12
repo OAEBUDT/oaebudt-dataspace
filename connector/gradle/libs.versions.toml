@@ -9,6 +9,7 @@ testcontainers = "1.20.0"
 nimbus-jwt = "9.37.3"
 nimbus-oauth2-oidc = "11.3"
 testcontainers-keycloak = "3.4.0"
+jacoco = "0.8.12"
 
 [libraries]
 # upstream EDC dependencies
@@ -43,5 +44,7 @@ testcontainers-postgresql = { module = "org.testcontainers:postgresql", version.
 testcontainers-hashicorp-vault = { module = "org.testcontainers:vault", version.ref = "testcontainers" }
 testcontainers-keycloak = { module = "com.github.dasniko:testcontainers-keycloak", version.ref = "testcontainers-keycloak" }
 
+
 [plugins]
 shadow = { id = "com.gradleup.shadow", version = "8.3.6" }
+jacoco = { id = "org.jacoco:org.jacoco.core", version.ref = "jacoco" }

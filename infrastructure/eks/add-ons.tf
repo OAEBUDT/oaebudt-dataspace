@@ -1,8 +1,8 @@
 locals {
-  addons_namespace             = "kube-system"
-  aws_lbc_service_account      = "aws-load-balancer-controller"
-  aws_ebs_csic_service_account = "ebs-csi-controller-sa"
-  external_dns_service_account = "external-dns"
+  addons_namespace                 = "kube-system"
+  aws_lbc_service_account          = "aws-load-balancer-controller"
+  aws_ebs_csic_service_account     = "ebs-csi-controller-sa"
+  external_dns_service_account     = "external-dns"
   external_secrets_service_account = "external-secrets"
 }
 #########################################################
@@ -225,9 +225,9 @@ resource "helm_release" "external_dns" {
 
   values = [
     templatefile("${path.module}/resources/helm/templates/external-dns.yaml", {
-      external_dns_policy    = "sync"
-      domain_name            = var.domain_name
-      service_account        = local.external_dns_service_account
+      external_dns_policy = "sync"
+      domain_name         = var.domain_name
+      service_account     = local.external_dns_service_account
     })
   ]
 
@@ -279,7 +279,7 @@ data "aws_iam_policy_document" "external_secrets" {
       "secretsmanager:ListSecretVersionIds",
       "secretsmanager:GetRandomPassword"
     ]
-    effect    = "Allow"
+    effect = "Allow"
     resources = [
       "arn:aws:secretsmanager:${var.aws_region}:*:secret:${var.eks_secret_name_prefix}*"
     ]
@@ -323,7 +323,7 @@ resource "helm_release" "external_secrets" {
 
   values = [
     templatefile("${path.module}/resources/helm/templates/external-secrets.yaml", {
-      service_account        = local.external_secrets_service_account
+      service_account = local.external_secrets_service_account
     })
   ]
 

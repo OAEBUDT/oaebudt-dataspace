@@ -70,13 +70,13 @@ jobs:
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
 
+      - name: Run E2E Tests
+        run: ./gradlew test -DincludeTags="EndToEndTest" --stacktrace
+
       - name: SonarQube Analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: ./gradlew sonar --info --no-build-cache --stacktrace
-
-      - name: Run E2E Tests
-        run: ./gradlew test -DincludeTags="EndToEndTest" --stacktrace
 
       - name: Publish E2E Tests Results
         uses: dorny/test-reporter@v1

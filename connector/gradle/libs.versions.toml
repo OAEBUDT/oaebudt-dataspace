@@ -9,6 +9,7 @@ testcontainers = "1.20.0"
 nimbus-jwt = "9.37.3"
 nimbus-oauth2-oidc = "11.3"
 testcontainers-keycloak = "3.4.0"
+mockito = "5.16.0"
 
 [libraries]
 # upstream EDC dependencies
@@ -42,6 +43,7 @@ testcontainers-junit = { module = "org.testcontainers:junit-jupiter", version.re
 testcontainers-postgresql = { module = "org.testcontainers:postgresql", version.ref = "testcontainers" }
 testcontainers-hashicorp-vault = { module = "org.testcontainers:vault", version.ref = "testcontainers" }
 testcontainers-keycloak = { module = "com.github.dasniko:testcontainers-keycloak", version.ref = "testcontainers-keycloak" }
+mockito-core = { group = "org.mockito", name = "mockito-core", version.ref = "mockito" }
 
 [plugins]
 shadow = { id = "com.gradleup.shadow", version = "8.3.6" }

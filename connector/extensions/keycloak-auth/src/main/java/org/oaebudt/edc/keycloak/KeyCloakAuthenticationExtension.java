@@ -36,7 +36,7 @@ public class KeyCloakAuthenticationExtension implements ServiceExtension {
 
     @Settings
     record KeycloakConfiguration(
-            @Setting(key = "web.http.auth.jwk.url", description = "Url for for getting keycloak public keys")
+            @Setting(key = "web.http.auth.jwk.url", description = "Url for for getting keycloak public keys", defaultValue = "no:op")
             String jwkUrl
     ) {
 

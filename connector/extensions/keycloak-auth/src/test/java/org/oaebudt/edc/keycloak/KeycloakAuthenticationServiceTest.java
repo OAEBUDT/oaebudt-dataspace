@@ -49,6 +49,10 @@ public class KeycloakAuthenticationServiceTest {
                 .hasMessage("Header 'Authorization' not present");
     }
 
-
+    @Test
+    void shouldFailToAuthenticateWithInvalidToken_NoBearerKeyword() {
+        Assertions.assertThat(authenticationService.isAuthenticated(Map.of(HttpHeaders.AUTHORIZATION, List.of("invalidToken"))))
+                        .isEqualTo(false);
+    }
 
 }

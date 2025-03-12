@@ -124,3 +124,24 @@ variable "aws_ebs_csi_driver_addon_version" {
   type        = string
   description = "Version of the EKS EBS CSI Driver Addon"
 }
+
+variable "external_dns_chart_version" {
+  type        = string
+  description = "Version of the External DNS Helm chart"
+}
+
+variable "domain_name" {
+  type        = string
+  description = "Domain name for exposing the cluster resources"
+}
+
+variable "external_secrets_chart_version" {
+  description = "Version of the External Secrets Helm chart to deploy"
+  type        = string
+}
+
+variable "eks_secret_name_prefix" {
+  description = "The prefix for EKS-related secret names"
+  type        = string
+  default     = "eks-"
+}

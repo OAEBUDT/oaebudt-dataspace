@@ -10,6 +10,7 @@ nimbus-jwt = "9.37.3"
 nimbus-oauth2-oidc = "11.3"
 testcontainers-keycloak = "3.4.0"
 mockito = "5.16.0"
+jacoco = "0.8.12"
 
 [libraries]
 # upstream EDC dependencies
@@ -47,3 +48,4 @@ mockito-core = { group = "org.mockito", name = "mockito-core", version.ref = "mo
 
 [plugins]
 shadow = { id = "com.gradleup.shadow", version = "8.3.6" }
+jacoco = { id = "org.jacoco:org.jacoco.core", version.ref = "jacoco" }

@@ -111,6 +111,7 @@ resource "helm_release" "aws_lbc" {
 ################################
 resource "aws_iam_role" "ebs_csi_driver" {
   name = "${aws_eks_cluster.eks_cluster.name}-ebs-csi-driver"
+
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -142,10 +143,6 @@ resource "aws_eks_pod_identity_association" "ebs_csi_driver" {
   namespace       = local.addons_namespace
   service_account = local.aws_ebs_csic_service_account
   role_arn        = aws_iam_role.ebs_csi_driver.arn
-
-  tags = {
-    tier = "iam"
-  }
 }
 
 resource "aws_eks_addon" "ebs_csi_driver" {

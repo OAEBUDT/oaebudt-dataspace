@@ -6,7 +6,7 @@ locals {
   external_secrets_service_account = "external-secrets"
 }
 #########################################################
-# Kubernetes Metrics Server community Helm chart Addon
+# Metrics Server community Addon
 #########################################################
 resource "helm_release" "metrics_server" {
   name        = "metrics-server"

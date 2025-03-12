@@ -21,6 +21,7 @@ repositories {
     mavenCentral()
 }
 
+
 dependencies {
     implementation(libs.edc.auth.spi)
     implementation(libs.edc.web.spi)

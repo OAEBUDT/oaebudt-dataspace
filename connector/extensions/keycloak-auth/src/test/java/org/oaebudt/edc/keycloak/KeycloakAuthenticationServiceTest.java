@@ -14,12 +14,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-public class KeycloakAuthenticationServiceTest {
+class KeycloakAuthenticationServiceTest {
 
     static KeycloakAuthenticationService authenticationService;
 
     @BeforeAll
-    public static void setup() {
+    static void setup() {
         final Monitor monitor = new ConsoleMonitor(ConsoleMonitor.Level.WARNING, true);
         final String jwksUrl = "";
         authenticationService = new KeycloakAuthenticationService(monitor, jwksUrl);
@@ -27,24 +27,27 @@ public class KeycloakAuthenticationServiceTest {
 
     @Test
     void shouldFailToAuthenticateWithEmptyHeader() {
+        Map<String, List<String>> headers = Collections.emptyMap();
         Assertions.assertThatThrownBy(() ->
-                authenticationService.isAuthenticated(Collections.emptyMap()))
+                authenticationService.isAuthenticated(headers))
                 .isInstanceOf(AuthenticationFailedException.class)
                 .hasMessage("Headers were null or empty");
     }
 
     @Test
     void shouldFailToAuthenticateWithInvalidToken() {
+        Map<String, List<String>> headers = Map.of(HttpHeaders.AUTHORIZATION, List.of("Bearer invalidToken"));
         Assertions.assertThatThrownBy(() ->
-                        authenticationService.isAuthenticated(Map.of(HttpHeaders.AUTHORIZATION, List.of("Bearer invalidToken"))))
+                        authenticationService.isAuthenticated(headers))
                 .isInstanceOf(AuthenticationFailedException.class)
                 .hasMessage("Invalid token");
     }
 
     @Test
     void shouldFailToAuthenticateWithoutAuthorizationHeader() {
+        Map<String, List<String>> headers = Map.of(HttpHeaders.CONTENT_TYPE, List.of(ContentType.APPLICATION_JSON.toString()));
         Assertions.assertThatThrownBy(() ->
-                        authenticationService.isAuthenticated(Map.of(HttpHeaders.CONTENT_TYPE, List.of(ContentType.APPLICATION_JSON.toString()))))
+                        authenticationService.isAuthenticated(headers))
                 .isInstanceOf(AuthenticationFailedException.class)
                 .hasMessage("Header 'Authorization' not present");
     }
@@ -52,7 +55,7 @@ public class KeycloakAuthenticationServiceTest {
     @Test
     void shouldFailToAuthenticateWithInvalidToken_NoBearerKeyword() {
         Assertions.assertThat(authenticationService.isAuthenticated(Map.of(HttpHeaders.AUTHORIZATION, List.of("invalidToken"))))
-                        .isEqualTo(false);
+                        .isFalse();
     }
 
 }

@@ -89,7 +89,7 @@ public class OaebudtParticipant extends Participant {
         return this.enrichManagementRequest.apply(request);
     }
 
-    protected UnaryOperator<RequestSpecification> enrichManagementRequest = (r) ->
+    protected UnaryOperator<RequestSpecification> enrichManagementRequest = r ->
             r.headers(API_KEY_HEADER_KEY, API_KEY_HEADER_VALUE,
                     HttpHeaderNames.AUTHORIZATION, "Bearer " + token);
 

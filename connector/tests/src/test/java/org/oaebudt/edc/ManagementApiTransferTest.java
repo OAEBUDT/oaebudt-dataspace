@@ -41,7 +41,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
 @EndToEndTest
-public class ManagementApiTransferTest {
+class ManagementApiTransferTest {
 
     private static final String CONNECTOR_MODULE_PATH = ":launcher:runtime-embedded";
 

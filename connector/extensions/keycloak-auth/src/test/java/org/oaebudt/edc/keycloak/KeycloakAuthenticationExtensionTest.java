@@ -15,7 +15,7 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 @ExtendWith(DependencyInjectionExtension.class)
-public class KeycloakAuthenticationExtensionTest {
+class KeycloakAuthenticationExtensionTest {
 
     private final WebService webService = mock();
 

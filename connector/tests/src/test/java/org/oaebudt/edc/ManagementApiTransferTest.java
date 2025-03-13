@@ -11,6 +11,7 @@ import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.restassured.http.ContentType;
 import jakarta.json.Json;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
@@ -18,9 +19,6 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import org.oaebudt.edc.utils.HashiCorpVaultEndToEndExtension;
-import org.oaebudt.edc.utils.OaebudtParticipant;
-import org.oaebudt.edc.utils.PostgresEndToEndExtension;
 import org.assertj.core.api.Assertions;
 import org.eclipse.edc.connector.controlplane.test.system.utils.PolicyFixtures;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
@@ -33,12 +31,17 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockserver.integration.ClientAndServer;
+import org.oaebudt.edc.keycloak.KeyCloakAuthenticationExtension;
+import org.oaebudt.edc.utils.HashiCorpVaultEndToEndExtension;
+import org.oaebudt.edc.utils.KeycloakEndToEndExtension;
+import org.oaebudt.edc.utils.OaebudtParticipant;
+import org.oaebudt.edc.utils.PostgresEndToEndExtension;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 
 @Testcontainers
 @EndToEndTest
-public class ManagementApiTransferTest {
+class ManagementApiTransferTest {
 
     private static final String CONNECTOR_MODULE_PATH = ":launcher:runtime-embedded";
 
@@ -69,12 +72,19 @@ public class ManagementApiTransferTest {
     @RegisterExtension
     static final HashiCorpVaultEndToEndExtension VAULT_EXTENSION = new HashiCorpVaultEndToEndExtension();
 
+    @Order(4)
+    @RegisterExtension
+    static final KeycloakEndToEndExtension KEYCLOAK_EXTENSION = new KeycloakEndToEndExtension();
+
+
     @RegisterExtension
     static RuntimeExtension consumer = new RuntimePerClassExtension(
         new EmbeddedRuntime("consumer", CONNECTOR_MODULE_PATH)
                 .configurationProvider(CONSUMER::getConfiguration)
                 .configurationProvider(() -> CONSUMER_POSTGRESQL_EXTENSION.configFor(CONSUMER.getName()))
-                .configurationProvider(VAULT_EXTENSION::config));
+                .configurationProvider(VAULT_EXTENSION::config)
+                .configurationProvider(KEYCLOAK_EXTENSION::config)
+                .registerSystemExtension(ServiceExtension.class, new KeyCloakAuthenticationExtension()));
 
     @RegisterExtension
     protected static RuntimeExtension provider = new RuntimePerClassExtension(
@@ -82,10 +92,14 @@ public class ManagementApiTransferTest {
                     .configurationProvider(PROVIDER::getConfiguration)
                     .configurationProvider(() -> PROVIDER_POSTGRESQL_EXTENSION.configFor(PROVIDER.getName()))
                     .configurationProvider(VAULT_EXTENSION::config)
+                    .configurationProvider(KEYCLOAK_EXTENSION::config)
+                    .registerSystemExtension(ServiceExtension.class, new KeyCloakAuthenticationExtension())
                     .registerSystemExtension(ServiceExtension.class, PROVIDER.seedVaultKeys()));
 
     @Test
     public void shouldSupportPushTransfer() {
+        PROVIDER.setAuthorizationToken(KEYCLOAK_EXTENSION.getToken());
+        CONSUMER.setAuthorizationToken(KEYCLOAK_EXTENSION.getToken());
 
         final var providerDataSource = ClientAndServer.startClientAndServer(getFreePort());
         providerDataSource.when(request("/source")).respond(response("data"));
@@ -115,6 +129,9 @@ public class ManagementApiTransferTest {
 
     @Test
     public void shouldSupportPullTransfer() throws IOException {
+        PROVIDER.setAuthorizationToken(KEYCLOAK_EXTENSION.getToken());
+        CONSUMER.setAuthorizationToken(KEYCLOAK_EXTENSION.getToken());
+
         final var providerDataSource = ClientAndServer.startClientAndServer(getFreePort());
         providerDataSource.when(request("/source")).respond(response("data"));
         final var consumerEdrReceiver = ClientAndServer.startClientAndServer(getFreePort());
@@ -154,6 +171,37 @@ public class ManagementApiTransferTest {
         Assertions.assertThat(body).isEqualTo("data");
 
         consumerEdrReceiver.stop();
+
+    }
+
+    @Test
+    public void shouldFailToCreateAsset_InvalidToken() {
+        PROVIDER.setAuthorizationToken("random token");
+
+        final var providerDataSource = ClientAndServer.startClientAndServer(getFreePort());
+        providerDataSource.when(request("/source")).respond(response("data"));
+
+        final Map<String, Object> dataAddressProperties = Map.of(
+                "type", "HttpData",
+                "baseUrl", "http://localhost:%s/source".formatted(providerDataSource.getPort())
+        );
+
+        final var assetId = UUID.randomUUID().toString();
+        final Map<String, String> properties = Map.of("name", "description");
+
+        final JsonObject requestBody = Json.createObjectBuilder()
+                .add("@context", Json.createObjectBuilder()
+                        .add("@vocab", "https://w3id.org/edc/v0.0.1/ns/"))
+                .add("@id", assetId).add("properties", Json.createObjectBuilder(properties))
+                .add("dataAddress", Json.createObjectBuilder(dataAddressProperties))
+                .build();
+
+        PROVIDER.baseManagementRequest()
+                .contentType(ContentType.JSON).body(requestBody)
+                .when()
+                .post("/v3/assets", new Object[0])
+                .then()
+                .statusCode(401);
 
     }
 

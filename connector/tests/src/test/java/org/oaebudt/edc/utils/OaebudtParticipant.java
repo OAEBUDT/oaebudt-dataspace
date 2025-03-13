@@ -21,15 +21,21 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
+import org.jboss.resteasy.util.HttpHeaderNames;
 import org.jetbrains.annotations.NotNull;
 
 public class OaebudtParticipant extends Participant {
 
     public static final String API_KEY_HEADER_KEY = "X-Api-Key";
     public static final String API_KEY_HEADER_VALUE = "password";
+    private String token;
 
     private OaebudtParticipant() {
 
+    }
+
+    public void setAuthorizationToken(String token) {
+        this.token = token;
     }
 
     public ServiceExtension seedVaultKeys() {
@@ -83,7 +89,9 @@ public class OaebudtParticipant extends Participant {
         return this.enrichManagementRequest.apply(request);
     }
 
-    protected UnaryOperator<RequestSpecification> enrichManagementRequest = (r) -> r.headers(API_KEY_HEADER_KEY, API_KEY_HEADER_VALUE);
+    protected UnaryOperator<RequestSpecification> enrichManagementRequest = r ->
+            r.headers(API_KEY_HEADER_KEY, API_KEY_HEADER_VALUE,
+                    HttpHeaderNames.AUTHORIZATION, "Bearer " + token);
 
     private static class SeedVaultKeys implements ServiceExtension {
 

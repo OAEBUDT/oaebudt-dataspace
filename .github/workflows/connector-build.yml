@@ -59,11 +59,10 @@ jobs:
       - name: Build and Push Image
         uses: docker/build-push-action@v6
         env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ steps.short-sha.outputs.sha }}
         with:
-          context: .
-          file: ./launchers/runtime-embedded/Dockerfile
+          context: ./connector
+          file: ./connector/launchers/runtime-embedded/Dockerfile
           tags: |
             ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ steps.short-sha.outputs.sha }}
             ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest

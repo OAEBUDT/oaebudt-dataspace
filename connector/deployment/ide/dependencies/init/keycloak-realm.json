@@ -1,0 +1,76 @@
+[
+  {
+  "realm": "participant-a-realm",
+  "enabled": true,
+  "accessTokenLifespan": 1500,
+  "users": [
+    {
+      "username": "participant-a",
+      "email": "participant-a@localhost",
+      "emailVerified": false,
+      "firstName": "participant-a",
+      "lastName": "participant-a",
+      "enabled": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "participant-a",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["user"]
+    }
+  ],
+  "clients": [
+    {
+      "clientId": "participant-a-connector",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "redirectUris": ["http://localhost:8290/*"],
+      "webOrigins": ["http://localhost:8290"],
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "Ii8ya1wMHAzZQOPvVfTTlsIWauc8NFCb"
+    }
+  ]
+},
+  {
+    "realm": "participant-b-realm",
+    "enabled": true,
+    "accessTokenLifespan": 1500,
+    "users": [
+      {
+        "username": "participant-b",
+        "enabled": true,
+        "email": "participant-a@localhost",
+        "emailVerified": false,
+        "firstName": "participant-b",
+        "lastName": "participant-b",
+        "credentials": [
+          {
+            "type": "password",
+            "value": "participant-b",
+            "temporary": false
+          }
+        ],
+        "realmRoles": ["user"]
+      }
+    ],
+    "clients": [
+      {
+        "clientId": "participant-b-connector",
+        "enabled": true,
+        "protocol": "openid-connect",
+        "redirectUris": ["http://localhost:9290/*"],
+        "webOrigins": ["http://localhost:9290"],
+        "standardFlowEnabled": true,
+        "directAccessGrantsEnabled": true,
+        "serviceAccountsEnabled": true,
+        "clientAuthenticatorType": "client-secret",
+        "secret": "bKE6qbAz8Eugwvloklc03yikLDXHO2Qs"
+      }
+    ]
+  }
+]

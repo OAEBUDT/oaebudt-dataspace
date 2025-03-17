@@ -49,9 +49,9 @@ services:
     image: postgres:17.4
     container_name: participant-a-db
     environment:
-      POSTGRES_DB: participant_a
-      POSTGRES_USER: participant_a
-      POSTGRES_PASSWORD: participant_a
+      POSTGRES_DB: connector_a
+      POSTGRES_USER: connector_a
+      POSTGRES_PASSWORD: connector_a
     ports:
       - "5432:5432"
     volumes:
@@ -65,9 +65,9 @@ services:
     image: postgres:17.4
     container_name: participant-b-db
     environment:
-      POSTGRES_DB: participant_b
-      POSTGRES_USER: participant_b
-      POSTGRES_PASSWORD: participant_b
+      POSTGRES_DB: connector_b
+      POSTGRES_USER: connector_b
+      POSTGRES_PASSWORD: connector_b
     ports:
       - "6432:5432"
     volumes:
@@ -115,6 +115,50 @@ services:
       - sh
       - -c
       - 'apk add --no-cache openssl && vault server -dev & sleep 5 && sh /seed-vault.sh participant-b && tail -f /dev/null'
+
+  # Keycloak instance for participant A
+  participant-a-auth-api:
+    image: quay.io/keycloak/keycloak:26.1.4
+    container_name: participant-a-auth-api
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: participant_a
+      KC_BOOTSTRAP_ADMIN_PASSWORD: participant_a
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://participant-a-db/keycloak_a
+      KC_DB_USERNAME: keycloak_a
+      KC_DB_PASSWORD: keycloak_a
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./init/participant-a-keycloak-realm.json:/opt/keycloak/data/import/realm-config.json
+    restart: unless-stopped
+    depends_on:
+      - participant-a-db
+    networks:
+      - oaebudt-mvd
+    command: ["start-dev", "--import-realm"]
+
+  # Keycloak instance for participant B
+  participant-b-auth-api:
+    image: quay.io/keycloak/keycloak:26.1.4
+    container_name: participant-b-auth-api
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: participant_b
+      KC_BOOTSTRAP_ADMIN_PASSWORD: participant_b
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://participant-a-db/keycloak_b
+      KC_DB_USERNAME: keycloak_b
+      KC_DB_PASSWORD: keycloak_b
+    ports:
+      - "9090:8080"
+    volumes:
+      - ./init/participant-b-keycloak-realm.json:/opt/keycloak/data/import/realm-config.json
+    restart: unless-stopped
+    depends_on:
+      - participant-b-db
+    networks:
+      - oaebudt-mvd
+    command: ["start-dev", "--import-realm"]
 
 volumes:
   participant-a-db-data:

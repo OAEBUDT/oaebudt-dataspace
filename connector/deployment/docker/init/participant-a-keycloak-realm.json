@@ -1,0 +1,37 @@
+{
+  "realm": "participant-a-realm",
+  "enabled": true,
+  "accessTokenLifespan": 1500,
+  "users": [
+    {
+      "username": "participant-a",
+      "email": "participant-a@participant-a",
+      "emailVerified": false,
+      "firstName": "participant-a",
+      "lastName": "participant-a",
+      "enabled": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "participant-a",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["user"]
+    }
+  ],
+  "clients": [
+    {
+      "clientId": "participant-a-connector",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "redirectUris": ["http://participant-a-connector:8290/*"],
+      "webOrigins": ["http://participant-a-connector:8290"],
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "Ii8ya1wMHAzZQOPvVfTTlsIWauc8NFCb"
+    }
+  ]
+}

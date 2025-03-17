@@ -15,8 +15,10 @@ dependencyResolutionManagement {
 }
 
 include("extensions:keycloak-auth")
+
 include(":launchers:controlplane")
 include(":launchers:dataplane")
 include(":launchers:runtime-embedded")
-include("tests")
+include(":launchers:identity-hub")
 
+include("tests")

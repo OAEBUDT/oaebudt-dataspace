@@ -6,16 +6,21 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.Matchers.emptyString;
 import static org.mockserver.model.BinaryBody.binary;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.dockerjava.zerodep.shaded.org.apache.hc.core5.http.HttpStatus;
 import io.restassured.http.ContentType;
 import jakarta.json.Json;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -43,6 +48,10 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @EndToEndTest
 class ManagementApiTransferTest {
 
+    public static final String DCAT_TYPE = "[0].@type";
+    public static final String CATALOG = "dcat:Catalog";
+    public static final String DATASET_ASSET_ID = "[0].'dcat:dataset'.@id";
+
     private static final String CONNECTOR_MODULE_PATH = ":launcher:runtime-embedded";
 
     private static final OaebudtParticipant PROVIDER = OaebudtParticipant.Builder.newInstance()
@@ -51,6 +60,10 @@ class ManagementApiTransferTest {
 
     private static final OaebudtParticipant CONSUMER = OaebudtParticipant.Builder.newInstance()
             .id("consumer").name("consumer")
+            .build();
+
+    private static final OaebudtParticipant PROVIDER_FC = OaebudtParticipant.Builder.newInstance()
+            .id("provider_fc").name("provider_fc")
             .build();
 
     @Order(0)
@@ -63,16 +76,21 @@ class ManagementApiTransferTest {
 
     @Order(2)
     @RegisterExtension
-    static final BeforeAllCallback CREATE_DATABASES = context -> {
-        PROVIDER_POSTGRESQL_EXTENSION.createDatabase(PROVIDER.getName());
-        CONSUMER_POSTGRESQL_EXTENSION.createDatabase(CONSUMER.getName());
-    };
+    static final PostgresEndToEndExtension PROVIDER_FC_POSTGRESQL_EXTENSION = new PostgresEndToEndExtension();
 
     @Order(3)
     @RegisterExtension
-    static final HashiCorpVaultEndToEndExtension VAULT_EXTENSION = new HashiCorpVaultEndToEndExtension();
+    static final BeforeAllCallback CREATE_DATABASES = context -> {
+        PROVIDER_POSTGRESQL_EXTENSION.createDatabase(PROVIDER.getName());
+        CONSUMER_POSTGRESQL_EXTENSION.createDatabase(CONSUMER.getName());
+        PROVIDER_FC_POSTGRESQL_EXTENSION.createDatabase(PROVIDER_FC.getName());
+    };
 
     @Order(4)
+    @RegisterExtension
+    static final HashiCorpVaultEndToEndExtension VAULT_EXTENSION = new HashiCorpVaultEndToEndExtension();
+
+    @Order(5)
     @RegisterExtension
     static final KeycloakEndToEndExtension KEYCLOAK_EXTENSION = new KeycloakEndToEndExtension();
 
@@ -96,6 +114,15 @@ class ManagementApiTransferTest {
                     .registerSystemExtension(ServiceExtension.class, new KeyCloakAuthenticationExtension())
                     .registerSystemExtension(ServiceExtension.class, PROVIDER.seedVaultKeys()));
 
+    @RegisterExtension
+    protected static RuntimeExtension providerFc = new RuntimePerClassExtension( //For fedearted catalog test
+            new EmbeddedRuntime("provider_fc", CONNECTOR_MODULE_PATH)
+                    .configurationProvider(PROVIDER_FC::getConfiguration)
+                    .configurationProvider(() -> PROVIDER_FC_POSTGRESQL_EXTENSION.configFor(PROVIDER_FC.getName()))
+                    .configurationProvider(VAULT_EXTENSION::config)
+                    .configurationProvider(KEYCLOAK_EXTENSION::config)
+                    .registerSystemExtension(ServiceExtension.class, new KeyCloakAuthenticationExtension()));
+
     @Test
     public void shouldSupportPushTransfer() {
         PROVIDER.setAuthorizationToken(KEYCLOAK_EXTENSION.getToken());
@@ -110,7 +137,7 @@ class ManagementApiTransferTest {
                  "type", "HttpData",
                 "baseUrl", "http://localhost:%s/source".formatted(providerDataSource.getPort())
         );
-        final String assetId = createProviderAsset(dataAddressProperties);
+        final String assetId = createProviderAsset(PROVIDER, dataAddressProperties);
 
         CONSUMER.requestAssetFrom(assetId, PROVIDER)
                 .withTransferType("HttpData-PUSH")
@@ -141,7 +168,7 @@ class ManagementApiTransferTest {
                 "type", "HttpData",
                 "baseUrl", "http://localhost:%s/source".formatted(providerDataSource.getPort())
         );
-        final String assetId = createProviderAsset(dataAddressProperties);
+        final String assetId = createProviderAsset(PROVIDER, dataAddressProperties);
 
         final String transferProcessId = CONSUMER.requestAssetFrom(assetId, PROVIDER)
                 .withTransferType("HttpData-PULL")
@@ -175,6 +202,43 @@ class ManagementApiTransferTest {
     }
 
     @Test
+    public void shouldGetContractOfferViaFederatedCatalog() {
+        PROVIDER_FC.setAuthorizationToken(KEYCLOAK_EXTENSION.getToken());
+
+        final Map<String, Object> dataAddressProperties = Map.of(
+                "type", "HttpData-PULL",
+                "baseUrl", "http://localhost:8080/source"
+        );
+        final String assetId = createProviderAsset(PROVIDER_FC, dataAddressProperties);
+
+        final JsonObject requestBody = Json.createObjectBuilder()
+                .add("@context", Json.createObjectBuilder()
+                        .add("@vocab", "https://w3id.org/edc/v0.0.1/ns/"))
+                .add("@type", "QuerySpec")
+                .build();
+
+        await()
+                .atMost(Duration.ofSeconds(200))
+                .pollDelay(Duration.ofSeconds(5))
+                .ignoreExceptions()
+                .until(() -> given()
+                                .baseUri(PROVIDER_FC.getCatalogUrl().toString())
+                                .contentType(ContentType.JSON).body(requestBody)
+                                .headers(OaebudtParticipant.API_KEY_HEADER_KEY, OaebudtParticipant.API_KEY_HEADER_VALUE)
+                                .when()
+                                .post("/v1alpha/catalog/query")
+                                .then()
+                                .log().ifError()
+                                .statusCode(HttpStatus.SC_OK)
+                                .body(DCAT_TYPE, not(emptyString()))
+                                .body(DCAT_TYPE, is(CATALOG))
+                                .extract()
+                                .jsonPath()
+                                .get(DATASET_ASSET_ID),
+                        id -> id.equals(assetId));
+    }
+
+    @Test
     public void shouldFailToCreateAsset_InvalidToken() {
         PROVIDER.setAuthorizationToken("random token");
 
@@ -205,12 +269,12 @@ class ManagementApiTransferTest {
 
     }
 
-    private String createProviderAsset(final Map<String, Object> dataAddressProperties) {
+    private String createProviderAsset(OaebudtParticipant participant, final Map<String, Object> dataAddressProperties) {
         final var assetId = UUID.randomUUID().toString();
 
-        final var noConstraintPolicyId = PROVIDER.createPolicyDefinition(PolicyFixtures.noConstraintPolicy());
-        PROVIDER.createAsset(assetId, Map.of("name", "description"), dataAddressProperties);
-        PROVIDER.createContractDefinition(assetId, UUID.randomUUID().toString(), noConstraintPolicyId, noConstraintPolicyId);
+        final var noConstraintPolicyId = participant.createPolicyDefinition(PolicyFixtures.noConstraintPolicy());
+        participant.createAsset(assetId, Map.of("name", "description"), dataAddressProperties);
+        participant.createContractDefinition(assetId, UUID.randomUUID().toString(), noConstraintPolicyId, noConstraintPolicyId);
         return assetId;
     }
 

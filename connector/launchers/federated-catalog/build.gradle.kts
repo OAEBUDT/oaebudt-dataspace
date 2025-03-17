@@ -12,6 +12,10 @@ dependencies {
     runtimeOnly(libs.edc.fc.core)
     runtimeOnly(libs.edc.fc.ext.api)
     implementation(libs.edc.fc.spi.crawler)
+
+    testImplementation(libs.edc.junit)
+    testImplementation(libs.junit.jupiter)
+    testImplementation(libs.assertj)
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {

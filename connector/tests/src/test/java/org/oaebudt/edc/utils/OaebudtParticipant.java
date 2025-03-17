@@ -6,6 +6,7 @@ import static org.eclipse.edc.util.io.Ports.getFreePort;
 import io.restassured.RestAssured;
 import io.restassured.specification.RequestSpecification;
 
+import java.net.URI;
 import java.security.AsymmetricKey;
 import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
@@ -13,6 +14,7 @@ import java.security.PublicKey;
 import java.util.Base64;
 import java.util.Map;
 import java.util.function.UnaryOperator;
+import org.eclipse.edc.connector.controlplane.test.system.utils.LazySupplier;
 import org.eclipse.edc.connector.controlplane.test.system.utils.Participant;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.EdcException;
@@ -21,6 +23,7 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
+import org.eclipse.edc.util.io.Ports;
 import org.jboss.resteasy.util.HttpHeaderNames;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,9 +32,18 @@ public class OaebudtParticipant extends Participant {
     public static final String API_KEY_HEADER_KEY = "X-Api-Key";
     public static final String API_KEY_HEADER_VALUE = "password";
     private String token;
+    protected LazySupplier<URI> catalogServerUri = new LazySupplier<>(() ->
+            URI.create("http://localhost:" + Ports.getFreePort() + "/catalog"));
+
+    protected LazySupplier<URI> controlPlaneControl = new LazySupplier<>(() ->
+            URI.create("http://localhost:" + Ports.getFreePort() + "/control"));
 
     private OaebudtParticipant() {
 
+    }
+
+    public URI getCatalogUrl() {
+        return catalogServerUri.get();
     }
 
     public void setAuthorizationToken(String token) {
@@ -58,8 +70,8 @@ public class OaebudtParticipant extends Participant {
                 entry("edc.participant.id", id),
                 entry("web.http.path", "/api"),
                 entry("web.http.port", getFreePort() + ""),
-                entry("web.http.control.path", "/control"),
-                entry("web.http.control.port", getFreePort() + ""),
+                entry("web.http.control.path", controlPlaneControl.get().getPath()),
+                entry("web.http.control.port", controlPlaneControl.get().getPort() + ""),
                 entry("web.http.management.path", controlPlaneManagement.get().getPath()),
                 entry("web.http.management.port", controlPlaneManagement.get().getPort() + ""),
                 entry("web.http.protocol.path", controlPlaneProtocol.get().getPath()),
@@ -75,10 +87,12 @@ public class OaebudtParticipant extends Participant {
                 entry("edc.iam.sts.publickey.id", "dummy-key"),
                 entry("edc.iam.sts.publickey.alias", "dummy-key"),
                 entry("edc.iam.sts.privatekey.alias", "dummy-key"),
-                entry("web.http.catalog.port", getFreePort() + ""),
-                entry("web.http.catalog.path", "/catalog"),
+                entry("web.http.catalog.port", catalogServerUri.get().getPort() + ""),
+                entry("web.http.catalog.path", catalogServerUri.get().getPath()),
                 entry("edc.runtime.id", id),
-                entry("edc.dpf.selector.url", "http://localhost:" + getFreePort() + "/control/v1/dataplanes")
+                entry("edc.dpf.selector.url", "http://localhost:" + controlPlaneControl.get().getPort() + "/control/v1/dataplanes"),
+                entry("fc.participants.list", controlPlaneProtocol.get().toString()), //temp for testing crawler
+                entry("edc.dsp.callback.address", controlPlaneProtocol.get().toString())
         );
 
         return ConfigFactory.fromMap(map);

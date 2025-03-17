@@ -4,6 +4,6 @@ variable "ecr_name" {
 }
 
 variable "ecr_tags" {
-  description = "A map of tags to apply to AWS resources of github_oidc module"
+  description = "A map of tags to apply to AWS resources of the ecr module"
   type        = map(string)
 }

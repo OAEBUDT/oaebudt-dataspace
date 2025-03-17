@@ -23,7 +23,7 @@ variable "iam_github_oidc_ecr_policy_name" {
   description = "The name of the IAM policy for GitHub Actions to access ECR"
 }
 
-variable "github_oidc_tags" {
+variable "tags" {
     description = "A map of tags to apply to AWS resources of github_oidc module"
     type        = map(string)
 }

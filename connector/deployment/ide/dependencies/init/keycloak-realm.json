@@ -44,7 +44,7 @@
       {
         "username": "participant-b",
         "enabled": true,
-        "email": "participant-a@localhost",
+        "email": "participant-b@localhost",
         "emailVerified": false,
         "firstName": "participant-b",
         "lastName": "participant-b",

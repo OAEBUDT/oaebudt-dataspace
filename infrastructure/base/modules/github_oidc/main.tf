@@ -7,7 +7,7 @@ resource "aws_iam_openid_connect_provider" "github_oidc" {
 }
 
 resource "aws_iam_role" "github_actions_assume_role" {
-  name = var.iam_github_oidc_name
+  name = var.iam_github_oidc_role_name
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -23,7 +23,7 @@ resource "aws_iam_role" "github_actions_assume_role" {
             "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
           }
           StringLike = {
-            "token.actions.githubusercontent.com:sub" = "repo:${var.github_oidc_repo_name}:*"
+            "token.actions.githubusercontent.com:sub" = "repo:${var.github_repo_name}:*"
           }
         }
       }

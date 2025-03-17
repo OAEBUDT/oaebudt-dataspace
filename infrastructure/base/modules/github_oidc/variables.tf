@@ -3,17 +3,17 @@ variable "github_oidc_provider_url" {
   description = "The URL of the OIDC provider used by GitHub"
 }
 
-variable "github_oidc_repo_name" {
+variable "github_repo_name" {
   type        = string
   description = "The name of the GitHub repository used for OIDC, in the format 'org/repo'."
 
   validation {
-    condition     = can(regex("^([a-zA-Z0-9_.-]+)/([a-zA-Z0-9_.-]+)$", var.github_oidc_repo_name))
+    condition     = can(regex("^([a-zA-Z0-9_.-]+)/([a-zA-Z0-9_.-]+)$", var.github_repo_name))
     error_message = "The repository name must follow the format 'org/repo'"
   }
 }
 
-variable "iam_github_oidc_name" {
+variable "iam_github_oidc_role_name" {
   type        = string
   description = "Name of role used by GitHub OIDC"
 }

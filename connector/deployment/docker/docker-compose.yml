@@ -56,6 +56,7 @@ services:
       - "5432:5432"
     volumes:
       - participant-a-db-data:/var/lib/postgresql/data
+      - ./init/participant-a-init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
     restart: unless-stopped
     networks:
       - oaebudt-mvd
@@ -72,6 +73,7 @@ services:
       - "6432:5432"
     volumes:
       - participant-b-db-data:/var/lib/postgresql/data
+      - ./init/participant-b-init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
     restart: unless-stopped
     networks:
       - oaebudt-mvd
@@ -146,7 +148,7 @@ services:
       KC_BOOTSTRAP_ADMIN_USERNAME: participant_b
       KC_BOOTSTRAP_ADMIN_PASSWORD: participant_b
       KC_DB: postgres
-      KC_DB_URL: jdbc:postgresql://participant-a-db/keycloak_b
+      KC_DB_URL: jdbc:postgresql://participant-b-db/keycloak_b
       KC_DB_USERNAME: keycloak_b
       KC_DB_PASSWORD: keycloak_b
     ports:

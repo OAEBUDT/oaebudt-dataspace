@@ -15,7 +15,7 @@ dependencyResolutionManagement {
 }
 
 include(":extensions:keycloak-auth")
-
+include(":extensions:superuser-seed")
 
 include(":launchers:controlplane")
 include(":launchers:dataplane")

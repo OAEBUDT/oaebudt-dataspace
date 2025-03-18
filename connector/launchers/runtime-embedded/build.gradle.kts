@@ -20,6 +20,7 @@ dependencies {
         exclude(group = "org.eclipse.edc", "data-plane-selector-client")
     }
     runtimeOnly(project(":extensions:keycloak-auth"))
+
     runtimeOnly(libs.edc.vault.hashicorp)
     runtimeOnly(libs.edc.bom.controlplane.sql)
     runtimeOnly(libs.edc.bom.dataplane.sql)

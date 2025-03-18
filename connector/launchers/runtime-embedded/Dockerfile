@@ -15,6 +15,10 @@ COPY ./launchers/controlplane ./launchers/controlplane
 COPY ./launchers/dataplane ./launchers/dataplane
 COPY ./launchers/runtime-embedded ./launchers/runtime-embedded
 
+# Copy connector extension
+COPY ./extensions/keycloak-auth ./extensions/keycloak-auth
+
+
 # Run Gradle to build the JAR with parallel execution for faster builds
 RUN ./gradlew clean :launchers:runtime-embedded:build --parallel --no-daemon
 

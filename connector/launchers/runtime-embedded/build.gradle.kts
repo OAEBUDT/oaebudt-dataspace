@@ -22,7 +22,6 @@ repositories {
     mavenCentral()
 }
 
-
 dependencies {
     runtimeOnly(project(":launchers:controlplane")) {
         // this will remove the RemoteDataPlaneSelectorService

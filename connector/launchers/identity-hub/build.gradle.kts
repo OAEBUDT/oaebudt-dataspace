@@ -9,6 +9,8 @@ repositories {
 }
 
 dependencies {
+//    runtimeOnly(project(":extensions:superuser-seed"))
+
     runtimeOnly(libs.edc.bom.identityhub)
     runtimeOnly(libs.edc.vault.hashicorp)
     runtimeOnly(libs.edc.bom.identityhub.sql)

@@ -24,5 +24,7 @@ repositories {
 dependencies {
     implementation(libs.edc.ih.spi.store)
     testImplementation(libs.edc.junit)
+    testImplementation(libs.assertj)
+    testImplementation(libs.mockito.core)
 
 }

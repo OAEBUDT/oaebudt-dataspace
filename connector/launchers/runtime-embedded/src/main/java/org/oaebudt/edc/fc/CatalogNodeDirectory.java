@@ -27,7 +27,7 @@ public class CatalogNodeDirectory implements TargetNodeDirectory {
     }
 
     @Override
-    public void insert(TargetNode targetNode) {
+    public void insert(TargetNode node) {
 
     }
 }

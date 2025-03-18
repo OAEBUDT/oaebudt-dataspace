@@ -218,7 +218,7 @@ class ManagementApiTransferTest {
                 .build();
 
         await()
-                .atMost(Duration.ofSeconds(200))
+                .atMost(Duration.ofSeconds(60))
                 .pollDelay(Duration.ofSeconds(5))
                 .ignoreExceptions()
                 .until(() -> given()

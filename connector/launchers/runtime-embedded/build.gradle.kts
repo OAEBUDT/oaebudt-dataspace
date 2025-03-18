@@ -19,12 +19,19 @@ dependencies {
         // this will remove the RemoteDataPlaneSelectorService
         exclude(group = "org.eclipse.edc", "data-plane-selector-client")
     }
-    runtimeOnly(project(":launchers:federated-catalog"))
     runtimeOnly(project(":extensions:keycloak-auth"))
     runtimeOnly(libs.edc.vault.hashicorp)
     runtimeOnly(libs.edc.bom.controlplane.sql)
     runtimeOnly(libs.edc.bom.dataplane.sql)
     implementation(libs.edc.iam.mock)
+
+    runtimeOnly(libs.edc.fc.core)
+    runtimeOnly(libs.edc.fc.ext.api)
+    implementation(libs.edc.fc.spi.crawler)
+
+    testImplementation(libs.edc.junit)
+    testImplementation(libs.junit.jupiter)
+    testImplementation(libs.assertj)
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {

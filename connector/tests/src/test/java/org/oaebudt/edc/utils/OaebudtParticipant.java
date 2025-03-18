@@ -92,7 +92,8 @@ public class OaebudtParticipant extends Participant {
                 entry("edc.runtime.id", id),
                 entry("edc.dpf.selector.url", "http://localhost:" + controlPlaneControl.get().getPort() + "/control/v1/dataplanes"),
                 entry("fc.participants.list", controlPlaneProtocol.get().toString()), //temp for testing crawler
-                entry("edc.dsp.callback.address", controlPlaneProtocol.get().toString())
+                entry("edc.dsp.callback.address", controlPlaneProtocol.get().toString()),
+                entry("edc.catalog.cache.execution.period.seconds", 60 + "")
         );
 
         return ConfigFactory.fromMap(map);

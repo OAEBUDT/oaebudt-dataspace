@@ -216,23 +216,20 @@ class ManagementApiTransferTest {
                         .add("@vocab", "https://w3id.org/edc/v0.0.1/ns/"))
                 .add("@type", "QuerySpec")
                 .build();
-        await()
-                .ignoreExceptions()
-                .until(() -> given()
-                                .baseUri(PROVIDER_FC.getCatalogUrl().toString())
-                                .contentType(ContentType.JSON).body(requestBody)
-                                .headers(OaebudtParticipant.API_KEY_HEADER_KEY, OaebudtParticipant.API_KEY_HEADER_VALUE)
-                                .when()
-                                .post("/v1alpha/catalog/query")
-                                .then()
-                                .log().ifError()
-                                .statusCode(HttpStatus.SC_OK)
-                                .body(DCAT_TYPE, not(emptyString()))
-                                .body(DCAT_TYPE, is(CATALOG))
-                                .extract()
-                                .jsonPath()
-                                .get(DATASET_ASSET_ID),
-                        id -> id.equals(assetId));
+
+        await().untilAsserted(() ->
+                given()
+                        .baseUri(PROVIDER_FC.getCatalogUrl().toString())
+                        .contentType(ContentType.JSON).body(requestBody)
+                        .headers(OaebudtParticipant.API_KEY_HEADER_KEY, OaebudtParticipant.API_KEY_HEADER_VALUE)
+                        .when()
+                        .post("/v1alpha/catalog/query")
+                        .then()
+                        .log().ifValidationFails()
+                        .statusCode(HttpStatus.SC_OK)
+                        .body(DCAT_TYPE, not(emptyString()))
+                        .body(DCAT_TYPE, is(CATALOG))
+                        .body(DATASET_ASSET_ID, is(assetId)));
     }
 
     @Test

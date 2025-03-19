@@ -2,6 +2,7 @@ package org.oaebudt.edc.fc;
 
 import org.eclipse.edc.crawler.spi.TargetNode;
 import org.eclipse.edc.crawler.spi.TargetNodeDirectory;
+import org.eclipse.edc.spi.constants.CoreConstants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +22,7 @@ public class CatalogNodeDirectory implements TargetNodeDirectory {
         protocolList.add("dataspace-protocol-http");
 
         return participantDspEndpoints.stream()
-                .map(dspEndpoint -> new TargetNode("https://w3id.org/edc/v0.0.1/ns/",
+                .map(dspEndpoint -> new TargetNode(CoreConstants.EDC_NAMESPACE,
                         "participant-a",
                         dspEndpoint, protocolList)).collect(Collectors.toList());
     }

@@ -216,10 +216,7 @@ class ManagementApiTransferTest {
                         .add("@vocab", "https://w3id.org/edc/v0.0.1/ns/"))
                 .add("@type", "QuerySpec")
                 .build();
-
         await()
-                .atMost(Duration.ofSeconds(90))
-                .pollDelay(Duration.ofSeconds(5))
                 .ignoreExceptions()
                 .until(() -> given()
                                 .baseUri(PROVIDER_FC.getCatalogUrl().toString())

@@ -14,7 +14,8 @@ dependencyResolutionManagement {
     }
 }
 
-include("extensions:keycloak-auth")
+include(":extensions:keycloak-auth")
+include(":extensions:catalog-node-resolver")
 include(":launchers:controlplane")
 include(":launchers:dataplane")
 include(":launchers:runtime-embedded")

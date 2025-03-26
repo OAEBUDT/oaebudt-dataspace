@@ -1,3 +1,4 @@
+# AWS ECR Repository
 resource "aws_ecr_repository" "oaebudt_dataspace_ecr" {
   name                 = var.ecr_name
   image_tag_mutability = "MUTABLE"
@@ -6,5 +7,5 @@ resource "aws_ecr_repository" "oaebudt_dataspace_ecr" {
     encryption_type = "AES256"
   }
 
-  tags = var.aws_tags
+  tags = var.ecr_tags
 }

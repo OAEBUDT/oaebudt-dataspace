@@ -10,6 +10,6 @@ CREATE USER identityhub_b WITH PASSWORD 'identityhub_b';
 CREATE DATABASE identityhub_b OWNER identityhub_b;
 GRANT ALL PRIVILEGES ON DATABASE identityhub_b TO identityhub_b;
 
-CREATE USER issuerservice WITH PASSWORD 'issuerservice';
-CREATE DATABASE issuerservice OWNER issuerservice;
-GRANT ALL PRIVILEGES ON DATABASE issuerservice TO issuerservice;
+CREATE USER keycloak WITH PASSWORD 'keycloak';
+CREATE DATABASE keycloak OWNER keycloak;
+GRANT ALL PRIVILEGES ON DATABASE keycloak TO keycloak;

@@ -1,6 +1,7 @@
 plugins {
     `java-library`
     id("application")
+    id("jacoco")
     alias(libs.plugins.shadow)
 }
 
@@ -19,6 +20,10 @@ dependencies {
         // this will remove the RemoteDataPlaneSelectorService
         exclude(group = "org.eclipse.edc", "data-plane-selector-client")
     }
+
+    // runtimeOnly(project(":extensions:keycloak-auth"))
+    runtimeOnly(project(":extensions:catalog-node-resolver"))
+    
     runtimeOnly(libs.edc.vault.hashicorp)
 }
 

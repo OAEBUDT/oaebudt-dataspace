@@ -37,7 +37,8 @@ services:
       - sh
       - -c
       - 'apk add --no-cache openssl && vault server -dev & sleep 5 && sh /seed-vault.sh && tail -f /dev/null'
-
+      
+  # DID issuer 
   did-issuer:
     image: nginx:1.27-alpine
     container_name: did-issuer
@@ -49,6 +50,28 @@ services:
       - ./did-issuer/did.json:/var/www/.well-known/did.json:ro
     networks:
       - oaebudt-mvd
+
+#   # Keycloak instance for participant A and B
+#   participants-auth-api:
+#     image: quay.io/keycloak/keycloak:26.1.4
+#     container_name: participants-auth-api
+#     environment:
+#       KC_BOOTSTRAP_ADMIN_USERNAME: participant_a_b
+#       KC_BOOTSTRAP_ADMIN_PASSWORD: participant_a_b
+#       KC_DB: postgres
+#       KC_DB_URL: jdbc:postgresql://participants-db/keycloak
+#       KC_DB_USERNAME: keycloak
+#       KC_DB_PASSWORD: keycloak
+#     ports:
+#       - "8080:8080"
+#     volumes:
+#       - ./init/keycloak-realm.json:/opt/keycloak/data/import/realm-config.json
+#     restart: unless-stopped
+#     depends_on:
+#       - participants-db
+#     networks:
+#       - oaebudt-mvd
+#     command: ["start-dev", "--import-realm"]
 
 volumes:
   participants-db-data:

@@ -6,7 +6,7 @@ plugins {
 
 dependencies {
     runtimeOnly(libs.edc.bom.dataplane)
-//    runtimeOnly(libs.edc.dataplane.v2)
+    runtimeOnly(libs.edc.dataplane.v2)
     runtimeOnly(libs.edc.bom.dataplane.sql)
 }
 

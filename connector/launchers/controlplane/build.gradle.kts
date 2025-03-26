@@ -4,12 +4,11 @@ plugins {
     alias(libs.plugins.shadow)
 }
 
-repositories {
-    mavenCentral()
-}
-
 dependencies {
     runtimeOnly(libs.edc.bom.controlplane)
+//    runtimeOnly(libs.edc.api.secrets)
+    runtimeOnly(libs.edc.bom.controlplane.sql)
+
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {

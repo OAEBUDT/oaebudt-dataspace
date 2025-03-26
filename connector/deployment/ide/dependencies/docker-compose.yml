@@ -3,11 +3,11 @@ services:
   # PostgreSQL instance for participant A
   participants-db:
     image: postgres:17.4
-    container_name: participant-a-db
+    container_name: participants-db
     environment:
-      POSTGRES_DB: participant_a
-      POSTGRES_USER: participant_a
-      POSTGRES_PASSWORD: participant_a
+      POSTGRES_DB: connector_a
+      POSTGRES_USER: connector_a
+      POSTGRES_PASSWORD: connector_a
     ports:
       - "5432:5432"
     volumes:
@@ -29,7 +29,6 @@ services:
     cap_add:
       - IPC_LOCK
     volumes:
-      - participants-vault-data:/vault/data
       - ./init/seed-vault.sh:/seed-vault.sh
     restart: unless-stopped
     networks:
@@ -39,9 +38,20 @@ services:
       - -c
       - 'apk add --no-cache openssl && vault server -dev & sleep 5 && sh /seed-vault.sh && tail -f /dev/null'
 
+  did-issuer:
+    image: nginx:1.27-alpine
+    container_name: did-issuer
+    restart: unless-stopped
+    ports:
+      - "19999:80"
+    volumes:
+      - ./did-issuer/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./did-issuer/did.json:/var/www/.well-known/did.json:ro
+    networks:
+      - oaebudt-mvd
+
 volumes:
   participants-db-data:
-  participants-vault-data:
 
 networks:
   oaebudt-mvd:

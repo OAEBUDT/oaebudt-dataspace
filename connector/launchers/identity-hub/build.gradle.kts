@@ -13,9 +13,9 @@ dependencies {
     runtimeOnly(libs.edc.vault.hashicorp)
     runtimeOnly(libs.edc.bom.identityhub.sql)
 
-    testImplementation(libs.edc.lib.crypto)
-    testImplementation(libs.edc.lib.keys)
-    testImplementation(libs.mockito.core)
+//    testImplementation(libs.edc.lib.crypto)
+//    testImplementation(libs.edc.lib.keys)
+//    testImplementation(libs.mockito.core)
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {

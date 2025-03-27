@@ -81,7 +81,7 @@ jobs:
       - name: Run E2E Tests
         run: ./gradlew :tests:test --stacktrace
 
-      - name: Publish E2E Tests Results
+      - name: Publish Tests Results
         uses: dorny/test-reporter@v1
         if: always() # Ensures the results are published regardless of test outcome
         with:

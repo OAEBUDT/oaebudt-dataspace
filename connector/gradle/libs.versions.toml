@@ -23,7 +23,7 @@ edc-core-spi = { module = "org.eclipse.edc:core-spi", version.ref = "edc" }
 edc-auth-spi = { module = "org.eclipse.edc:auth-spi", version.ref = "edc" }
 nimbus-jose-jwt = { module = "com.nimbusds:nimbus-jose-jwt", version.ref = "nimbus-jwt"}
 nimbus-oauth2-oidc = { module = "com.nimbusds:oauth2-oidc-sdk", version.ref = "nimbus-oauth2-oidc"}
-
+edc-dataplane-v2 = { module = "org.eclipse.edc:data-plane-public-api-v2", version.ref = "edc" }
 edc-dcp-core = { module = "org.eclipse.edc:identity-trust-core", version.ref = "edc" }
 edc-spi-identity-trust = { module = "org.eclipse.edc:identity-trust-spi", version.ref = "edc" }
 edc-spi-transform = { module = "org.eclipse.edc:transform-spi", version.ref = "edc" }

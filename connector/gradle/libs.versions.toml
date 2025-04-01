@@ -11,6 +11,7 @@ nimbus-oauth2-oidc = "11.3"
 testcontainers-keycloak = "3.4.0"
 mockito = "5.16.0"
 jacoco = "0.8.12"
+postgres = "42.7.5"
 
 [libraries]
 # upstream EDC dependencies
@@ -20,6 +21,7 @@ edc-core-spi = { module = "org.eclipse.edc:core-spi", version.ref = "edc" }
 edc-auth-spi = { module = "org.eclipse.edc:auth-spi", version.ref = "edc" }
 nimbus-jose-jwt = { module = "com.nimbusds:nimbus-jose-jwt", version.ref = "nimbus-jwt"}
 nimbus-oauth2-oidc = { module = "com.nimbusds:oauth2-oidc-sdk", version.ref = "nimbus-oauth2-oidc"}
+postgres = { module = "org.postgresql:postgresql", version.ref = "postgres" }
 
 #Federated catalog modules
 edc-fc-core = { module = "org.eclipse.edc:federated-catalog-core", version.ref = "edc" }

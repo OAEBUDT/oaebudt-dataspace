@@ -20,13 +20,13 @@ import jakarta.json.Json;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
 import java.io.IOException;
-import java.time.Duration;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import org.assertj.core.api.Assertions;
 import org.eclipse.edc.connector.controlplane.test.system.utils.PolicyFixtures;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
+import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
@@ -36,7 +36,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockserver.integration.ClientAndServer;
-import org.oaebudt.edc.keycloak.KeyCloakAuthenticationExtension;
 import org.oaebudt.edc.utils.HashiCorpVaultEndToEndExtension;
 import org.oaebudt.edc.utils.KeycloakEndToEndExtension;
 import org.oaebudt.edc.utils.OaebudtParticipant;
@@ -46,13 +45,14 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
 @EndToEndTest
+@PostgresqlIntegrationTest
 class ManagementApiTransferTest {
 
     public static final String DCAT_TYPE = "[0].@type";
     public static final String CATALOG = "dcat:Catalog";
     public static final String DATASET_ASSET_ID = "[0].'dcat:dataset'.@id";
 
-    private static final String CONNECTOR_MODULE_PATH = ":launcher:runtime-embedded";
+    private static final String CONNECTOR_MODULE_PATH = ":launchers:runtime-embedded";
 
     private static final OaebudtParticipant PROVIDER = OaebudtParticipant.Builder.newInstance()
             .id("provider").name("provider")
@@ -101,8 +101,7 @@ class ManagementApiTransferTest {
                 .configurationProvider(CONSUMER::getConfiguration)
                 .configurationProvider(() -> CONSUMER_POSTGRESQL_EXTENSION.configFor(CONSUMER.getName()))
                 .configurationProvider(VAULT_EXTENSION::config)
-                .configurationProvider(KEYCLOAK_EXTENSION::config)
-                .registerSystemExtension(ServiceExtension.class, new KeyCloakAuthenticationExtension()));
+                .configurationProvider(KEYCLOAK_EXTENSION::config));
 
     @RegisterExtension
     protected static RuntimeExtension provider = new RuntimePerClassExtension(
@@ -111,7 +110,6 @@ class ManagementApiTransferTest {
                     .configurationProvider(() -> PROVIDER_POSTGRESQL_EXTENSION.configFor(PROVIDER.getName()))
                     .configurationProvider(VAULT_EXTENSION::config)
                     .configurationProvider(KEYCLOAK_EXTENSION::config)
-                    .registerSystemExtension(ServiceExtension.class, new KeyCloakAuthenticationExtension())
                     .registerSystemExtension(ServiceExtension.class, PROVIDER.seedVaultKeys()));
 
     @RegisterExtension
@@ -120,8 +118,7 @@ class ManagementApiTransferTest {
                     .configurationProvider(PROVIDER_FC::getConfiguration)
                     .configurationProvider(() -> PROVIDER_FC_POSTGRESQL_EXTENSION.configFor(PROVIDER_FC.getName()))
                     .configurationProvider(VAULT_EXTENSION::config)
-                    .configurationProvider(KEYCLOAK_EXTENSION::config)
-                    .registerSystemExtension(ServiceExtension.class, new KeyCloakAuthenticationExtension()));
+                    .configurationProvider(KEYCLOAK_EXTENSION::config));
 
     @Test
     public void shouldSupportPushTransfer() {

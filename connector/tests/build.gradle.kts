@@ -1,3 +1,8 @@
+plugins {
+    `java-library`
+    `java-test-fixtures`
+}
+
 
 dependencies {
     testImplementation(libs.edc.boot.lib)
@@ -13,7 +18,7 @@ dependencies {
     testImplementation(libs.testcontainers.postgresql)
     testImplementation(libs.testcontainers.hashicorp.vault)
     testImplementation(libs.testcontainers.keycloak)
+    testFixturesImplementation(libs.postgres)
 
-    testImplementation(project(":extensions:keycloak-auth"))
-    testRuntimeOnly(project(":launchers:runtime-embedded"))
+    testCompileOnly(project(":launchers:runtime-embedded"))
 }

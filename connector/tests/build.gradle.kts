@@ -18,7 +18,7 @@ dependencies {
     testImplementation(libs.testcontainers.postgresql)
     testImplementation(libs.testcontainers.hashicorp.vault)
     testImplementation(libs.testcontainers.keycloak)
-    testFixturesImplementation(libs.postgres)
+    testImplementation(libs.postgres)
 
     testCompileOnly(project(":launchers:runtime-embedded"))
 }

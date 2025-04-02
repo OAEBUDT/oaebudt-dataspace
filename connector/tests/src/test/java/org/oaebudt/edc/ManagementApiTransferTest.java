@@ -26,7 +26,6 @@ import java.util.UUID;
 import org.assertj.core.api.Assertions;
 import org.eclipse.edc.connector.controlplane.test.system.utils.PolicyFixtures;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
-import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
@@ -45,7 +44,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
 @EndToEndTest
-@PostgresqlIntegrationTest
 class ManagementApiTransferTest {
 
     public static final String DCAT_TYPE = "[0].@type";

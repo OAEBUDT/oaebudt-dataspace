@@ -15,6 +15,8 @@ testcontainers-keycloak = "3.4.0"
 mockito = "5.16.0"
 jacoco = "0.8.12"
 json-schema-validator = "1.5.6"
+postgres = "42.7.5"
+
 
 [libraries]
 # upstream EDC dependencies
@@ -41,6 +43,7 @@ edc-lib-jsonld = { module = "org.eclipse.edc:json-ld-lib", version.ref = "edc" }
 # identityhub SPI modules
 edc-ih-spi-store = { module = "org.eclipse.edc:identity-hub-store-spi", version.ref = "edc" }
 edc-api-secrets = { module = "org.eclipse.edc:secrets-api", version.ref = "edc" }
+postgres = { module = "org.postgresql:postgresql", version.ref = "postgres" }
 
 #Federated catalog modules
 edc-fc-core = { module = "org.eclipse.edc:federated-catalog-core", version.ref = "edc" }

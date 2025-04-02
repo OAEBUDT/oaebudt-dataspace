@@ -1,3 +1,8 @@
+plugins {
+    `java-library`
+    `java-test-fixtures`
+}
+
 
 dependencies {
     testImplementation(libs.edc.boot.lib)

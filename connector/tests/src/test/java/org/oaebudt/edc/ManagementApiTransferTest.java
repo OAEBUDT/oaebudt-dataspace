@@ -23,7 +23,6 @@ import jakarta.json.Json;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
 import java.io.IOException;
-import java.time.Duration;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -44,6 +43,9 @@ import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockserver.integration.ClientAndServer;
 import org.oaebudt.edc.utils.*;
+import org.oaebudt.edc.utils.HashiCorpVaultEndToEndExtension;
+import org.oaebudt.edc.utils.KeycloakEndToEndExtension;
+import org.oaebudt.edc.utils.OaebudtParticipant;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 

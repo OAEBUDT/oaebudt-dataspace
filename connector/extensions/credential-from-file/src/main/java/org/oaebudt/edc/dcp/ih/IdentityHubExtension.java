@@ -22,12 +22,12 @@ This is an extension of the IdentityHub. It seeds participants' credentials from
 public class IdentityHubExtension implements ServiceExtension {
 
     @Inject
-    private CredentialStore store;
+    CredentialStore store;
 
     @Inject
-    private TypeManager typeManager;
-    private String credentialsDir;
-    private Monitor monitor;
+    TypeManager typeManager;
+    String credentialsDir;
+    Monitor monitor;
 
 
     @Override

@@ -1,4 +1,4 @@
-package org.oaebudt.edc.identityhub.seed;
+package org.oaebudt.edc.dcp.ih;
 
 import org.eclipse.edc.identityhub.spi.participantcontext.ParticipantContextService;
 import org.eclipse.edc.identityhub.spi.participantcontext.model.CreateParticipantContextResponse;

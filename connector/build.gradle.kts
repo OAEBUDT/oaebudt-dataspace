@@ -30,7 +30,6 @@ allprojects {
         }
     }
 
-    // needed for E2E tests
     tasks.register("printClasspath") {
         dependsOn(tasks.compileJava)
         doLast {

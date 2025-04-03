@@ -10,20 +10,17 @@ repositories {
 }
 
 dependencies {
+    runtimeOnly(project(":extensions:keycloak-auth"))
+    runtimeOnly(project(":extensions:catalog-node-resolver"))
     runtimeOnly(project(":extensions:dcp-impl"))
 
     runtimeOnly(project(":launchers:controlplane")) {
-        // this will remove the RemoteDataPlaneSelectorService
         exclude(group = "org.eclipse.edc", "data-plane-selector-client")
     }
     runtimeOnly(project(":launchers:dataplane")) {
-        // this will remove the RemoteDataPlaneSelectorService
         exclude(group = "org.eclipse.edc", "data-plane-selector-client")
     }
 
-    runtimeOnly(project(":extensions:keycloak-auth"))
-    runtimeOnly(project(":extensions:catalog-node-resolver"))
-    
     runtimeOnly(libs.edc.vault.hashicorp)
 }
 

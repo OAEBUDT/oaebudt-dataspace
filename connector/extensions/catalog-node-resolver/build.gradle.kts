@@ -5,7 +5,7 @@ plugins {
 }
 
 tasks.test {
-    useJUnitPlatform() // Ensures JUnit 5 is used
+    useJUnitPlatform()
     finalizedBy(tasks.jacocoTestReport)
 }
 
@@ -30,8 +30,4 @@ dependencies {
     testImplementation(libs.edc.junit)
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.assertj)
-}
-
-application {
-    mainClass.set("org.eclipse.edc.boot.system.runtime.BaseRuntime")
 }

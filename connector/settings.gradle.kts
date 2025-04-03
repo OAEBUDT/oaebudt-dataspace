@@ -26,6 +26,7 @@ include(":extensions:keycloak-auth")
 include(":extensions:superuser-seed")
 include(":extensions:dcp-impl")
 include(":extensions:catalog-node-resolver")
+include(":extensions:credential-from-file")
 
 include(":launchers:controlplane")
 include(":launchers:dataplane")

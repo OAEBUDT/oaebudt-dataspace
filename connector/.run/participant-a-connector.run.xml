@@ -3,6 +3,7 @@
     <option name="ALTERNATIVE_JRE_PATH" value="temurin-23" />
     <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
     <option name="MAIN_CLASS_NAME" value="org.eclipse.edc.boot.system.runtime.BaseRuntime" />
+    <module name="connector.launchers.runtime-embedded.main" />
     <option name="PROGRAM_PARAMETERS" value="--log-level=debug" />
     <extension name="net.ashald.envfile">
       <option name="IS_ENABLED" value="true" />

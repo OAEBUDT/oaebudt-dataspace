@@ -4,6 +4,10 @@ plugins {
     alias(libs.plugins.shadow)
 }
 
+repositories {
+    mavenCentral()
+}
+
 dependencies {
     runtimeOnly(libs.edc.bom.dataplane)
     runtimeOnly(libs.edc.dataplane.v2)

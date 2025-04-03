@@ -5,7 +5,7 @@ plugins {
 }
 
 tasks.test {
-    useJUnitPlatform() // Ensures JUnit 5 is used
+    useJUnitPlatform()
     finalizedBy(tasks.jacocoTestReport)
 }
 
@@ -23,8 +23,8 @@ repositories {
 
 dependencies {
     implementation(libs.edc.ih.spi.store)
+
     testImplementation(libs.edc.junit)
     testImplementation(libs.assertj)
     testImplementation(libs.mockito.core)
-
 }

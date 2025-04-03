@@ -4,18 +4,17 @@ plugins {
     alias(libs.plugins.shadow)
 }
 
+repositories {
+    mavenCentral()
+}
+
 dependencies {
     runtimeOnly(project(":extensions:superuser-seed"))
-
-    implementation(libs.edc.ih.lib.credentialquery)
+    runtimeOnly(project(":extensions:credential-from-file"))
 
     runtimeOnly(libs.edc.bom.identityhub)
     runtimeOnly(libs.edc.vault.hashicorp)
     runtimeOnly(libs.edc.bom.identityhub.sql)
-
-//    testImplementation(libs.edc.lib.crypto)
-//    testImplementation(libs.edc.lib.keys)
-//    testImplementation(libs.mockito.core)
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {

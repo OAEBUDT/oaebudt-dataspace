@@ -29,3 +29,9 @@ dependencies {
     testImplementation(libs.assertj)
     testImplementation(libs.mockito.core)
 }
+
+tasks.withType<Test> {
+    jvmArgs(
+        "-javaagent:${classpath.find { it.name.contains("byte-buddy-agent") }?.absolutePath}"
+    )
+}

@@ -1,21 +1,7 @@
 package org.oaebudt.edc.utils;
 
-import static java.util.Map.entry;
-import static org.eclipse.edc.util.io.Ports.getFreePort;
-
 import io.restassured.RestAssured;
 import io.restassured.specification.RequestSpecification;
-
-import java.net.URI;
-import java.net.URL;
-import java.nio.file.Paths;
-import java.security.AsymmetricKey;
-import java.security.KeyPairGenerator;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.util.Base64;
-import java.util.Map;
-import java.util.function.UnaryOperator;
 import org.eclipse.edc.connector.controlplane.test.system.utils.LazySupplier;
 import org.eclipse.edc.connector.controlplane.test.system.utils.Participant;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -29,19 +15,35 @@ import org.eclipse.edc.util.io.Ports;
 import org.jboss.resteasy.util.HttpHeaderNames;
 import org.jetbrains.annotations.NotNull;
 
+import java.net.URI;
+import java.net.URL;
+import java.nio.file.Paths;
+import java.security.AsymmetricKey;
+import java.security.KeyPairGenerator;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.util.Base64;
+import java.util.Map;
+import java.util.function.UnaryOperator;
+
+import static java.util.Map.entry;
+import static org.eclipse.edc.util.io.Ports.getFreePort;
+
 public class OaebudtParticipant extends Participant {
 
     public static final String API_KEY_HEADER_KEY = "X-Api-Key";
+
     public static final String API_KEY_HEADER_VALUE = "password";
+
+    public static final String IH_API_SUPERUSER_KEY = "c3VwZXItdXNlcg==.K+CKuM+8XNuEfLggseLntVljpgLnRzPMNo1WT6dWU1HUJP07l50k8AUreEIy3gcYTBn4vxzMWIg+1TDPYsxpug==";
+
     private String token;
+
     protected LazySupplier<URI> catalogServerUri = new LazySupplier<>(() ->
             URI.create("http://localhost:" + Ports.getFreePort() + "/catalog"));
 
     protected LazySupplier<URI> controlPlaneControl = new LazySupplier<>(() ->
             URI.create("http://localhost:" + Ports.getFreePort() + "/control"));
-
-    protected LazySupplier<URI> identityHubDid = new LazySupplier<>(() ->
-            URI.create("http://localhost:" + Ports.getFreePort() + "/"));
 
     protected LazySupplier<URI> identityHubApi = new LazySupplier<>(() ->
             URI.create("http://localhost:" + Ports.getFreePort() + "/api"));
@@ -61,13 +63,7 @@ public class OaebudtParticipant extends Participant {
     protected LazySupplier<URI> identityHubSts = new LazySupplier<>(() ->
             URI.create("http://localhost:" + Ports.getFreePort() + "/api/sts"));
 
-    private OaebudtParticipant() {
-
-    }
-
-    public URI getCatalogUrl() {
-        return catalogServerUri.get();
-    }
+    private OaebudtParticipant() {}
 
     public void setAuthorizationToken(String token) {
         this.token = token;
@@ -90,39 +86,37 @@ public class OaebudtParticipant extends Participant {
 
     public Config getConfiguration(final Integer stsPort) {
         final var map = Map.ofEntries(
-                entry("edc.participant.id", id),
+                entry("edc.catalog.cache.execution.delay.seconds", 10 + ""),
+                entry("edc.dpf.selector.url", "http://localhost:" + controlPlaneControl.get().getPort() + "/control/v1/dataplanes"),
+                entry("edc.dsp.callback.address", controlPlaneProtocol.get().toString()),
                 entry("edc.iam.did.web.use.https", "false"),
-                entry("web.http.path", "/api"),
-                entry("web.http.port", getFreePort() + ""),
-                entry("web.http.control.path", controlPlaneControl.get().getPath()),
-                entry("web.http.control.port", controlPlaneControl.get().getPort() + ""),
-                entry("web.http.management.path", controlPlaneManagement.get().getPath()),
-                entry("web.http.management.port", controlPlaneManagement.get().getPort() + ""),
-                entry("web.http.protocol.path", controlPlaneProtocol.get().getPath()),
-                entry("web.http.protocol.port", controlPlaneProtocol.get().getPort() + ""),
-                entry("web.http.version.path", "/version"),
-                entry("web.http.version.port", getFreePort() + ""),
-                entry("web.http.public.path", "/public"),
-                entry("web.http.public.port", getFreePort() + ""),
-                entry("edc.transfer.proxy.token.verifier.publickey.alias", "public-key-alias"),
-                entry("edc.transfer.proxy.token.signer.privatekey.alias", "private-key-alias"),
                 entry("edc.iam.issuer.id", id),
-                entry("web.http.management.auth.key", "password"),
-                entry("web.http.management.auth.type", "tokenbased"),
-                entry("edc.iam.sts.publickey.id", id + "#key-1"),
-                entry("edc.iam.sts.privatekey.alias", id + "#key-1"),
                 entry("edc.iam.sts.oauth.client.id", id),
                 entry("edc.iam.sts.oauth.client.secret.alias", id + "-sts-client-secret"),
-                entry("edc.iam.sts.oauth.token.url", "http://localhost:" + stsPort +
-                        "/api/sts/token"),
-                entry("web.http.catalog.port", catalogServerUri.get().getPort() + ""),
+                entry("edc.iam.sts.oauth.token.url", "http://localhost:" + stsPort + "/api/sts/token"),
+                entry("edc.iam.sts.privatekey.alias", id + "#key-1"),
+                entry("edc.iam.sts.publickey.id", id + "#key-1"),
+                entry("edc.participant.id", id),
+                entry("edc.runtime.id", id),
+                entry("edc.transfer.proxy.token.signer.privatekey.alias", "private-key-alias"),
+                entry("edc.transfer.proxy.token.verifier.publickey.alias", "public-key-alias"),
+                entry("fc.participants.list", controlPlaneProtocol.get().toString()), // temp for testing crawler
                 entry("web.http.catalog.path", catalogServerUri.get().getPath()),
-                entry("edc.runtime.id", "aaa"),
-                entry("edc.dpf.selector.url", "http://localhost:" + controlPlaneControl.get().getPort() +
-                        "/control/v1/dataplanes"),
-                entry("fc.participants.list", controlPlaneProtocol.get().toString()), //temp for testing crawler
-                entry("edc.dsp.callback.address", controlPlaneProtocol.get().toString()),
-                entry("edc.catalog.cache.execution.delay.seconds", 10 + "")
+                entry("web.http.catalog.port", catalogServerUri.get().getPort() + ""),
+                entry("web.http.control.path", controlPlaneControl.get().getPath()),
+                entry("web.http.control.port", controlPlaneControl.get().getPort() + ""),
+                entry("web.http.management.auth.key", "password"),
+                entry("web.http.management.auth.type", "tokenbased"),
+                entry("web.http.management.path", controlPlaneManagement.get().getPath()),
+                entry("web.http.management.port", controlPlaneManagement.get().getPort() + ""),
+                entry("web.http.path", "/api"),
+                entry("web.http.port", getFreePort() + ""),
+                entry("web.http.protocol.path", controlPlaneProtocol.get().getPath()),
+                entry("web.http.protocol.port", controlPlaneProtocol.get().getPort() + ""),
+                entry("web.http.public.path", "/public"),
+                entry("web.http.public.port", getFreePort() + ""),
+                entry("web.http.version.path", "/version"),
+                entry("web.http.version.port", getFreePort() + "")
         );
 
         return ConfigFactory.fromMap(map);
@@ -130,42 +124,45 @@ public class OaebudtParticipant extends Participant {
 
     public Config getIdentityHubConfiguration(final String participant, final String didPort) {
         final var map = Map.ofEntries(
-                entry("edc.ih.api.superuser.key", "c3VwZXItdXNlcg==.K+CKuM+8XNuEfLggseLntVljpgLnRzPMNo1WT6dWU1HUJP07l50k8AUreEIy3gcYTBn4vxzMWIg+1TDPYsxpug=="),
+                entry("edc.did.credentials.path", getCredentialsPath(participant)),
                 entry("edc.iam.did.web.use.https", "false"),
-                entry("edc.ih.iam.id", id),
                 entry("edc.iam.sts.privatekey.alias", id + "#key-1"),
                 entry("edc.iam.sts.publickey.id", id + "#key-1"),
-                entry("edc.did.credentials.path", getCredentialsPath(participant)),
-                entry("web.http.did.port", didPort),
-                entry("web.http.did.path", "/"),
-                entry("web.http.port", identityHubApi.get().getPort() + ""),
-                entry("web.http.path", "/api"),
-                entry("web.http.credentials.port", identityHubCredentials.get().getPort() + ""),
+                entry("edc.ih.api.superuser.key", IH_API_SUPERUSER_KEY),
+                entry("edc.ih.iam.id", id),
                 entry("web.http.credentials.path", "/api/credentials/"),
-                entry("web.http.identity.port", identityHubIdentity.get().getPort() + ""),
+                entry("web.http.credentials.port", identityHubCredentials.get().getPort() + ""),
+                entry("web.http.did.path", "/"),
+                entry("web.http.did.port", didPort),
                 entry("web.http.identity.path", "/api/identity"),
-                entry("web.http.presentation.port", identityHubPresentation.get().getPort() + ""),
+                entry("web.http.identity.port", identityHubIdentity.get().getPort() + ""),
+                entry("web.http.path", "/api"),
+                entry("web.http.port", identityHubApi.get().getPort() + ""),
                 entry("web.http.presentation.path", "/api/presentation"),
-                entry("web.http.version.port", identityHubVersion.get().getPort() + ""),
-                entry("web.http.version.path", "/api/version"),
+                entry("web.http.presentation.port", identityHubPresentation.get().getPort() + ""),
+                entry("web.http.sts.path", "/api/sts"),
                 entry("web.http.sts.port", identityHubSts.get().getPort() + ""),
-                entry("web.http.sts.path", "/api/sts")
+                entry("web.http.version.path", "/api/version"),
+                entry("web.http.version.port", identityHubVersion.get().getPort() + "")
         );
 
         return ConfigFactory.fromMap(map);
     }
 
-    public URI getIdentityHubApiUri() {
-        return identityHubIdentity.get();
+    public URI getCatalogUrl() {
+        return catalogServerUri.get();
     }
 
     public URI getConnectorProtocolUri() {
         return controlPlaneProtocol.get();
     }
 
+    public URI getIdentityHubApiUri() {
+        return identityHubIdentity.get();
+    }
+
     public URI getIdentityHubCredentialsApiUri() {
         return identityHubCredentials.get();
-
     }
 
     public Integer getIdentityHubStsPort() {

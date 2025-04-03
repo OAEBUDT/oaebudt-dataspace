@@ -7,7 +7,6 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.emptyString;
 import static org.mockserver.model.BinaryBody.binary;
 import static org.mockserver.model.HttpRequest.request;
@@ -23,14 +22,13 @@ import jakarta.json.Json;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
 import java.io.IOException;
+import java.util.Base64;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import org.assertj.core.api.Assertions;
 import org.eclipse.edc.connector.controlplane.test.system.utils.PolicyFixtures;
-import org.eclipse.edc.iam.did.spi.document.Service;
 import org.eclipse.edc.identityhub.tests.fixtures.credentialservice.IdentityHubExtension;
-import org.eclipse.edc.identityhub.tests.fixtures.credentialservice.IdentityHubRuntime;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
@@ -45,7 +43,6 @@ import org.mockserver.integration.ClientAndServer;
 import org.oaebudt.edc.utils.*;
 import org.oaebudt.edc.utils.HashiCorpVaultEndToEndExtension;
 import org.oaebudt.edc.utils.KeycloakEndToEndExtension;
-import org.oaebudt.edc.utils.OaebudtParticipant;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 
@@ -54,7 +51,9 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 class ManagementApiTransferTest {
 
     public static final String DCAT_TYPE = "[0].@type";
+
     public static final String CATALOG = "dcat:Catalog";
+
     public static final String DATASET_ASSET_ID = "[0].'dcat:dataset'.@id";
 
     private static final String CONNECTOR_MODULE_PATH = ":launchers:runtime-embedded";
@@ -77,10 +76,6 @@ class ManagementApiTransferTest {
             .id("did:web:localhost%3A6200").name("identityhub_consumer")
             .build();
 
-    private static final OaebudtParticipant PROVIDER_FC = OaebudtParticipant.Builder.newInstance()
-            .id("provider_fc").name("provider_fc")
-            .build();
-
     @Order(0)
     @RegisterExtension
     static final PostgresEndToEndExtension PROVIDER_POSTGRESQL_EXTENSION = new PostgresEndToEndExtension();
@@ -95,19 +90,19 @@ class ManagementApiTransferTest {
 
     @Order(3)
     @RegisterExtension
-    static final HashiCorpVaultEndToEndExtension VAULT_EXTENSION = new HashiCorpVaultEndToEndExtension();
+    static final PostgresEndToEndExtension IDENTITY_HUB_PROVIDER_POSTGRESQL_EXTENSION = new PostgresEndToEndExtension();
 
     @Order(4)
     @RegisterExtension
-    static final KeycloakEndToEndExtension KEYCLOAK_EXTENSION = new KeycloakEndToEndExtension();
+    static final PostgresEndToEndExtension IDENTITY_HUB_CONSUMER_POSTGRESQL_EXTENSION = new PostgresEndToEndExtension();
 
     @Order(5)
     @RegisterExtension
-    static final PostgresEndToEndExtension IDENTITY_HUB_PROVIDER_POSTGRESQL_EXTENSION = new PostgresEndToEndExtension();
+    static final HashiCorpVaultEndToEndExtension VAULT_EXTENSION = new HashiCorpVaultEndToEndExtension();
 
     @Order(6)
     @RegisterExtension
-    static final PostgresEndToEndExtension IDENTITY_HUB_CONSUMER_POSTGRESQL_EXTENSION = new PostgresEndToEndExtension();
+    static final KeycloakEndToEndExtension KEYCLOAK_EXTENSION = new KeycloakEndToEndExtension();
 
     @Order(7)
     @RegisterExtension
@@ -118,29 +113,9 @@ class ManagementApiTransferTest {
     static final BeforeAllCallback CREATE_DATABASES = context -> {
         PROVIDER_POSTGRESQL_EXTENSION.createDatabase(PROVIDER.getName());
         CONSUMER_POSTGRESQL_EXTENSION.createDatabase(CONSUMER.getName());
-        PROVIDER_FC_POSTGRESQL_EXTENSION.createDatabase(PROVIDER_FC.getName());
         IDENTITY_HUB_PROVIDER_POSTGRESQL_EXTENSION.createDatabase(IDENTITY_HUB_PROVIDER.getName());
         IDENTITY_HUB_CONSUMER_POSTGRESQL_EXTENSION.createDatabase(IDENTITY_HUB_CONSUMER.getName());
     };
-
-    @Order(11)
-    @RegisterExtension
-    static RuntimeExtension consumer = new RuntimePerClassExtension(
-        new EmbeddedRuntime("consumer", CONNECTOR_MODULE_PATH)
-                .configurationProvider(() ->  CONSUMER.getConfiguration(IDENTITY_HUB_CONSUMER.getIdentityHubStsPort()))
-                .configurationProvider(() -> CONSUMER_POSTGRESQL_EXTENSION.configFor(CONSUMER.getName()))
-                .configurationProvider(VAULT_EXTENSION::config)
-                .configurationProvider(KEYCLOAK_EXTENSION::config));
-
-    @Order(12)
-    @RegisterExtension
-    protected static RuntimeExtension provider = new RuntimePerClassExtension(
-            new EmbeddedRuntime("provider", CONNECTOR_MODULE_PATH)
-                    .configurationProvider(() -> PROVIDER.getConfiguration(IDENTITY_HUB_PROVIDER.getIdentityHubStsPort()))
-                    .configurationProvider(() -> PROVIDER_POSTGRESQL_EXTENSION.configFor(PROVIDER.getName()))
-                    .configurationProvider(VAULT_EXTENSION::config)
-                    .configurationProvider(KEYCLOAK_EXTENSION::config)
-                    .registerSystemExtension(ServiceExtension.class, PROVIDER.seedVaultKeys()));
 
     @Order(9)
     @RegisterExtension
@@ -166,93 +141,38 @@ class ManagementApiTransferTest {
             .configurationProvider(VAULT_EXTENSION::config)
             .build();
 
-//    @Order(8)
-//    @RegisterExtension
-//    protected static RuntimeExtension providerFc = new RuntimePerClassExtension( //For fedearted catalog test
-//            new EmbeddedRuntime("provider_fc", CONNECTOR_MODULE_PATH)
-//                    .configurationProvider(PROVIDER_FC::getConfiguration)
-//                    .configurationProvider(() -> PROVIDER_FC_POSTGRESQL_EXTENSION.configFor(PROVIDER_FC.getName()))
-//                    .configurationProvider(VAULT_EXTENSION::config)
-//                    .configurationProvider(KEYCLOAK_EXTENSION::config));
+    @Order(11)
+    @RegisterExtension
+    protected static RuntimeExtension provider = new RuntimePerClassExtension(
+            new EmbeddedRuntime("provider", CONNECTOR_MODULE_PATH)
+                    .configurationProvider(() -> PROVIDER.getConfiguration(IDENTITY_HUB_PROVIDER.getIdentityHubStsPort()))
+                    .configurationProvider(() -> PROVIDER_POSTGRESQL_EXTENSION.configFor(PROVIDER.getName()))
+                    .configurationProvider(VAULT_EXTENSION::config)
+                    .configurationProvider(KEYCLOAK_EXTENSION::config)
+                    .registerSystemExtension(ServiceExtension.class, PROVIDER.seedVaultKeys()));
+
+    @Order(12)
+    @RegisterExtension
+    static RuntimeExtension consumer = new RuntimePerClassExtension(
+        new EmbeddedRuntime("consumer", CONNECTOR_MODULE_PATH)
+                .configurationProvider(() ->  CONSUMER.getConfiguration(IDENTITY_HUB_CONSUMER.getIdentityHubStsPort()))
+                .configurationProvider(() -> CONSUMER_POSTGRESQL_EXTENSION.configFor(CONSUMER.getName()))
+                .configurationProvider(VAULT_EXTENSION::config)
+                .configurationProvider(KEYCLOAK_EXTENSION::config));
 
     @BeforeAll
     public static void setup() {
 
-        Integer providerProtocolPort = PROVIDER.getConnectorProtocolUri().getPort();
-        Integer providerCredentialsPort = IDENTITY_HUB_PROVIDER.getIdentityHubCredentialsApiUri().getPort();
-        Integer consumerProtocolPort = CONSUMER.getConnectorProtocolUri().getPort();
-        Integer consumerCredentialsPort = IDENTITY_HUB_CONSUMER.getIdentityHubCredentialsApiUri().getPort();
+        int providerProtocolPort = PROVIDER.getConnectorProtocolUri().getPort();
+        int providerCredentialsPort = IDENTITY_HUB_PROVIDER.getIdentityHubCredentialsApiUri().getPort();
+        int consumerProtocolPort = CONSUMER.getConnectorProtocolUri().getPort();
+        int consumerCredentialsPort = IDENTITY_HUB_CONSUMER.getIdentityHubCredentialsApiUri().getPort();
 
-        String manifestProviderParticipant = "{\n" +
-                "    \"roles\": [],\n" +
-                "    \"serviceEndpoints\": [\n" +
-                "        {\n" +
-                "            \"type\": \"CredentialService\",\n" +
-                "            \"serviceEndpoint\": \"http://localhost:" + providerCredentialsPort + "/api/credentials/v1/participants/ZGlkOndlYjpsb2NhbGhvc3QlM0E2MTAw\",\n" +
-                "            \"id\": \"participant-a-credentialservice-1\"\n" +
-                "        },\n" +
-                "        {\n" +
-                "            \"type\": \"ProtocolEndpoint\",\n" +
-                "            \"serviceEndpoint\": \"http://localhost:" + providerProtocolPort + "/protocol\",\n" +
-                "            \"id\": \"participant-a-dsp\"\n" +
-                "        }\n" +
-                "    ],\n" +
-                "    \"active\": true,\n" +
-                "    \"participantId\": \"did:web:localhost%3A6100\",\n" +
-                "    \"did\": \"did:web:localhost%3A6100\",\n" +
-                "    \"key\": {\n" +
-                "        \"keyId\": \"did:web:localhost%3A6100#key-1\",\n" +
-                "        \"privateKeyAlias\": \"did:web:localhost%3A6100#key-1\",\n" +
-                "        \"keyGeneratorParams\": {\n" +
-                "            \"algorithm\": \"EC\"\n" +
-                "        }\n" +
-                "    }\n" +
-                "}";
+        String providerManifest = createParticipantManifest(providerProtocolPort, providerCredentialsPort, PROVIDER.getId(), PROVIDER.getName());
+        String consumerManifest = createParticipantManifest(consumerProtocolPort, consumerCredentialsPort, CONSUMER.getId(), CONSUMER.getName());
 
-
-        String manifestConsumerParticipant = "{\n" +
-                "    \"roles\": [],\n" +
-                "    \"serviceEndpoints\": [\n" +
-                "        {\n" +
-                "            \"type\": \"CredentialService\",\n" +
-                "            \"serviceEndpoint\": \"http://localhost:" + consumerCredentialsPort + "/api/credentials/v1/participants/ZGlkOndlYjpsb2NhbGhvc3QlM0E2MjAw\",\n" +
-                "            \"id\": \"participant-b-credentialservice-1\"\n" +
-                "        },\n" +
-                "        {\n" +
-                "            \"type\": \"ProtocolEndpoint\",\n" +
-                "            \"serviceEndpoint\": \"http://localhost:" + consumerProtocolPort + "/protocol\",\n" +
-                "            \"id\": \"participant-b-dsp\"\n" +
-                "        }\n" +
-                "    ],\n" +
-                "    \"active\": true,\n" +
-                "    \"participantId\": \"did:web:localhost%3A6200\",\n" +
-                "    \"did\": \"did:web:localhost%3A6200\",\n" +
-                "    \"key\": {\n" +
-                "        \"keyId\": \"did:web:localhost%3A6200#key-1\",\n" +
-                "        \"privateKeyAlias\": \"did:web:localhost%3A6200#key-1\",\n" +
-                "        \"keyGeneratorParams\": {\n" +
-                "            \"algorithm\": \"EC\"\n" +
-                "        }\n" +
-                "    }\n" +
-                "}";
-
-
-        String providerApiUrl = "http://localhost:" + IDENTITY_HUB_PROVIDER.getIdentityHubApiUri().getPort() + "/api/identity/v1alpha/participants";
-        RequestSpecification request = RestAssured.given();
-        Response response = request
-                .header("x-api-key", "c3VwZXItdXNlcg==.K+CKuM+8XNuEfLggseLntVljpgLnRzPMNo1WT6dWU1HUJP07l50k8AUreEIy3gcYTBn4vxzMWIg+1TDPYsxpug==")
-                .contentType(ContentType.JSON)
-                .log().all()
-                .body(manifestProviderParticipant)
-                .post(providerApiUrl);
-
-        String consumerApiUrl = "http://localhost:" + IDENTITY_HUB_CONSUMER.getIdentityHubApiUri().getPort() + "/api/identity/v1alpha/participants";
-        Response response2 = given().
-                header("x-api-key", "c3VwZXItdXNlcg==.K+CKuM+8XNuEfLggseLntVljpgLnRzPMNo1WT6dWU1HUJP07l50k8AUreEIy3gcYTBn4vxzMWIg+1TDPYsxpug==")
-                .contentType(ContentType.JSON)
-                .log().all()
-                .body(manifestConsumerParticipant)
-                .post(consumerApiUrl);
+        createIdentityHubParticipant(IDENTITY_HUB_PROVIDER, providerManifest, OaebudtParticipant.IH_API_SUPERUSER_KEY);
+        createIdentityHubParticipant(IDENTITY_HUB_CONSUMER, consumerManifest, OaebudtParticipant.IH_API_SUPERUSER_KEY);
     }
 
     @Test
@@ -336,8 +256,6 @@ class ManagementApiTransferTest {
     @Test
     public void shouldGetContractOfferViaFederatedCatalog() {
         PROVIDER.setAuthorizationToken(KEYCLOAK_EXTENSION.getToken());
-
-
 
         final Map<String, Object> dataAddressProperties = Map.of(
                 "type", "HttpData-PULL",
@@ -424,5 +342,57 @@ class ManagementApiTransferTest {
                         .collect(Json::createArrayBuilder, JsonArrayBuilder::add, JsonArrayBuilder::add)
                         .build())
                 .build();
+    }
+
+    private static String createParticipantManifest(int protocolPort, int credentialsPort, String participantId, String participantName)
+    {
+        String base64ParticipantId = encodeBase64(participantId);
+
+        return String.format("{\n" +
+                "    \"roles\": [],\n" +
+                "    \"serviceEndpoints\": [\n" +
+                "        {\n" +
+                "            \"type\": \"CredentialService\",\n" +
+                "            \"serviceEndpoint\": \"http://localhost:%d/api/credentials/v1/participants/%s\",\n" +
+                "            \"id\": \"%s-credentialservice-1\"\n" +
+                "        },\n" +
+                "        {\n" +
+                "            \"type\": \"ProtocolEndpoint\",\n" +
+                "            \"serviceEndpoint\": \"http://localhost:%d/protocol\",\n" +
+                "            \"id\": \"%s-dsp\"\n" +
+                "        }\n" +
+                "    ],\n" +
+                "    \"active\": true,\n" +
+                "    \"participantId\": \"%s\",\n" +
+                "    \"did\": \"%s\",\n" +
+                "    \"key\": {\n" +
+                "        \"keyId\": \"%s#key-1\",\n" +
+                "        \"privateKeyAlias\": \"%s#key-1\",\n" +
+                "        \"keyGeneratorParams\": {\n" +
+                "            \"algorithm\": \"EC\"\n" +
+                "        }\n" +
+                "    }\n" +
+                "}", credentialsPort, base64ParticipantId, participantName, protocolPort, participantName, participantId, participantId, participantId, participantId);
+    }
+
+    private static String encodeBase64(String input) {
+        return Base64.getEncoder().encodeToString(input.getBytes());
+    }
+
+    private static void createIdentityHubParticipant(OaebudtParticipant participant, String body, String apiKey) {
+        String apiUrl =  participant.getIdentityHubApiUri() + "/v1alpha/participants";
+
+        RequestSpecification request = RestAssured.given();
+        Response response = request
+                .header("x-api-key", apiKey)
+                .contentType(ContentType.JSON)
+                .log().all()
+                .body(body)
+                .post(apiUrl);
+
+        if (response.getStatusCode() != 200) {
+            System.err.println("Request failed with status: " + response.getStatusCode());
+            System.err.println("Response body: " + response.getBody().asString());
+        }
     }
 }

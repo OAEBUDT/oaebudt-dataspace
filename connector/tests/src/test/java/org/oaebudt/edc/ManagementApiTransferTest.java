@@ -6,8 +6,7 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.emptyString;
 import static org.mockserver.model.BinaryBody.binary;
@@ -364,7 +363,7 @@ class ManagementApiTransferTest {
                         .statusCode(HttpStatus.SC_OK)
                         .body(DCAT_TYPE, not(emptyString()))
                         .body(DCAT_TYPE, is(CATALOG))
-                        .body(DATASET_ASSET_ID, contains(assetId)));
+                        .body(DATASET_ASSET_ID, hasItem(assetId)));
     }
 
     @Test

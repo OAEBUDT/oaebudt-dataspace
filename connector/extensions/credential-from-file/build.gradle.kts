@@ -22,7 +22,7 @@ repositories {
 }
 
 dependencies {
-    implementation(libs.edc.ih.lib.credentialquery)
+    implementation(libs.edc.ih.spi.credentials)
 
 //    testImplementation(libs.edc.junit)
 //    testImplementation(libs.junit.jupiter)

@@ -2,7 +2,7 @@
 format.version = "1.1"
 
 [versions]
-edc = "0.12.0-SNAPSHOT"
+edc = "0.12.0"
 assertj = "3.27.3"
 awaitility = "4.2.2"
 junit-jupiter = "5.11.4"
@@ -41,8 +41,10 @@ edc-lib-keys = { module = "org.eclipse.edc:keys-lib", version.ref = "edc" }
 edc-lib-jsonld = { module = "org.eclipse.edc:json-ld-lib", version.ref = "edc" }
 
 # identityhub SPI modules
-edc-ih-spi-store = { module = "org.eclipse.edc:identity-hub-store-spi", version.ref = "edc" }
+#edc-ih-spi-store = { module = "org.eclipse.edc:identity-hub-store-spi", version.ref = "edc" }
+edc-ih-spi-credentials = { module = "org.eclipse.edc:verifiable-credential-spi", version.ref = "edc" }
 edc-api-secrets = { module = "org.eclipse.edc:secrets-api", version.ref = "edc" }
+edc-ih-spi = { module = "org.eclipse.edc:identity-hub-spi", version.ref = "edc" }
 postgres = { module = "org.postgresql:postgresql", version.ref = "postgres" }
 
 #Federated catalog modules

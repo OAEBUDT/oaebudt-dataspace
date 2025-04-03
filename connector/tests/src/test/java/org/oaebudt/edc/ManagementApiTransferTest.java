@@ -335,13 +335,15 @@ class ManagementApiTransferTest {
 
     @Test
     public void shouldGetContractOfferViaFederatedCatalog() {
-        PROVIDER_FC.setAuthorizationToken(KEYCLOAK_EXTENSION.getToken());
+        PROVIDER.setAuthorizationToken(KEYCLOAK_EXTENSION.getToken());
+
+
 
         final Map<String, Object> dataAddressProperties = Map.of(
                 "type", "HttpData-PULL",
                 "baseUrl", "http://localhost:8080/source"
         );
-        final String assetId = createProviderAsset(PROVIDER_FC, dataAddressProperties);
+        final String assetId = createProviderAsset(PROVIDER, dataAddressProperties);
 
         final JsonObject requestBody = Json.createObjectBuilder()
                 .add("@context", Json.createObjectBuilder()
@@ -351,7 +353,7 @@ class ManagementApiTransferTest {
 
         await().untilAsserted(() ->
                 given()
-                        .baseUri(PROVIDER_FC.getCatalogUrl().toString())
+                        .baseUri(PROVIDER.getCatalogUrl().toString())
                         .contentType(ContentType.JSON).body(requestBody)
                         .headers(OaebudtParticipant.API_KEY_HEADER_KEY, OaebudtParticipant.API_KEY_HEADER_VALUE)
                         .when()

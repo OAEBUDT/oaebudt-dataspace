@@ -23,7 +23,7 @@ public class CatalogNodeDirectory implements TargetNodeDirectory {
 
         return participantDspEndpoints.stream()
                 .map(dspEndpoint -> new TargetNode(CoreConstants.EDC_NAMESPACE,
-                        "participant-a",
+                        "did:web:localhost%3A6100",
                         dspEndpoint, protocolList)).collect(Collectors.toList());
     }
 

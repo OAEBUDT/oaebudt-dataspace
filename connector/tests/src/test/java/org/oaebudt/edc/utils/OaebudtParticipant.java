@@ -105,8 +105,6 @@ public class OaebudtParticipant extends Participant {
                 entry("web.http.catalog.port", catalogServerUri.get().getPort() + ""),
                 entry("web.http.control.path", controlPlaneControl.get().getPath()),
                 entry("web.http.control.port", controlPlaneControl.get().getPort() + ""),
-                entry("web.http.management.auth.key", "password"),
-                entry("web.http.management.auth.type", "tokenbased"),
                 entry("web.http.management.path", controlPlaneManagement.get().getPath()),
                 entry("web.http.management.port", controlPlaneManagement.get().getPort() + ""),
                 entry("web.http.path", "/api"),

@@ -28,8 +28,8 @@ FROM eclipse-temurin:23.0.2_7-jre-alpine
 WORKDIR /app
 
 # Create a non-root user to run the application
-RUN addgroup -S connector && adduser -S connector -G connector
-USER connector
+RUN addgroup -S oaebudt && adduser -S oaebudt -G oaebudt
+USER oaebudt
 
 # Copy the JAR from the builder stage
 COPY --from=builder /app/launchers/runtime-embedded/build/libs/*.jar connector.jar

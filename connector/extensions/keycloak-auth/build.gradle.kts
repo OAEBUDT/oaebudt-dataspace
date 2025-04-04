@@ -5,7 +5,7 @@ plugins {
 }
 
 tasks.test {
-    useJUnitPlatform() // Ensures JUnit 5 is used
+    useJUnitPlatform()
     finalizedBy(tasks.jacocoTestReport)
 }
 
@@ -21,7 +21,6 @@ repositories {
     mavenCentral()
 }
 
-
 dependencies {
     implementation(libs.edc.auth.spi)
     implementation(libs.edc.web.spi)
@@ -32,8 +31,4 @@ dependencies {
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.assertj)
     testImplementation(libs.mockito.core)
-}
-
-application {
-    mainClass.set("org.eclipse.edc.boot.system.runtime.BaseRuntime")
 }

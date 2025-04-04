@@ -1,10 +1,5 @@
-import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
-import com.github.jengelman.gradle.plugins.shadow.ShadowJavaPlugin
-
 plugins {
     `java-library`
-    id("com.bmuschko.docker-remote-api") version "9.4.0"
-    id("com.github.johnrengelman.shadow") version "8.1.1"
     id("org.sonarqube") version "6.0.1.5171"
 }
 
@@ -21,6 +16,9 @@ allprojects {
     apply(plugin = "java")
 
     repositories {
+        maven {
+            url = uri("https://oss.sonatype.org/content/repositories/snapshots/")
+        }
         mavenCentral()
     }
 
@@ -32,7 +30,6 @@ allprojects {
         }
     }
 
-    // needed for E2E tests
     tasks.register("printClasspath") {
         dependsOn(tasks.compileJava)
         doLast {

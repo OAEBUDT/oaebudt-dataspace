@@ -10,6 +10,8 @@ repositories {
 
 dependencies {
     runtimeOnly(libs.edc.bom.dataplane)
+    runtimeOnly(libs.edc.dataplane.v2)
+    runtimeOnly(libs.edc.bom.dataplane.sql)
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {

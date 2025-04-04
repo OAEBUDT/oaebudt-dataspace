@@ -22,15 +22,11 @@ repositories {
 }
 
 dependencies {
-    runtimeOnly(libs.edc.fc.core)
-    runtimeOnly(libs.edc.fc.ext.api)
-    implementation(libs.edc.fc.spi.crawler)
-
-    testImplementation(libs.edc.junit)
-    testImplementation(libs.junit.jupiter)
-    testImplementation(libs.assertj)
-}
-
-application {
-    mainClass.set("org.eclipse.edc.boot.system.runtime.BaseRuntime")
+    implementation(libs.edc.dcp.core)
+    implementation(libs.edc.spi.identity.trust)
+    implementation(libs.edc.spi.transform)
+    implementation(libs.edc.spi.catalog)
+    implementation(libs.edc.spi.identity.did)
+    implementation(libs.edc.lib.jws2020)
+    implementation(libs.edc.lib.transform)
 }

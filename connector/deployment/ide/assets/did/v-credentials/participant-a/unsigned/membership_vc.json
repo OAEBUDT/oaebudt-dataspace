@@ -1,0 +1,31 @@
+{
+  "@context": [
+    "https://www.w3.org/2018/credentials/v1",
+    "https://w3id.org/security/suites/jws-2020/v1",
+    "https://www.w3.org/ns/did/v1",
+    {
+      "ds-oaebudt-credentials": "https://w3id.org/ds-oaebudt/credentials/",
+      "membership": "ds-oaebudt:membership",
+      "membershipType": "ds-oaebudt:membershipType",
+      "website": "ds-oaebudt:website",
+      "contact": "ds-oaebudt:contact",
+      "since": "ds-oaebudt:since"
+    }
+  ],
+  "id": "https://ds.oaebudt.think-it.io/credentials/jstor/1234",
+  "type": [
+    "VerifiableCredential",
+    "https://ds.oaebudt.think-it.io#MembershipCredential"
+  ],
+  "issuer": "did:web:localhost%3A19999",
+  "issuanceDate": "2023-08-18T00:00:00Z",
+  "credentialSubject": {
+    "id": "did:web:localhost%3A6100",
+    "membership": {
+      "membershipType": "ProspectMember",
+      "website": "https://www.jstor.org",
+      "contact": "Jayshree.Bhakta@ithaka.org",
+      "since": "2023-01-01T00:00:00Z"
+    }
+  }
+}

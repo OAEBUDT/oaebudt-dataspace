@@ -66,95 +66,64 @@ class IdentityHubExtensionTest {
 
     @Test
     void start_shouldSeedCredentials(@TempDir Path tempDir) throws IOException {
-        // Setup test files in temp directory
         File jsonFile = new File(tempDir.toFile(), "test.json");
         try (FileWriter writer = new FileWriter(jsonFile)) {
             writer.write(SAMPLE_VC_JSON);
         }
 
-        // Mock the ObjectMapper
         var objectMapper = mock(com.fasterxml.jackson.databind.ObjectMapper.class);
         when(typeManager.getMapper(JSON_LD)).thenReturn(objectMapper);
 
-        // Mock the JSON parsing
         var vcResource = mock(VerifiableCredentialResource.class);
         when(objectMapper.readValue(any(File.class), eq(VerifiableCredentialResource.class))).thenReturn(vcResource);
 
-        // Initialize the extension
         extension.initialize(context);
-
-        // Override the path with our temp directory
         extension.credentialsDir = tempDir.toString();
-
-        // Execute
         extension.start();
 
-        // Only verify the VC was stored, don't verify monitor calls
         verify(credentialStore).create(vcResource);
     }
 
     @Test
     void start_withNonExistentDirectory_shouldNotCreateCredentials() {
-        // Initialize the extension
         extension.initialize(context);
-
-        // Use a non-existent path
         extension.credentialsDir = "/non/existent/path/" + System.currentTimeMillis();
-
-        // Execute
         extension.start();
 
-        // Verify no credentials were created
         verify(credentialStore, never()).create(any());
     }
 
     @Test
     void start_withEmptyDirectory_shouldNotCreateCredentials(@TempDir Path tempDir) {
-        // Initialize the extension
         extension.initialize(context);
-
-        // Use the empty temp directory
         extension.credentialsDir = tempDir.toString();
-
-        // Execute
         extension.start();
 
-        // Verify no credentials were created
         verify(credentialStore, never()).create(any());
     }
 
     @Test
     void start_shouldHandleFileReadErrors(@TempDir Path tempDir) throws IOException {
-        // Setup test files in temp directory
         File jsonFile = new File(tempDir.toFile(), "test.json");
         try (FileWriter writer = new FileWriter(jsonFile)) {
             writer.write(SAMPLE_VC_JSON);
         }
 
-        // Initialize the extension
         extension.initialize(context);
-
-        // Override the path with our temp directory
         extension.credentialsDir = tempDir.toString();
 
-        // Mock the ObjectMapper
         var objectMapper = mock(com.fasterxml.jackson.databind.ObjectMapper.class);
         when(typeManager.getMapper(JSON_LD)).thenReturn(objectMapper);
-
-        // Mock an IOException during file reading
         when(objectMapper.readValue(any(File.class), eq(VerifiableCredentialResource.class)))
                 .thenThrow(new IOException("Test file read error"));
 
-        // Execute - should not throw exception
         extension.start();
 
-        // Verify no credentials were created
         verify(credentialStore, never()).create(any());
     }
 
     @Test
     void start_shouldFilterNonJsonFiles(@TempDir Path tempDir) throws IOException {
-        // Setup test files in temp directory
         File jsonFile = new File(tempDir.toFile(), "test.json");
         File txtFile = new File(tempDir.toFile(), "test.txt");
 
@@ -165,24 +134,17 @@ class IdentityHubExtensionTest {
             writer.write("This is not a JSON file");
         }
 
-        // Initialize the extension
         extension.initialize(context);
-
-        // Override the path with our temp directory
         extension.credentialsDir = tempDir.toString();
 
-        // Mock the ObjectMapper
         var objectMapper = mock(com.fasterxml.jackson.databind.ObjectMapper.class);
         when(typeManager.getMapper(JSON_LD)).thenReturn(objectMapper);
 
-        // Mock the JSON parsing
         var vcResource = mock(VerifiableCredentialResource.class);
         when(objectMapper.readValue(any(File.class), eq(VerifiableCredentialResource.class))).thenReturn(vcResource);
 
-        // Execute
         extension.start();
 
-        // Verify only JSON file was processed
         verify(objectMapper, times(1)).readValue(any(File.class), eq(VerifiableCredentialResource.class));
         verify(credentialStore, times(1)).create(any());
     }

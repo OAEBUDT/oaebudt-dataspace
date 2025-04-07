@@ -48,7 +48,6 @@ public class ParticipantContextSeedExtension implements ServiceExtension {
 
     @Override
     public void start() {
-        // create super-user
         if (participantContextService.getParticipantContext(superUserParticipantId).succeeded()) { // already exists
             monitor.debug("super-user already exists with ID '%s', will not re-create".formatted(superUserParticipantId));
             return;

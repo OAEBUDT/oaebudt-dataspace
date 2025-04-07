@@ -390,11 +390,9 @@ class ManagementApiTransferTest {
                 .contentType(ContentType.JSON)
                 .log().all()
                 .body(body)
-                .post(apiUrl);
-
-        if (response.getStatusCode() != 200) {
-            System.err.println("Request failed with status: " + response.getStatusCode());
-            System.err.println("Response body: " + response.getBody().asString());
-        }
+                .post(apiUrl)
+                .then()
+                .log().ifValidationFails()
+                .extract().response();
     }
 }

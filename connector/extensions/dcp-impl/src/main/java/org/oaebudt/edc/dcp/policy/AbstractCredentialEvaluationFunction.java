@@ -7,22 +7,15 @@ import org.eclipse.edc.spi.result.Result;
 import java.util.List;
 
 public class AbstractCredentialEvaluationFunction {
-    private static final String VC_CLAIM = "vc";
     protected static final String MVD_NAMESPACE = "https://w3id.org/mvd/credentials/";
 
-    protected Result<List<VerifiableCredential>> getCredentialList(ParticipantAgent agent) {
-        var vcListClaim = agent.getClaims().get(VC_CLAIM);
+    private final CredentialExtractor credentialExtractor;
 
-        if (vcListClaim == null) {
-            return Result.failure("ParticipantAgent did not contain a '%s' claim.".formatted(VC_CLAIM));
-        }
-        if (!(vcListClaim instanceof List)) {
-            return Result.failure("ParticipantAgent contains a '%s' claim, but the type is incorrect. Expected %s, received %s.".formatted(VC_CLAIM, List.class.getName(), vcListClaim.getClass().getName()));
-        }
-        var vcList = (List<VerifiableCredential>) vcListClaim;
-        if (vcList.isEmpty()) {
-            return Result.failure("ParticipantAgent contains a '%s' claim but it did not contain any VerifiableCredentials.".formatted(VC_CLAIM));
-        }
-        return Result.success(vcList);
+    public AbstractCredentialEvaluationFunction(CredentialExtractor credentialExtractor) {
+        this.credentialExtractor = credentialExtractor;
+    }
+
+    protected Result<List<VerifiableCredential>> getCredentialList(ParticipantAgent agent) {
+        return credentialExtractor.extractCredentials(agent);
     }
 }

@@ -5,19 +5,23 @@ import org.eclipse.edc.policy.engine.spi.AtomicConstraintRuleFunction;
 import org.eclipse.edc.policy.model.Duty;
 import org.eclipse.edc.policy.model.Operator;
 
+import java.util.List;
 import java.util.Objects;
 
-public class DataAccessLevelFunction<C extends ParticipantAgentPolicyContext> extends AbstractCredentialEvaluationFunction implements AtomicConstraintRuleFunction<Duty, C> {
+public class DataAccessLevelFunction<C extends ParticipantAgentPolicyContext> implements AtomicConstraintRuleFunction<Duty, C> {
 
     private static final String DATAPROCESSOR_CRED_TYPE = "DataProcessorCredential";
+    private static final String MVD_NAMESPACE = "https://w3id.org/mvd/credentials/";
 
-    private DataAccessLevelFunction() {
+    private final CredentialExtractor credentialExtractor;
 
+    // Constructor to inject the CredentialExtractor
+    public DataAccessLevelFunction(CredentialExtractor credentialExtractor) {
+        this.credentialExtractor = credentialExtractor;
     }
 
-    public static <C extends ParticipantAgentPolicyContext> DataAccessLevelFunction<C> create() {
-        return new DataAccessLevelFunction<>() {
-        };
+    public static <C extends ParticipantAgentPolicyContext> DataAccessLevelFunction<C> create(CredentialExtractor credentialExtractor) {
+        return new DataAccessLevelFunction<>(credentialExtractor);
     }
 
     @Override
@@ -26,13 +30,14 @@ public class DataAccessLevelFunction<C extends ParticipantAgentPolicyContext> ex
             policyContext.reportProblem("Cannot evaluate operator %s, only %s is supported".formatted(operator, Operator.EQ));
             return false;
         }
+
         var pa = policyContext.participantAgent();
         if (pa == null) {
             policyContext.reportProblem("ParticipantAgent not found on PolicyContext");
             return false;
         }
 
-        var credentialResult = getCredentialList(pa);
+        var credentialResult = credentialExtractor.extractCredentials(pa);
         if (credentialResult.failed()) {
             policyContext.reportProblem(credentialResult.getFailureDetail());
             return false;
@@ -48,8 +53,5 @@ public class DataAccessLevelFunction<C extends ParticipantAgentPolicyContext> ex
 
                     return version != null && Objects.equals(level, rightOperand);
                 });
-
-
     }
-
 }

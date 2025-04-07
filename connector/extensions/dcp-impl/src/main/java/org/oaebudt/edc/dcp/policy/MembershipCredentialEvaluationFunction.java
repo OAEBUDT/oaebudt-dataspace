@@ -8,22 +8,25 @@ import org.eclipse.edc.policy.model.Permission;
 import java.time.Instant;
 import java.util.Map;
 
-public class MembershipCredentialEvaluationFunction<C extends ParticipantAgentPolicyContext> extends AbstractCredentialEvaluationFunction implements AtomicConstraintRuleFunction<Permission, C> {
-    public static final String MEMBERSHIP_CONSTRAINT_KEY = "MembershipCredential";
+public class MembershipCredentialEvaluationFunction<C extends ParticipantAgentPolicyContext> implements AtomicConstraintRuleFunction<Permission, C> {
 
+    public static final String MEMBERSHIP_CONSTRAINT_KEY = "MembershipCredential";
     private static final String MEMBERSHIP_CLAIM = "membership";
     private static final String SINCE_CLAIM = "since";
     private static final String ACTIVE = "active";
+    private static final String MVD_NAMESPACE = "https://w3id.org/mvd/credentials/";
 
-    private MembershipCredentialEvaluationFunction() {
+    private final CredentialExtractor credentialExtractor;
+
+    // Constructor to inject the CredentialExtractor
+    public MembershipCredentialEvaluationFunction(CredentialExtractor credentialExtractor) {
+        this.credentialExtractor = credentialExtractor;
     }
 
-    public static <C extends ParticipantAgentPolicyContext> MembershipCredentialEvaluationFunction<C> create() {
-        return new MembershipCredentialEvaluationFunction<>() {
-        };
+    public static <C extends ParticipantAgentPolicyContext> MembershipCredentialEvaluationFunction<C> create(CredentialExtractor credentialExtractor) {
+        return new MembershipCredentialEvaluationFunction<>(credentialExtractor);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public boolean evaluate(Operator operator, Object rightOperand, Permission permission, C policyContext) {
         if (!operator.equals(Operator.EQ)) {
@@ -40,7 +43,8 @@ public class MembershipCredentialEvaluationFunction<C extends ParticipantAgentPo
             policyContext.reportProblem("No ParticipantAgent found on context.");
             return false;
         }
-        var credentialResult = getCredentialList(pa);
+
+        var credentialResult = credentialExtractor.extractCredentials(pa);
         if (credentialResult.failed()) {
             policyContext.reportProblem(credentialResult.getFailureDetail());
             return false;
@@ -56,5 +60,4 @@ public class MembershipCredentialEvaluationFunction<C extends ParticipantAgentPo
                     return membershipStartDate.isBefore(Instant.now());
                 });
     }
-
 }

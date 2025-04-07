@@ -1,11 +1,6 @@
 plugins {
     `java-library`
-    id("application")
     alias(libs.plugins.shadow)
-}
-
-repositories {
-    mavenCentral()
 }
 
 dependencies {

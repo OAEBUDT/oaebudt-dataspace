@@ -344,35 +344,37 @@ class ManagementApiTransferTest {
                 .build();
     }
 
-    private static String createParticipantManifest(int protocolPort, int credentialsPort, String participantId, String participantName)
-    {
+    private static String createParticipantManifest(int protocolPort, int credentialsPort, String participantId, String participantName) {
         String base64ParticipantId = encodeBase64(participantId);
 
-        return String.format("{\n" +
-                "    \"roles\": [],\n" +
-                "    \"serviceEndpoints\": [\n" +
-                "        {\n" +
-                "            \"type\": \"CredentialService\",\n" +
-                "            \"serviceEndpoint\": \"http://localhost:%d/api/credentials/v1/participants/%s\",\n" +
-                "            \"id\": \"%s-credentialservice-1\"\n" +
-                "        },\n" +
-                "        {\n" +
-                "            \"type\": \"ProtocolEndpoint\",\n" +
-                "            \"serviceEndpoint\": \"http://localhost:%d/protocol\",\n" +
-                "            \"id\": \"%s-dsp\"\n" +
-                "        }\n" +
-                "    ],\n" +
-                "    \"active\": true,\n" +
-                "    \"participantId\": \"%s\",\n" +
-                "    \"did\": \"%s\",\n" +
-                "    \"key\": {\n" +
-                "        \"keyId\": \"%s#key-1\",\n" +
-                "        \"privateKeyAlias\": \"%s#key-1\",\n" +
-                "        \"keyGeneratorParams\": {\n" +
-                "            \"algorithm\": \"EC\"\n" +
-                "        }\n" +
-                "    }\n" +
-                "}", credentialsPort, base64ParticipantId, participantName, protocolPort, participantName, participantId, participantId, participantId, participantId);
+        JsonArrayBuilder serviceEndpointsBuilder = Json.createArrayBuilder()
+                .add(Json.createObjectBuilder()
+                        .add("type", "CredentialService")
+                        .add("serviceEndpoint", String.format("http://localhost:%d/api/credentials/v1/participants/%s", credentialsPort, base64ParticipantId))
+                        .add("id", String.format("%s-credentialservice-1", participantName)))
+                .add(Json.createObjectBuilder()
+                        .add("type", "ProtocolEndpoint")
+                        .add("serviceEndpoint", String.format("http://localhost:%d/protocol", protocolPort))
+                        .add("id", String.format("%s-dsp", participantName)));
+
+        JsonObject keyObject = Json.createObjectBuilder()
+                .add("keyId", String.format("%s#key-1", participantId))
+                .add("privateKeyAlias", String.format("%s#key-1", participantId))
+                .add("keyGeneratorParams", Json.createObjectBuilder()
+                        .add("algorithm", "EC")
+                        .build())
+                .build();
+
+        JsonObject participantManifest = Json.createObjectBuilder()
+                .add("roles", Json.createArrayBuilder().build()) // Empty array for roles
+                .add("serviceEndpoints", serviceEndpointsBuilder)
+                .add("active", true)
+                .add("participantId", participantId)
+                .add("did", participantId)
+                .add("key", keyObject)
+                .build();
+
+        return participantManifest.toString();
     }
 
     private static String encodeBase64(String input) {

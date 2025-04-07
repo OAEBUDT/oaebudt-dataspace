@@ -2,13 +2,17 @@ package org.oaebudt.edc.dcp.ih;
 
 import org.eclipse.edc.identityhub.spi.verifiablecredentials.model.VerifiableCredentialResource;
 import org.eclipse.edc.identityhub.spi.verifiablecredentials.store.CredentialStore;
+import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -26,30 +30,28 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(DependencyInjectionExtension.class)
 class IdentityHubExtensionTest {
 
     private static final String TEST_CREDENTIALS_PATH = "test/credentials/path";
     private static final String SAMPLE_VC_JSON = "{\"id\":\"test-vc-id\", \"type\":\"VerifiableCredential\"}";
 
+    @InjectMocks
     private IdentityHubExtension extension;
+
+    @Mock
     private CredentialStore credentialStore;
+    @Mock
     private TypeManager typeManager;
+    @Mock
     private ServiceExtensionContext context;
+    @Mock
     private Monitor monitor;
+    @Mock
     private Config config;
 
     @BeforeEach
     void setUp() {
-        extension = new IdentityHubExtension();
-        credentialStore = mock(CredentialStore.class);
-        typeManager = mock(TypeManager.class);
-        context = mock(ServiceExtensionContext.class);
-        monitor = mock(Monitor.class);
-        config = mock(Config.class);
-
-        extension.store = credentialStore;
-        extension.typeManager = typeManager;
-
         when(context.getConfig()).thenReturn(config);
         when(config.getString("edc.did.credentials.path")).thenReturn(TEST_CREDENTIALS_PATH);
         when(context.getMonitor()).thenReturn(monitor);

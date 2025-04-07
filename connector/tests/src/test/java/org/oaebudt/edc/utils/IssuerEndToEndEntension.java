@@ -11,16 +11,16 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Collections;
 
-public class NginxEndToEndEntension implements BeforeAllCallback, AfterAllCallback {
+public class IssuerEndToEndEntension implements BeforeAllCallback, AfterAllCallback {
 
     private static final String DEFAULT_IMAGE = "nginx:1.27-alpine";
     private final NginxContainer<?> nginx;
 
-    public NginxEndToEndEntension() {
+    public IssuerEndToEndEntension() {
         this(DEFAULT_IMAGE);
     }
 
-    public NginxEndToEndEntension(final String dockerImageName) {
+    public IssuerEndToEndEntension(final String dockerImageName) {
         nginx = new NginxContainer<>(dockerImageName);
     }
 

@@ -106,7 +106,7 @@ class ManagementApiTransferTest {
 
     @Order(7)
     @RegisterExtension
-    static final NginxEndToEndEntension NGINX_EXTENSION = new NginxEndToEndEntension();
+    static final IssuerEndToEndEntension NGINX_EXTENSION = new IssuerEndToEndEntension();
 
     @Order(8)
     @RegisterExtension

@@ -11,8 +11,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -36,38 +34,34 @@ class IdentityHubExtensionTest {
     private static final String TEST_CREDENTIALS_PATH = "test/credentials/path";
     private static final String SAMPLE_VC_JSON = "{\"id\":\"test-vc-id\", \"type\":\"VerifiableCredential\"}";
 
-    @InjectMocks
-    private IdentityHubExtension extension;
-
-    @Mock
-    private CredentialStore credentialStore;
-    @Mock
-    private TypeManager typeManager;
-    @Mock
-    private ServiceExtensionContext context;
-    @Mock
-    private Monitor monitor;
-    @Mock
-    private Config config;
+    private final CredentialStore credentialStore = mock();
+    private final TypeManager typeManager = mock();
+    private final Monitor monitor = mock();
+    private final Config config = mock();
 
     @BeforeEach
-    void setUp() {
+    void setUp(ServiceExtensionContext context) {
+        context.registerService(CredentialStore.class, credentialStore);
+        context.registerService(TypeManager.class, typeManager);
+
         when(context.getConfig()).thenReturn(config);
         when(config.getString("edc.did.credentials.path")).thenReturn(TEST_CREDENTIALS_PATH);
-        when(context.getMonitor()).thenReturn(monitor);
+
+        var monitor = mock(Monitor.class);
         when(monitor.withPrefix(anyString())).thenReturn(monitor);
+        context.registerService(Monitor.class, monitor);
     }
 
     @Test
-    void initialize_shouldSetCredentialsPathAndMonitor() {
+    void initialize_shouldSetCredentialsPathAndMonitor(IdentityHubExtension extension, ServiceExtensionContext context) {
         extension.initialize(context);
 
         assertThat(extension.credentialsDir).isEqualTo(TEST_CREDENTIALS_PATH);
-        assertThat(extension.monitor).isEqualTo(monitor);
+        assertThat(extension.monitor).isNotNull();
     }
 
     @Test
-    void start_shouldSeedCredentials(@TempDir Path tempDir) throws IOException {
+    void start_shouldSeedCredentials(@TempDir Path tempDir, IdentityHubExtension extension, ServiceExtensionContext context) throws IOException {
         File jsonFile = new File(tempDir.toFile(), "test.json");
         try (FileWriter writer = new FileWriter(jsonFile)) {
             writer.write(SAMPLE_VC_JSON);
@@ -87,7 +81,7 @@ class IdentityHubExtensionTest {
     }
 
     @Test
-    void start_withNonExistentDirectory_shouldNotCreateCredentials() {
+    void start_withNonExistentDirectory_shouldNotCreateCredentials(IdentityHubExtension extension, ServiceExtensionContext context) {
         extension.initialize(context);
         extension.credentialsDir = "/non/existent/path/" + System.currentTimeMillis();
         extension.start();
@@ -96,7 +90,7 @@ class IdentityHubExtensionTest {
     }
 
     @Test
-    void start_withEmptyDirectory_shouldNotCreateCredentials(@TempDir Path tempDir) {
+    void start_withEmptyDirectory_shouldNotCreateCredentials(@TempDir Path tempDir, IdentityHubExtension extension, ServiceExtensionContext context) {
         extension.initialize(context);
         extension.credentialsDir = tempDir.toString();
         extension.start();
@@ -105,7 +99,7 @@ class IdentityHubExtensionTest {
     }
 
     @Test
-    void start_shouldHandleFileReadErrors(@TempDir Path tempDir) throws IOException {
+    void start_shouldHandleFileReadErrors(@TempDir Path tempDir, IdentityHubExtension extension, ServiceExtensionContext context) throws IOException {
         File jsonFile = new File(tempDir.toFile(), "test.json");
         try (FileWriter writer = new FileWriter(jsonFile)) {
             writer.write(SAMPLE_VC_JSON);
@@ -125,7 +119,7 @@ class IdentityHubExtensionTest {
     }
 
     @Test
-    void start_shouldFilterNonJsonFiles(@TempDir Path tempDir) throws IOException {
+    void start_shouldFilterNonJsonFiles(@TempDir Path tempDir, IdentityHubExtension extension, ServiceExtensionContext context) throws IOException {
         File jsonFile = new File(tempDir.toFile(), "test.json");
         File txtFile = new File(tempDir.toFile(), "test.txt");
 

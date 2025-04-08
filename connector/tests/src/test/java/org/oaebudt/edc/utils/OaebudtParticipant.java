@@ -89,6 +89,7 @@ public class OaebudtParticipant extends Participant {
                 entry("edc.catalog.cache.execution.delay.seconds", 10 + ""),
                 entry("edc.dpf.selector.url", "http://localhost:" + controlPlaneControl.get().getPort() + "/control/v1/dataplanes"),
                 entry("edc.dsp.callback.address", controlPlaneProtocol.get().toString()),
+                entry("edc.iam.did.trusted.issuers", "did:web:localhost%3A19999,did:web:localhost%3A19998"),
                 entry("edc.iam.did.web.use.https", "false"),
                 entry("edc.iam.issuer.id", id),
                 entry("edc.iam.sts.oauth.client.id", id),

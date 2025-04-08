@@ -11,20 +11,27 @@ import org.eclipse.edc.policy.context.request.spi.RequestTransferProcessPolicyCo
 import org.eclipse.edc.policy.context.request.spi.RequestVersionPolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.security.signature.jws2020.Jws2020SignatureSuite;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.transform.transformer.edc.to.JsonValueToGenericTypeTransformer;
 
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerRegistry.WILDCARD;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 public class DcpPatchExtension implements ServiceExtension {
+
+    public static final String DEFAULT_TRUSTED_DID_ISSUERS = "did:web:localhost,did:web:dataspace-issuer";
+
+    @Setting(value = "Comma-separated list of trusted issuer DIDs", defaultValue = DEFAULT_TRUSTED_DID_ISSUERS)
+    public static final String TRUSTED_DID_ISSUERS_PROPERTY = "edc.iam.did.trusted.issuers";
+
     @Inject
     private TypeManager typeManager;
 
@@ -39,20 +46,28 @@ public class DcpPatchExtension implements ServiceExtension {
 
     @Inject
     private ScopeExtractorRegistry scopeExtractorRegistry;
+
     @Inject
     private TypeTransformerRegistry typeTransformerRegistry;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-
         // register signature suite
         var suite = new Jws2020SignatureSuite(typeManager.getMapper(JSON_LD));
         signatureSuiteRegistry.register(VcConstants.JWS_2020_SIGNATURE_SUITE, suite);
 
-        // register dataspace issuer
-        trustedIssuerRegistry.register(new Issuer("did:web:dataspace-issuer", Map.of()), WILDCARD);
-        trustedIssuerRegistry.register(new Issuer("did:web:localhost%3A19999", Map.of()), WILDCARD); // for the standard credentials
-        trustedIssuerRegistry.register(new Issuer("did:web:localhost%3A10100", Map.of()), WILDCARD); // for the credential used to demo the issuance flow
+        // Get the trusted DID issuers from the configuration
+        String trustedIssuers = context.getSetting(TRUSTED_DID_ISSUERS_PROPERTY, DEFAULT_TRUSTED_DID_ISSUERS);
+        context.getMonitor().info("Registering trusted did issuers: %s".formatted(trustedIssuers));
+
+        // Register trusted DID issuers
+        for (var issuerId : trustedIssuers.split(",")) {
+            var trimmed = issuerId.trim();
+            if (!trimmed.isEmpty()) {
+                trustedIssuerRegistry.register(new Issuer(trimmed, Map.of()), WILDCARD);
+                context.getMonitor().debug("Trusted DID issuer registered: '%s'".formatted(trimmed));
+            }
+        }
 
         // register a default scope provider
         var contextMappingFunction = new DefaultScopeMappingFunction(Set.of("org.eclipse.edc.vc.type:MembershipCredential:read"));
@@ -62,10 +77,8 @@ public class DcpPatchExtension implements ServiceExtension {
         policyEngine.registerPostValidator(RequestTransferProcessPolicyContext.class, contextMappingFunction::apply);
         policyEngine.registerPostValidator(RequestVersionPolicyContext.class, contextMappingFunction::apply);
 
-
         //register scope extractor
         scopeExtractorRegistry.registerScopeExtractor(new DataAccessCredentialScopeExtractor());
-
 
         typeTransformerRegistry.register(new JsonValueToGenericTypeTransformer(typeManager, JSON_LD));
     }

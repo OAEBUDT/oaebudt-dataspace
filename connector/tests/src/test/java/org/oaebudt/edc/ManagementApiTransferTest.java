@@ -207,6 +207,7 @@ class ManagementApiTransferTest {
 
     }
 
+    @Order(14)
     @Test
     public void shouldSupportPullTransfer() throws IOException {
         PROVIDER.setAuthorizationToken(KEYCLOAK_EXTENSION.getToken());
@@ -254,7 +255,7 @@ class ManagementApiTransferTest {
 
     }
 
-    @Order(14)
+    @Order(15)
     @Test
     public void shouldGetContractOfferViaFederatedCatalog() {
         PROVIDER.setAuthorizationToken(KEYCLOAK_EXTENSION.getToken());
@@ -286,6 +287,7 @@ class ManagementApiTransferTest {
                         .body(DATASET_ASSET_ID, hasItem(assetId)));
     }
 
+    @Order(16)
     @Test
     public void shouldFailToCreateAsset_InvalidToken() {
         PROVIDER.setAuthorizationToken("random token");

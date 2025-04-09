@@ -175,6 +175,7 @@ class ManagementApiTransferTest {
         createIdentityHubParticipant(IDENTITY_HUB_CONSUMER, consumerManifest, OaebudtParticipant.IH_API_SUPERUSER_KEY);
     }
 
+    @Order(13)
     @Test
     public void shouldSupportPushTransfer() {
         PROVIDER.setAuthorizationToken(KEYCLOAK_EXTENSION.getToken());
@@ -253,6 +254,7 @@ class ManagementApiTransferTest {
 
     }
 
+    @Order(14)
     @Test
     public void shouldGetContractOfferViaFederatedCatalog() {
         PROVIDER.setAuthorizationToken(KEYCLOAK_EXTENSION.getToken());

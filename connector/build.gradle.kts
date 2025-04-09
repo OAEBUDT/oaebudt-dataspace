@@ -1,10 +1,5 @@
-import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
-import com.github.jengelman.gradle.plugins.shadow.ShadowJavaPlugin
-
 plugins {
     `java-library`
-    id("com.bmuschko.docker-remote-api") version "9.4.0"
-    id("com.github.johnrengelman.shadow") version "8.1.1"
     id("org.sonarqube") version "6.0.1.5171"
 }
 
@@ -19,8 +14,26 @@ val edcGradlePluginsVersion: String by project
 
 allprojects {
     apply(plugin = "java")
+    plugins.apply("application")
+    plugins.apply("jacoco")
+
+    tasks.withType<Test> {
+        useJUnitPlatform()
+        finalizedBy(tasks.named("jacocoTestReport"))
+    }
+
+    tasks.named<JacocoReport>("jacocoTestReport") {
+        dependsOn(tasks.named("test"))
+        reports {
+            xml.required.set(true)
+            html.required.set(true)
+        }
+    }
 
     repositories {
+        maven {
+            url = uri("https://oss.sonatype.org/content/repositories/snapshots/")
+        }
         mavenCentral()
     }
 
@@ -32,7 +45,6 @@ allprojects {
         }
     }
 
-    // needed for E2E tests
     tasks.register("printClasspath") {
         dependsOn(tasks.compileJava)
         doLast {

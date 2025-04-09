@@ -1,5 +1,8 @@
+[metadata]
+format.version = "1.1"
+
 [versions]
-edc = "0.11.1"
+edc = "0.12.0"
 assertj = "3.27.3"
 awaitility = "4.2.2"
 junit-jupiter = "5.11.4"
@@ -11,7 +14,9 @@ nimbus-oauth2-oidc = "11.3"
 testcontainers-keycloak = "3.4.0"
 mockito = "5.16.0"
 jacoco = "0.8.12"
+json-schema-validator = "1.5.6"
 postgres = "42.7.5"
+
 
 [libraries]
 # upstream EDC dependencies
@@ -21,6 +26,25 @@ edc-core-spi = { module = "org.eclipse.edc:core-spi", version.ref = "edc" }
 edc-auth-spi = { module = "org.eclipse.edc:auth-spi", version.ref = "edc" }
 nimbus-jose-jwt = { module = "com.nimbusds:nimbus-jose-jwt", version.ref = "nimbus-jwt"}
 nimbus-oauth2-oidc = { module = "com.nimbusds:oauth2-oidc-sdk", version.ref = "nimbus-oauth2-oidc"}
+edc-dataplane-v2 = { module = "org.eclipse.edc:data-plane-public-api-v2", version.ref = "edc" }
+edc-dcp-core = { module = "org.eclipse.edc:identity-trust-core", version.ref = "edc" }
+edc-spi-identity-trust = { module = "org.eclipse.edc:identity-trust-spi", version.ref = "edc" }
+edc-spi-transform = { module = "org.eclipse.edc:transform-spi", version.ref = "edc" }
+edc-spi-catalog = { module = "org.eclipse.edc:catalog-spi", version.ref = "edc" }
+edc-spi-identity-did = { module = "org.eclipse.edc:identity-did-spi", version.ref = "edc" }
+
+# EDC lib dependencies
+edc-lib-jws2020 = { module = "org.eclipse.edc:jws2020-lib", version.ref = "edc" }
+edc-lib-transform = { module = "org.eclipse.edc:transform-lib", version.ref = "edc" }
+edc-lib-crypto = { module = "org.eclipse.edc:crypto-common-lib", version.ref = "edc" }
+edc-lib-keys = { module = "org.eclipse.edc:keys-lib", version.ref = "edc" }
+edc-lib-jsonld = { module = "org.eclipse.edc:json-ld-lib", version.ref = "edc" }
+
+# identityhub SPI modules
+#edc-ih-spi-store = { module = "org.eclipse.edc:identity-hub-store-spi", version.ref = "edc" }
+edc-ih-spi-credentials = { module = "org.eclipse.edc:verifiable-credential-spi", version.ref = "edc" }
+edc-api-secrets = { module = "org.eclipse.edc:secrets-api", version.ref = "edc" }
+edc-ih-spi = { module = "org.eclipse.edc:identity-hub-spi", version.ref = "edc" }
 postgres = { module = "org.postgresql:postgresql", version.ref = "postgres" }
 
 #Federated catalog modules
@@ -28,14 +52,29 @@ edc-fc-core = { module = "org.eclipse.edc:federated-catalog-core", version.ref =
 edc-fc-ext-api = { module = "org.eclipse.edc:federated-catalog-api", version.ref = "edc" }
 edc-fc-spi-crawler = { module = "org.eclipse.edc:crawler-spi", version.ref = "edc" }
 
+
 # BOM modules
-edc-bom-controlplane = { module = "org.eclipse.edc:controlplane-base-bom", version.ref = "edc" }
+edc-bom-controlplane = { module = "org.eclipse.edc:controlplane-dcp-bom", version.ref = "edc" }
 edc-bom-dataplane = { module = "org.eclipse.edc:dataplane-base-bom", version.ref = "edc" }
 edc-bom-controlplane-sql = { module = "org.eclipse.edc:controlplane-feature-sql-bom", version.ref = "edc" }
 edc-bom-dataplane-sql = { module = "org.eclipse.edc:dataplane-feature-sql-bom", version.ref = "edc" }
+edc-bom-identityhub = { module = "org.eclipse.edc:identityhub-bom", version.ref = "edc" }
+edc-bom-identityhub-sts = { module = "org.eclipse.edc:identityhub-with-sts-bom", version.ref = "edc" }
+edc-bom-identityhub-sql = { module = "org.eclipse.edc:identityhub-feature-sql-bom", version.ref = "edc" }
 edc-iam-mock = { module = "org.eclipse.edc:iam-mock", version.ref = "edc" }
 edc-lib-http = { module = "org.eclipse.edc:http-lib", version.ref = "edc" }
 edc-spi-token = { module = "org.eclipse.edc:token-spi", version.ref = "edc" }
+edc-bom-issuerservice = { module = "org.eclipse.edc:issuerservice-bom", version.ref = "edc" }
+edc-bom-issuerservice-sql = { module = "org.eclipse.edc:issuerservice-feature-sql-bom", version.ref = "edc" }
+
+# identityhub API modules
+edc-ih-lib-credentialquery = { module = "org.eclipse.edc:credential-query-lib", version.ref = "edc" }
+edc-ih-api-did = { module = "org.eclipse.edc:did-api", version.ref = "edc" }
+edc-ih-api-participants = { module = "org.eclipse.edc:participant-context-api", version.ref = "edc" }
+
+# issuerservice SPI module
+edc-issuance-spi = { module = "org.eclipse.edc:issuerservice-issuance-spi", version.ref = "edc" }
+
 
 # Test Dependencies
 edc-boot-lib = { module = "org.eclipse.edc:boot-lib", version.ref = "edc" }
@@ -52,6 +91,10 @@ testcontainers-postgresql = { module = "org.testcontainers:postgresql", version.
 testcontainers-hashicorp-vault = { module = "org.testcontainers:vault", version.ref = "testcontainers" }
 testcontainers-keycloak = { module = "com.github.dasniko:testcontainers-keycloak", version.ref = "testcontainers-keycloak" }
 mockito-core = { group = "org.mockito", name = "mockito-core", version.ref = "mockito" }
+edc-ih-test-fixtures = { module = "org.eclipse.edc:identityhub-test-fixtures", version.ref = "edc" }
+edc-sql-test-fixtures = { module = "org.eclipse.edc:sql-test-fixtures", version.ref = "edc" }
+testcontainers-nginx = { module = "org.testcontainers:nginx", version.ref = "testcontainers" }
+json-schema-validator = { module = "com.networknt:json-schema-validator", version.ref = "json-schema-validator" }
 
 [plugins]
 shadow = { id = "com.gradleup.shadow", version = "8.3.6" }

@@ -6,8 +6,7 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.Matchers.emptyString;
 import static org.mockserver.model.BinaryBody.binary;
 import static org.mockserver.model.HttpRequest.request;
@@ -15,30 +14,35 @@ import static org.mockserver.model.HttpResponse.response;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.dockerjava.zerodep.shaded.org.apache.hc.core5.http.HttpStatus;
+import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
+import io.restassured.response.Response;
+import io.restassured.specification.RequestSpecification;
 import jakarta.json.Json;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
 import java.io.IOException;
+import java.util.Base64;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import org.assertj.core.api.Assertions;
 import org.eclipse.edc.connector.controlplane.test.system.utils.PolicyFixtures;
+import org.eclipse.edc.identityhub.tests.fixtures.credentialservice.IdentityHubExtension;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.eclipse.edc.spi.system.ServiceExtension;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockserver.integration.ClientAndServer;
+import org.oaebudt.edc.utils.*;
 import org.oaebudt.edc.utils.HashiCorpVaultEndToEndExtension;
 import org.oaebudt.edc.utils.KeycloakEndToEndExtension;
-import org.oaebudt.edc.utils.OaebudtParticipant;
-import org.oaebudt.edc.utils.PostgresEndToEndExtension;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 
@@ -47,21 +51,29 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 class ManagementApiTransferTest {
 
     public static final String DCAT_TYPE = "[0].@type";
+
     public static final String CATALOG = "dcat:Catalog";
+
     public static final String DATASET_ASSET_ID = "[0].'dcat:dataset'.@id";
 
     private static final String CONNECTOR_MODULE_PATH = ":launchers:runtime-embedded";
 
+    private static final String IDENTITY_HUB_MODULE_PATH = ":launchers:identity-hub";
+
     private static final OaebudtParticipant PROVIDER = OaebudtParticipant.Builder.newInstance()
-            .id("provider").name("provider")
+            .id("did:web:localhost%3A6100").name("provider")
             .build();
 
     private static final OaebudtParticipant CONSUMER = OaebudtParticipant.Builder.newInstance()
-            .id("consumer").name("consumer")
+            .id("did:web:localhost%3A6200").name("consumer")
             .build();
 
-    private static final OaebudtParticipant PROVIDER_FC = OaebudtParticipant.Builder.newInstance()
-            .id("provider_fc").name("provider_fc")
+    private static final OaebudtParticipant IDENTITY_HUB_PROVIDER = OaebudtParticipant.Builder.newInstance()
+            .id("did:web:localhost%3A6100").name("identityhub_provider")
+            .build();
+
+    private static final OaebudtParticipant IDENTITY_HUB_CONSUMER = OaebudtParticipant.Builder.newInstance()
+            .id("did:web:localhost%3A6200").name("identityhub_consumer")
             .build();
 
     @Order(0)
@@ -78,45 +90,90 @@ class ManagementApiTransferTest {
 
     @Order(3)
     @RegisterExtension
-    static final BeforeAllCallback CREATE_DATABASES = context -> {
-        PROVIDER_POSTGRESQL_EXTENSION.createDatabase(PROVIDER.getName());
-        CONSUMER_POSTGRESQL_EXTENSION.createDatabase(CONSUMER.getName());
-        PROVIDER_FC_POSTGRESQL_EXTENSION.createDatabase(PROVIDER_FC.getName());
-    };
+    static final PostgresEndToEndExtension IDENTITY_HUB_PROVIDER_POSTGRESQL_EXTENSION = new PostgresEndToEndExtension();
 
     @Order(4)
     @RegisterExtension
-    static final HashiCorpVaultEndToEndExtension VAULT_EXTENSION = new HashiCorpVaultEndToEndExtension();
+    static final PostgresEndToEndExtension IDENTITY_HUB_CONSUMER_POSTGRESQL_EXTENSION = new PostgresEndToEndExtension();
 
     @Order(5)
     @RegisterExtension
+    static final HashiCorpVaultEndToEndExtension VAULT_EXTENSION = new HashiCorpVaultEndToEndExtension();
+
+    @Order(6)
+    @RegisterExtension
     static final KeycloakEndToEndExtension KEYCLOAK_EXTENSION = new KeycloakEndToEndExtension();
 
-
+    @Order(7)
     @RegisterExtension
-    static RuntimeExtension consumer = new RuntimePerClassExtension(
-        new EmbeddedRuntime("consumer", CONNECTOR_MODULE_PATH)
-                .configurationProvider(CONSUMER::getConfiguration)
-                .configurationProvider(() -> CONSUMER_POSTGRESQL_EXTENSION.configFor(CONSUMER.getName()))
-                .configurationProvider(VAULT_EXTENSION::config)
-                .configurationProvider(KEYCLOAK_EXTENSION::config));
+    static final IssuerEndToEndEntension NGINX_EXTENSION = new IssuerEndToEndEntension();
 
+    @Order(8)
+    @RegisterExtension
+    static final BeforeAllCallback CREATE_DATABASES = context -> {
+        PROVIDER_POSTGRESQL_EXTENSION.createDatabase(PROVIDER.getName());
+        CONSUMER_POSTGRESQL_EXTENSION.createDatabase(CONSUMER.getName());
+        IDENTITY_HUB_PROVIDER_POSTGRESQL_EXTENSION.createDatabase(IDENTITY_HUB_PROVIDER.getName());
+        IDENTITY_HUB_CONSUMER_POSTGRESQL_EXTENSION.createDatabase(IDENTITY_HUB_CONSUMER.getName());
+    };
+
+    @Order(9)
+    @RegisterExtension
+    static final IdentityHubExtension identityhub_provider = IdentityHubExtension.Builder.newInstance()
+            .id("identityhub_provider")
+            .name(IDENTITY_HUB_PROVIDER.getName())
+            .modules(IDENTITY_HUB_MODULE_PATH)
+            .configurationProvider(() ->  IDENTITY_HUB_PROVIDER.getIdentityHubConfiguration
+                    (PROVIDER.getName(), "6100"))
+            .configurationProvider(() -> IDENTITY_HUB_PROVIDER_POSTGRESQL_EXTENSION.configFor(IDENTITY_HUB_PROVIDER.getName()))
+            .configurationProvider(VAULT_EXTENSION::config)
+            .build();
+
+    @Order(10)
+    @RegisterExtension
+    static final IdentityHubExtension identityhub_consumer = IdentityHubExtension.Builder.newInstance()
+            .id("identityhub_consumer")
+            .name(IDENTITY_HUB_CONSUMER.getName())
+            .modules(IDENTITY_HUB_MODULE_PATH)
+            .configurationProvider(() ->  IDENTITY_HUB_CONSUMER.getIdentityHubConfiguration
+                    (CONSUMER.getName(), "6200"))
+            .configurationProvider(() -> IDENTITY_HUB_CONSUMER_POSTGRESQL_EXTENSION.configFor(IDENTITY_HUB_CONSUMER.getName()))
+            .configurationProvider(VAULT_EXTENSION::config)
+            .build();
+
+    @Order(11)
     @RegisterExtension
     protected static RuntimeExtension provider = new RuntimePerClassExtension(
             new EmbeddedRuntime("provider", CONNECTOR_MODULE_PATH)
-                    .configurationProvider(PROVIDER::getConfiguration)
+                    .configurationProvider(() -> PROVIDER.getConfiguration(IDENTITY_HUB_PROVIDER.getIdentityHubStsPort()))
                     .configurationProvider(() -> PROVIDER_POSTGRESQL_EXTENSION.configFor(PROVIDER.getName()))
                     .configurationProvider(VAULT_EXTENSION::config)
                     .configurationProvider(KEYCLOAK_EXTENSION::config)
                     .registerSystemExtension(ServiceExtension.class, PROVIDER.seedVaultKeys()));
 
+    @Order(12)
     @RegisterExtension
-    protected static RuntimeExtension providerFc = new RuntimePerClassExtension( //For fedearted catalog test
-            new EmbeddedRuntime("provider_fc", CONNECTOR_MODULE_PATH)
-                    .configurationProvider(PROVIDER_FC::getConfiguration)
-                    .configurationProvider(() -> PROVIDER_FC_POSTGRESQL_EXTENSION.configFor(PROVIDER_FC.getName()))
-                    .configurationProvider(VAULT_EXTENSION::config)
-                    .configurationProvider(KEYCLOAK_EXTENSION::config));
+    static RuntimeExtension consumer = new RuntimePerClassExtension(
+        new EmbeddedRuntime("consumer", CONNECTOR_MODULE_PATH)
+                .configurationProvider(() ->  CONSUMER.getConfiguration(IDENTITY_HUB_CONSUMER.getIdentityHubStsPort()))
+                .configurationProvider(() -> CONSUMER_POSTGRESQL_EXTENSION.configFor(CONSUMER.getName()))
+                .configurationProvider(VAULT_EXTENSION::config)
+                .configurationProvider(KEYCLOAK_EXTENSION::config));
+
+    @BeforeAll
+    public static void setup() {
+
+        int providerProtocolPort = PROVIDER.getConnectorProtocolUri().getPort();
+        int providerCredentialsPort = IDENTITY_HUB_PROVIDER.getIdentityHubCredentialsApiUri().getPort();
+        int consumerProtocolPort = CONSUMER.getConnectorProtocolUri().getPort();
+        int consumerCredentialsPort = IDENTITY_HUB_CONSUMER.getIdentityHubCredentialsApiUri().getPort();
+
+        String providerManifest = createParticipantManifest(providerProtocolPort, providerCredentialsPort, PROVIDER.getId(), PROVIDER.getName());
+        String consumerManifest = createParticipantManifest(consumerProtocolPort, consumerCredentialsPort, CONSUMER.getId(), CONSUMER.getName());
+
+        createIdentityHubParticipant(IDENTITY_HUB_PROVIDER, providerManifest, OaebudtParticipant.IH_API_SUPERUSER_KEY);
+        createIdentityHubParticipant(IDENTITY_HUB_CONSUMER, consumerManifest, OaebudtParticipant.IH_API_SUPERUSER_KEY);
+    }
 
     @Test
     public void shouldSupportPushTransfer() {
@@ -198,13 +255,13 @@ class ManagementApiTransferTest {
 
     @Test
     public void shouldGetContractOfferViaFederatedCatalog() {
-        PROVIDER_FC.setAuthorizationToken(KEYCLOAK_EXTENSION.getToken());
+        PROVIDER.setAuthorizationToken(KEYCLOAK_EXTENSION.getToken());
 
         final Map<String, Object> dataAddressProperties = Map.of(
                 "type", "HttpData-PULL",
                 "baseUrl", "http://localhost:8080/source"
         );
-        final String assetId = createProviderAsset(PROVIDER_FC, dataAddressProperties);
+        final String assetId = createProviderAsset(PROVIDER, dataAddressProperties);
 
         final JsonObject requestBody = Json.createObjectBuilder()
                 .add("@context", Json.createObjectBuilder()
@@ -214,7 +271,7 @@ class ManagementApiTransferTest {
 
         await().untilAsserted(() ->
                 given()
-                        .baseUri(PROVIDER_FC.getCatalogUrl().toString())
+                        .baseUri(PROVIDER.getCatalogUrl().toString())
                         .contentType(ContentType.JSON).body(requestBody)
                         .headers(OaebudtParticipant.API_KEY_HEADER_KEY, OaebudtParticipant.API_KEY_HEADER_VALUE)
                         .when()
@@ -224,7 +281,7 @@ class ManagementApiTransferTest {
                         .statusCode(HttpStatus.SC_OK)
                         .body(DCAT_TYPE, not(emptyString()))
                         .body(DCAT_TYPE, is(CATALOG))
-                        .body(DATASET_ASSET_ID, is(assetId)));
+                        .body(DATASET_ASSET_ID, hasItem(assetId)));
     }
 
     @Test
@@ -287,4 +344,55 @@ class ManagementApiTransferTest {
                 .build();
     }
 
+    private static String createParticipantManifest(int protocolPort, int credentialsPort, String participantId, String participantName) {
+        String base64ParticipantId = encodeBase64(participantId);
+
+        JsonArrayBuilder serviceEndpointsBuilder = Json.createArrayBuilder()
+                .add(Json.createObjectBuilder()
+                        .add("type", "CredentialService")
+                        .add("serviceEndpoint", String.format("http://localhost:%d/api/credentials/v1/participants/%s", credentialsPort, base64ParticipantId))
+                        .add("id", String.format("%s-credentialservice-1", participantName)))
+                .add(Json.createObjectBuilder()
+                        .add("type", "ProtocolEndpoint")
+                        .add("serviceEndpoint", String.format("http://localhost:%d/protocol", protocolPort))
+                        .add("id", String.format("%s-dsp", participantName)));
+
+        JsonObject keyObject = Json.createObjectBuilder()
+                .add("keyId", String.format("%s#key-1", participantId))
+                .add("privateKeyAlias", String.format("%s#key-1", participantId))
+                .add("keyGeneratorParams", Json.createObjectBuilder()
+                        .add("algorithm", "EC")
+                        .build())
+                .build();
+
+        JsonObject participantManifest = Json.createObjectBuilder()
+                .add("roles", Json.createArrayBuilder().build()) // Empty array for roles
+                .add("serviceEndpoints", serviceEndpointsBuilder)
+                .add("active", true)
+                .add("participantId", participantId)
+                .add("did", participantId)
+                .add("key", keyObject)
+                .build();
+
+        return participantManifest.toString();
+    }
+
+    private static String encodeBase64(String input) {
+        return Base64.getEncoder().encodeToString(input.getBytes());
+    }
+
+    private static void createIdentityHubParticipant(OaebudtParticipant participant, String body, String apiKey) {
+        String apiUrl =  participant.getIdentityHubApiUri() + "/v1alpha/participants";
+
+        RequestSpecification request = RestAssured.given();
+        Response response = request
+                .header("x-api-key", apiKey)
+                .contentType(ContentType.JSON)
+                .log().all()
+                .body(body)
+                .post(apiUrl)
+                .then()
+                .log().ifValidationFails()
+                .extract().response();
+    }
 }

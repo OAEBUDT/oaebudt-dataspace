@@ -16,7 +16,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.dockerjava.zerodep.shaded.org.apache.hc.core5.http.HttpStatus;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
-import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import jakarta.json.Json;
 import jakarta.json.JsonArrayBuilder;
@@ -175,7 +174,6 @@ class ManagementApiTransferTest {
         createIdentityHubParticipant(IDENTITY_HUB_CONSUMER, consumerManifest, OaebudtParticipant.IH_API_SUPERUSER_KEY);
     }
 
-    @Order(13)
     @Test
     public void shouldSupportPushTransfer() {
         PROVIDER.setAuthorizationToken(KEYCLOAK_EXTENSION.getToken());
@@ -254,7 +252,6 @@ class ManagementApiTransferTest {
 
     }
 
-    @Order(14)
     @Test
     public void shouldGetContractOfferViaFederatedCatalog() {
         PROVIDER.setAuthorizationToken(KEYCLOAK_EXTENSION.getToken());
@@ -283,7 +280,10 @@ class ManagementApiTransferTest {
                         .statusCode(HttpStatus.SC_OK)
                         .body(DCAT_TYPE, not(emptyString()))
                         .body(DCAT_TYPE, is(CATALOG))
-                        .body(DATASET_ASSET_ID, hasItem(assetId)));
+                        .body(DATASET_ASSET_ID, anyOf(
+                                is(assetId), // for String
+                                hasItem(assetId) // for List
+                        )));
     }
 
     @Test
@@ -387,14 +387,14 @@ class ManagementApiTransferTest {
         String apiUrl =  participant.getIdentityHubApiUri() + "/v1alpha/participants";
 
         RequestSpecification request = RestAssured.given();
-        Response response = request
-                .header("x-api-key", apiKey)
-                .contentType(ContentType.JSON)
-                .log().all()
-                .body(body)
-                .post(apiUrl)
-                .then()
-                .log().ifValidationFails()
-                .extract().response();
+        request
+            .header(OaebudtParticipant.API_KEY_HEADER_KEY, apiKey)
+            .contentType(ContentType.JSON)
+            .log().all()
+            .body(body)
+            .post(apiUrl)
+            .then()
+            .log().ifValidationFails()
+            .extract().response();
     }
 }

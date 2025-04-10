@@ -14,6 +14,8 @@ import org.eclipse.edc.web.spi.WebService;
 
 public class KeyCloakAuthenticationExtension implements ServiceExtension {
 
+    private static final String REPORT = "report";
+
     @Configuration
     private KeycloakConfiguration keycloakConfiguration;
 
@@ -28,10 +30,14 @@ public class KeyCloakAuthenticationExtension implements ServiceExtension {
 
         authenticationRegistry.register(MANAGEMENT, new KeycloakAuthenticationService(context.getMonitor(),
                 keycloakConfiguration.jwkUrl()));
+        authenticationRegistry.register(REPORT, new KeycloakAuthenticationService(context.getMonitor(),
+                keycloakConfiguration.jwkUrl()));
 
         final var authenticationFilter = new AuthenticationRequestFilter(authenticationRegistry, MANAGEMENT);
+        final var reportAuthenticationFilter = new AuthenticationRequestFilter(authenticationRegistry, REPORT);
 
         webService.registerResource(MANAGEMENT, authenticationFilter);
+        webService.registerResource(REPORT, reportAuthenticationFilter);
     }
 
     @Settings

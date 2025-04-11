@@ -21,10 +21,21 @@ public class CatalogNodeDirectory implements TargetNodeDirectory {
         List<String> protocolList = new ArrayList<>();
         protocolList.add("dataspace-protocol-http");
 
-        return participantDspEndpoints.stream()
+        List<TargetNode> nodes = participantDspEndpoints.stream()
                 .map(dspEndpoint -> new TargetNode(CoreConstants.EDC_NAMESPACE,
                         "did:web:localhost%3A6100",
-                        dspEndpoint, protocolList)).collect(Collectors.toList());
+                        "http://localhost:7104/api/dsp",
+                        protocolList))
+                .collect(Collectors.toList());
+
+        // Add another node
+        nodes.add(new TargetNode(
+                CoreConstants.EDC_NAMESPACE,
+                "did:web:localhost%3A6200",  // Different DID for the new node
+                "http://localhost:7204/api/dsp",  // New endpoint
+                protocolList));
+
+        return nodes;
     }
 
     @Override

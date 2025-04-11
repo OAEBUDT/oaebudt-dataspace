@@ -10,7 +10,7 @@ repositories {
 }
 
 dependencies {
-    runtimeOnly(project(":extensions:keycloak-auth"))
+//    runtimeOnly(project(":extensions:keycloak-auth"))
     runtimeOnly(project(":extensions:catalog-node-resolver"))
     runtimeOnly(project(":extensions:dcp-impl"))
 

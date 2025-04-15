@@ -270,7 +270,7 @@ class ManagementApiTransferTest {
 
         await().untilAsserted(() ->
                 given()
-                        .baseUri(PROVIDER.getCatalogUrl().toString())
+                        .baseUri(CONSUMER.getCatalogUrl().toString())
                         .contentType(ContentType.JSON).body(requestBody)
                         .headers(OaebudtParticipant.API_KEY_HEADER_KEY, OaebudtParticipant.API_KEY_HEADER_VALUE)
                         .when()

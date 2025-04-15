@@ -102,7 +102,6 @@ public class OaebudtParticipant extends Participant {
                 entry("edc.runtime.id", id),
                 entry("edc.transfer.proxy.token.signer.privatekey.alias", "private-key-alias"),
                 entry("edc.transfer.proxy.token.verifier.publickey.alias", "public-key-alias"),
-                entry("fc.participants.list", controlPlaneProtocol.get().toString()), // temp for testing crawler
                 entry("web.http.catalog.path", catalogServerUri.get().getPath()),
                 entry("web.http.catalog.port", catalogServerUri.get().getPort() + ""),
                 entry("web.http.control.path", controlPlaneControl.get().getPath()),
@@ -226,10 +225,11 @@ public class OaebudtParticipant extends Participant {
 
     private static String getParticipantListFilePath() {
         URL resourceUrl = OaebudtParticipant.class.getClassLoader()
-                .getResource("assets/participant.json");
+                .getResource("assets/participants/participants.json");
         if (resourceUrl == null) {
             throw new IllegalStateException("Participant list file path not found in resources");
         }
+        System.out.println(Paths.get(resourceUrl.getPath()).toString());
         return Paths.get(resourceUrl.getPath()).toString();
     }
 }

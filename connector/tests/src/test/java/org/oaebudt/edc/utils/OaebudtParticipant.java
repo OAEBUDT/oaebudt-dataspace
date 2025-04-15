@@ -229,7 +229,7 @@ public class OaebudtParticipant extends Participant {
         if (resourceUrl == null) {
             throw new IllegalStateException("Participant list file path not found in resources");
         }
-        System.out.println(Paths.get(resourceUrl.getPath()).toString());
+
         return Paths.get(resourceUrl.getPath()).toString();
     }
 }

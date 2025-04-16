@@ -5,7 +5,7 @@ plugins {
 
 dependencies {
     runtimeOnly(project(":extensions:keycloak-auth"))
-    runtimeOnly(project(":extensions:catalog-node-resolver-fs"))
+    runtimeOnly(project(":extensions:catalog-node-resolver"))
     runtimeOnly(project(":extensions:dcp-impl"))
 
     runtimeOnly(project(":launchers:controlplane")) {

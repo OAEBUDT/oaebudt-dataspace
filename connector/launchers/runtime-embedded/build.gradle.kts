@@ -4,6 +4,7 @@ plugins {
 }
 
 dependencies {
+    runtimeOnly(project(":extensions:report-service"))
     runtimeOnly(project(":extensions:keycloak-auth"))
     runtimeOnly(project(":extensions:catalog-node-resolver"))
     runtimeOnly(project(":extensions:dcp-impl"))

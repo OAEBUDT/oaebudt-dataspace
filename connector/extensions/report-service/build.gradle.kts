@@ -1,15 +1,18 @@
 plugins {
     `java-library`
-
 }
 
 dependencies {
-    implementation(libs.edc.auth.spi)
     implementation(libs.edc.web.spi)
-    runtimeOnly(project(":extensions:keycloak-auth"))
+    implementation(libs.mongodb.driver.sync)
+    implementation(libs.jersey.multipart)
+    implementation(libs.edc.connector.client)
 
     testImplementation(libs.edc.junit)
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.assertj)
     testImplementation(libs.mockito.core)
+    testImplementation(libs.testcontainers.mongodb)
+    testImplementation(libs.testcontainers.junit)
+
 }

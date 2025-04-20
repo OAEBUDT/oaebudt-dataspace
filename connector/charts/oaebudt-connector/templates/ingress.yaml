@@ -1,0 +1,59 @@
+{{- if .Values.ingress.enabled -}}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "oaebudt-connector.fullname" . }}
+  labels:
+    {{- include "oaebudt-connector.labels" . | nindent 4 }}
+  {{- with .Values.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- with .Values.ingress.className }}
+  ingressClassName: {{ . }}
+  {{- end }}
+  rules:
+    - host: {{ printf "%s.%s" .Release.Name .Values.global.domain | required ".Values.global.domain is required" | quote }}
+      http:
+        paths:
+          - path: {{ .Values.endpoints.management.path }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Values.participant.id }}-connector
+                port:
+                  name: management
+          - path: {{ .Values.endpoints.identity.path }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Values.participant.id }}-connector
+                port:
+                  name: identity
+          - path: {{ .Values.endpoints.catalog.path }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Values.participant.id }}-connector
+                port:
+                  name: catalog
+          - path: {{ .Values.endpoints.public.path }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Values.participant.id }}-connector
+                port:
+                  name: public
+  {{- if .Values.ingress.tls }}
+  tls:
+    {{- range .Values.ingress.tls }}
+    - hosts:
+        {{- range .hosts }}
+        - {{ . | quote }}
+        {{- end }}
+      secretName: {{ .secretName }}
+    {{- end }}
+  {{- end }}
+{{- end }}

@@ -1,0 +1,231 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "oaebudt-connector.fullname" . }}
+  labels:
+    {{- include "oaebudt-connector.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "oaebudt-connector.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "oaebudt-connector.selectorLabels" . | nindent 8 }}
+          {{- with .Values.podLabels }}
+          {{- toYaml . | nindent 8 }}
+          {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "oaebudt-connector.serviceaccount.name" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      # Init container waits for PostgreSQL to be ready before starting the connector container
+      initContainers:
+        - name: wait-for-postgres
+          image: busybox
+          command: [ 'sh', '-c', 'until nc -zv {{ .Release.Name }}-postgresql 5432; do echo waiting for postgres; sleep 2; done' ]
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            ## ID CONFIGURATION ##
+            - name: EDC_HOSTNAME
+              value: {{ .Values.participant.id }}-connector.{{ .Release.Namespace }}.svc.cluster.local
+            - name: EDC_PARTICIPANT_ID
+              value: {{ .Values.participant.did | required ".Values.participant.did is required" | quote }}
+            ## DID TLS CONFIGURATION ##
+            - name: EDC_IAM_DID_WEB_USE_HTTPS
+              value: {{ .Values.dcp.tls.enabled | quote }}
+            ## IAM CONFIGURATION ##
+            - name: EDC_IAM_ISSUER_ID
+              value: {{ printf "did:web:did.%s.svc.cluster.local" .Release.Namespace | quote }}
+            - name: EDC_IH_IAM_ID
+              value: {{ printf "did:web:did.%s.svc.cluster.local" .Release.Namespace | quote }}
+            - name: EDC_IAM_DID_TRUSTED_ISSUERS
+              value: {{ join "," .Values.dcp.trustedIssuers | required "At least one item in .Values.dcp.trustedIssuers is required" | quote }}
+            ## STS CONFIGURATION ##
+            - name: EDC_IAM_STS_PRIVATEKEY_ALIAS
+              value: {{ printf "did:web:did.%s.svc.cluster.local#key-1" .Release.Namespace | quote }}
+            - name: EDC_IAM_STS_PUBLICKEY_ID
+              value: {{ printf "did:web:did.%s.svc.cluster.local#key-1" .Release.Namespace | quote }}
+            - name: EDC_IAM_STS_OAUTH_CLIENT_ID
+              value: {{ printf "did:web:did.%s.svc.cluster.local" .Release.Namespace | quote }}
+            - name: EDC_IAM_STS_OAUTH_CLIENT_SECRET_ALIAS
+              value: {{ printf "did:web:did.%s.svc.cluster.local-sts-client-secret" .Release.Namespace | quote }}
+            - name: EDC_IAM_STS_OAUTH_TOKEN_URL
+              value: {{ printf "http://sts.%s.svc.cluster.local%s/token" .Release.Namespace .Values.endpoints.sts.path | quote }}
+            ## CONTROL PLANE API CONFIGURATION ##
+            - name: WEB_HTTP_PORT
+              value: {{ .Values.endpoints.default.port | quote }}
+            - name: WEB_HTTP_PATH
+              value: {{ .Values.endpoints.default.path | quote }}
+            - name: WEB_HTTP_CATALOG_PORT
+              value: {{ .Values.endpoints.catalog.port | quote }}
+            - name: WEB_HTTP_CATALOG_PATH
+              value: {{ .Values.endpoints.catalog.path | quote }}
+            - name: WEB_HTTP_CATALOG_AUTH_TYPE
+              value: "tokenbased"
+            - name: WEB_HTTP_CATALOG_AUTH_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: x-api-keys
+                  key: catalog-key
+            - name: WEB_HTTP_CONTROL_PORT
+              value: {{ .Values.endpoints.control.port | quote }}
+            - name: WEB_HTTP_CONTROL_PATH
+              value: {{ .Values.endpoints.control.path | quote }}
+            - name: WEB_HTTP_PROTOCOL_PORT
+              value: {{ .Values.endpoints.protocol.port | quote }}
+            - name: WEB_HTTP_PROTOCOL_PATH
+              value: {{ .Values.endpoints.protocol.path | quote }}
+            - name: WEB_HTTP_MANAGEMENT_PORT
+              value: {{ .Values.endpoints.management.port | quote }}
+            - name: WEB_HTTP_MANAGEMENT_PATH
+              value: {{ .Values.endpoints.management.path | quote }}
+            - name: WEB_HTTP_MANAGEMENT_AUTH_TYPE
+              value: "tokenbased"
+            - name: WEB_HTTP_MANAGEMENT_AUTH_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: x-api-keys
+                  key: management-key
+            - name: WEB_HTTP_VERSION_PORT
+              value: {{ .Values.endpoints.version.port | quote }}
+            - name: WEB_HTTP_VERSION_PATH
+              value: {{ .Values.endpoints.version.path | quote }}
+            ## DSP CONFIGURATION ##
+            - name: EDC_DSP_CALLBACK_ADDRESS
+              value: {{ printf "http://dsp.%s.svc.cluster.local%s" .Release.Namespace .Values.endpoints.protocol.path }}
+            ## Catalog CONFIGURATION ##
+            - name: OAEBUDT_DS_PARTICIPANTS_LIST_FILE
+              value: {{ .Values.catalog.crawler.targetsFile | quote }}
+            - name: EDC_CATALOG_CACHE_EXECUTION_DELAY_SECONDS
+              value: {{ .Values.catalog.crawler.initialDelay | quote }}
+            ## DATA PLANE CONFIGURATION
+            - name: WEB_HTTP_PUBLIC_PORT
+              value: {{ .Values.endpoints.public.port | quote }}
+            - name: WEB_HTTP_PUBLIC_PATH
+              value: {{ .Values.endpoints.public.path | quote }}
+            - name: EDC_TRANSFER_PROXY_TOKEN_VERIFIER_PUBLICKEY_ALIAS
+              value: {{ printf "did:web:did.%s.svc.cluster.local#key-1" .Release.Namespace | quote }}
+            - name: EDC_TRANSFER_PROXY_TOKEN_SIGNER_PRIVATEKEY_ALIAS
+              value: {{ printf "did:web:did.%s.svc.cluster.local#key-1" .Release.Namespace | quote }}
+            - name: EDC_DPF_SELECTOR_URL
+              value: {{ printf "http://dpf.%s.svc.cluster.local%s/v1/dataplanes" .Release.Namespace .Values.endpoints.control.path }}
+            ## IDENTITY HUB API CONFIGURATION ##
+            - name: WEB_HTTP_DID_PORT
+              value: {{ .Values.endpoints.did.port | quote }}
+            - name: WEB_HTTP_DID_PATH
+              value: {{ .Values.endpoints.did.path | quote }}
+            - name: WEB_HTTP_CREDENTIALS_PORT
+              value: {{ .Values.endpoints.credentials.port | quote }}
+            - name: WEB_HTTP_CREDENTIALS_PATH
+              value: {{ .Values.endpoints.credentials.path | quote }}
+            - name: WEB_HTTP_IDENTITY_PORT
+              value: {{ .Values.endpoints.identity.port | quote }}
+            - name: WEB_HTTP_IDENTITY_PATH
+              value: {{ .Values.endpoints.identity.path | quote }}
+            - name: WEB_HTTP_PRESENTATION_PORT
+              value: {{ .Values.endpoints.presentation.port | quote }}
+            - name: WEB_HTTP_PRESENTATION_PATH
+              value: {{ .Values.endpoints.presentation.path | quote }}
+            - name: WEB_HTTP_STS_PORT
+              value: {{ .Values.endpoints.sts.port | quote }}
+            - name: WEB_HTTP_STS_PATH
+              value: {{ .Values.endpoints.sts.path | quote }}
+            ## IDENTITY HUB CONFIGURATION ##
+            - name: EDC_IH_API_SUPERUSER_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: x-api-keys
+                  key: superuser-key
+            - name: EDC_DID_CREDENTIALS_PATH
+              value: {{ tpl .Values.dcp.identityHub.credentials.mountPath . | quote }}
+            ## POSTGRESQL ##
+            - name: "EDC_DATASOURCE_DEFAULT_USER"
+              value: {{ .Values.postgresql.auth.username | required ".Values.postgresql.auth.username is required" | quote }}
+            - name: "EDC_DATASOURCE_DEFAULT_PASSWORD"
+              value: {{ .Values.postgresql.auth.password | required ".Values.postgresql.auth.password is required" | quote }}
+            - name: "EDC_DATASOURCE_DEFAULT_URL"
+              value: {{ printf "jdbc:postgresql://%s-postgresql:5432/%s" .Release.Name .Values.postgresql.auth.database | required ".Values.postgresql.auth.database is required" |quote }}
+            - name: EDC_SQL_SCHEMA_AUTOCREATE
+              value: {{ .Values.postgresql.schema.autoCreate | quote }}
+            ## VAULT ##
+            # see extension https://github.com/eclipse-edc/Connector/tree/main/extensions/common/vault/vault-hashicorp
+            - name: "EDC_VAULT_HASHICORP_URL"
+              value: {{ tpl .Values.vault.hashicorp.url . | quote }}
+            - name: "EDC_VAULT_HASHICORP_TOKEN"
+              value: {{ .Values.vault.hashicorp.token | required ".Values.vault.hashicorp.token is required" | quote }}
+          ports:
+          {{- range $key,$value := .Values.endpoints }}
+            - name: {{ $key }}
+              containerPort: {{ $value.port }}
+              protocol: TCP
+          {{- end }}
+          {{- if .Values.livenessProbe.enabled }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.endpoints.default.path }}/check/liveness
+              port: {{ .Values.endpoints.default.port }}
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
+            successThreshold: {{ .Values.livenessProbe.successThreshold }}
+          {{- end }}
+          {{- if .Values.readinessProbe.enabled }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.endpoints.default.path }}/check/readiness
+              port: {{ .Values.endpoints.default.port }}
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+            successThreshold: {{ .Values.readinessProbe.successThreshold }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: did-credentials
+              mountPath: {{ tpl .Values.dcp.identityHub.credentials.mountPath . }}
+              readOnly: true
+            - name: catalog-target-nodes
+              {{- $targetsFilePath := .Values.catalog.crawler.targetsFile }}
+              {{- $dirPath := regexReplaceAll "/[^/]+$" $targetsFilePath "" }}
+              mountPath: {{ $dirPath }}
+              readOnly: true
+      volumes:
+        - name: did-credentials
+          configMap:
+            name: {{ tpl .Values.dcp.identityHub.credentials.configMap . }}
+        - name: catalog-target-nodes
+          configMap:
+            name: catalog-target-nodes
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

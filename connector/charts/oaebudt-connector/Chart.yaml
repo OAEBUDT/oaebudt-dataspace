@@ -1,0 +1,29 @@
+apiVersion: v2
+name: oaebudt-connector
+description: A Helm chart for deploying a proof-of-concept (PoC) Data Space Connector, including its dependencies, 
+  based on Eclipse EDC and supporting the Open Access EBook Usage Data Trust (OAEBUDT) initiative.
+  The deployment consists of a single runtime that includes a Control Plane, Data Plane, Identity Hub, Federated Catalog, 
+  and a Web API component. The Web API extends the business logic to support the OAEBUDT eBook context.
+  This chart is designed to work with an existing PostgreSQL database and an existing HashiCorp Vault instance.
+type: application
+version: 0.1.0
+appVersion: "1.16.0"
+home: https://github.com/OAEBUDT/oaebudt-dataspace/tree/develop/connector/charts/oaebudt-connector
+sources:
+  - https://github.com/OAEBUDT/oaebudt-dataspace/tree/develop/connector/charts/oaebudt-connector
+maintainers:
+  - name: Mohamed Khalil BELDI
+    email: mohamedkhalilbeldi@think-it.io
+dependencies:
+  # PostgreSQL
+  - name: postgresql
+    alias: postgresql
+    version: "16.6.3"
+    repository: oci://registry-1.docker.io/bitnamicharts
+    condition: postgresql.install
+  # HashiCorp Vault
+  - name: vault
+    alias: vault
+    version: "0.30.0"
+    repository: https://helm.releases.hashicorp.com
+    condition: vault.install

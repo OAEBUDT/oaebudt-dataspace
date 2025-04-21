@@ -5,6 +5,7 @@ locals {
   external_dns_service_account     = "external-dns"
   external_secrets_service_account = "external-secrets"
 }
+
 ########################
 # Metrics Server Addon
 ########################
@@ -22,6 +23,7 @@ resource "helm_release" "metrics_server" {
 
   depends_on = [aws_eks_node_group.eks_worker_nodes]
 }
+
 ##############################
 # EKS Pod Identity AWS Addon
 ##############################
@@ -108,6 +110,7 @@ resource "helm_release" "aws_lbc" {
 
   depends_on = [helm_release.metrics_server]
 }
+
 ################################
 # EBS CSI Driver AWS Addon
 ################################
@@ -328,4 +331,27 @@ resource "helm_release" "external_secrets" {
   ]
 
   depends_on = [helm_release.external_dns]
+}
+
+#############################
+# Grafana Loki Stack Addon
+#############################
+
+resource "helm_release" "loki_stack" {
+  name        = "loki-stack"
+  description = "Kubernetes Loki Stack for collecting logs and visualizing them through Grafana."
+
+  repository  = "https://grafana.github.io/helm-charts"
+  chart       = "grafana/loki-stack"
+  namespace   = local.addons_namespace
+  version     = var.grafana_loki_stack_chart_version
+  max_history = 3
+
+  values = [
+    file("${path.module}/resources/helm/templates/loki-stack.yaml")
+  ]
+
+  depends_on = [
+    aws_eks_node_group.eks_worker_nodes
+  ]
 }

@@ -111,9 +111,9 @@ resource "helm_release" "aws_lbc" {
   depends_on = [helm_release.metrics_server]
 }
 
-################################
+############################
 # EBS CSI Driver AWS Addon
-################################
+############################
 resource "aws_iam_role" "ebs_csi_driver" {
   name = "${aws_eks_cluster.eks_cluster.name}-ebs-csi-driver"
 
@@ -333,9 +333,9 @@ resource "helm_release" "external_secrets" {
   depends_on = [helm_release.external_dns]
 }
 
-#############################
+############################
 # Grafana Loki Stack Addon
-#############################
+############################
 
 resource "helm_release" "loki_stack" {
   name        = "loki-stack"

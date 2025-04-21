@@ -29,5 +29,6 @@ include(":launchers:controlplane")
 include(":launchers:dataplane")
 include(":launchers:runtime-embedded")
 include(":launchers:identity-hub")
+include(":launchers:oaebudt-connector")
 
 include("tests")

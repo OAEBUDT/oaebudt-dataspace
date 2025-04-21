@@ -11,6 +11,7 @@ spec:
   ttlSecondsAfterFinished: 300
   template:
     metadata:
+      name: identity-hub-create-{{ .Values.participant.id | required "participant.id is required" }}
       labels:
         {{- include "oaebudt-connector.labels" . | nindent 8 }}
     spec:

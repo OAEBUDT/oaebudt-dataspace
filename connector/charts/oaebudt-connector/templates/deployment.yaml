@@ -31,11 +31,30 @@ spec:
       serviceAccountName: {{ include "oaebudt-connector.serviceaccount.name" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
-      # Init container waits for PostgreSQL to be ready before starting the connector container
+      # Init container waits for PostgreSQL and Vault to be ready before starting the connector container
       initContainers:
-        - name: wait-for-postgres
-          image: busybox
-          command: [ 'sh', '-c', 'until nc -zv {{ .Release.Name }}-postgresql 5432; do echo waiting for postgres; sleep 2; done' ]
+        - name: wait-for-dependencies
+          image: alpine:3.21.3
+          command:
+            - sh
+            - -c
+            - |
+              echo "Installing dependencies..."
+              apk add --no-cache curl netcat-openbsd
+
+              echo "Waiting for PostgreSQL..."
+              until nc -z {{ .Release.Name }}-postgresql 5432; do
+                echo "waiting for postgres...";
+                sleep 2;
+              done
+              echo "PostgreSQL is ready."
+
+              echo "Waiting for Vault to be unsealed..."
+              until curl -s http://{{ .Release.Name }}-vault:8200/v1/sys/health | grep -q '"sealed":false'; do
+                echo "waiting for vault to be unsealed...";
+                sleep 2;
+              done
+              echo "Vault is unsealed."
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
@@ -170,7 +189,10 @@ spec:
             - name: "EDC_VAULT_HASHICORP_URL"
               value: {{ tpl .Values.vault.hashicorp.url . | quote }}
             - name: "EDC_VAULT_HASHICORP_TOKEN"
-              value: {{ .Values.vault.hashicorp.token | required ".Values.vault.hashicorp.token is required" | quote }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ tpl .Values.vault.hashicorp.tokenSecret . | quote }}
+                  key: {{ .Values.vault.hashicorp.tokenSecretKey }}
           ports:
           {{- range $key,$value := .Values.endpoints }}
             - name: {{ $key }}

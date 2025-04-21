@@ -225,14 +225,13 @@ vault:
   injector:
     enabled: false
   server:
-    dev:
+    standalone:
       enabled: true
-      devRootToken: "root"
-    postStart:    # must be set externally!
   hashicorp:
     url: "http://{{ .Release.Name }}-vault:8200"
-    token: "root"
     timeout: 30
+    tokenSecret: "{{ .Release.Name }}-vault-token"
+    tokenSecretKey: "root-token"
     healthCheck:
       enabled: true
       standbyOk: true

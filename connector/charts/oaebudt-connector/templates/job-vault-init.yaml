@@ -8,6 +8,7 @@ metadata:
     {{- include "oaebudt-connector.labels" . | nindent 4 }}
 spec:
   backoffLimit: 3
+  ttlSecondsAfterFinished: 300
   template:
     metadata:
       name: {{ .Release.Name }}-vault-init

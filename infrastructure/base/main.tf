@@ -11,9 +11,9 @@ module "github_oidc" {
   source = "./modules/github_oidc"
 
   github_oidc_provider_url        = var.github_oidc_provider_url
-  github_oidc_repo_name           = var.github_oidc_repo_name
-  iam_github_oidc_name            = var.iam_github_oidc_name
+  github_repo_name           = var.github_oidc_repo_name
+  iam_github_oidc_role_name           = var.iam_github_oidc_name
   iam_github_oidc_ecr_policy_name = var.iam_github_oidc_ecr_policy_name
 
-  github_oidc_tags = var.github_oidc_tags
+  tags = var.github_oidc_tags
 }

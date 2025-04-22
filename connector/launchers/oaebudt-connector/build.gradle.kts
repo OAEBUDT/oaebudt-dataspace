@@ -15,6 +15,9 @@ dependencies {
     }
     runtimeOnly(project(":launchers:identity-hub"))
 
+    runtimeOnly(libs.edc.fc.core)
+    runtimeOnly(libs.edc.fc.api)
+
     runtimeOnly(libs.edc.vault.hashicorp)
 }
 

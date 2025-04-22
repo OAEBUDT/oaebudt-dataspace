@@ -24,7 +24,7 @@ COPY ./extensions/superuser-seed ./extensions/superuser-seed
 
 
 # Run Gradle to build the JAR with parallel execution for faster builds
-RUN ./gradlew clean :launchers:runtime-allinone:build --parallel --no-daemon
+RUN ./gradlew clean :launchers:oaebudt-connector:build --parallel --no-daemon
 
 # Stage 2: Create the runtime image
 FROM eclipse-temurin:23.0.2_7-jre-alpine
@@ -36,7 +36,7 @@ RUN addgroup -S oaebudt && adduser -S oaebudt -G oaebudt
 USER oaebudt
 
 # Copy the JAR from the builder stage
-COPY --from=builder /app/launchers/runtime-allinone/build/libs/*.jar connector.jar
+COPY --from=builder /app/launchers/oaebudt-connector/build/libs/*.jar connector.jar
 
 # Set environment variables
 ENV WEB_HTTP_PORT="8080" \

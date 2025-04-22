@@ -26,7 +26,6 @@ public class CatalogNodeDirectoryExtension implements ServiceExtension {
     private DidResolverRegistry didResolverRegistry;
 
     private File participantListFile;
-    private Monitor monitor;
     private TargetNodeDirectory nodeDirectory;
 
     @Override
@@ -37,11 +36,10 @@ public class CatalogNodeDirectoryExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var participantsPath = context.getConfig().getString(PARTICIPANT_LIST_FILE_PATH);
-        monitor = context.getMonitor();
 
         participantListFile = new File(participantsPath).getAbsoluteFile();
         if (!participantListFile.exists()) {
-            monitor.warning("Path '%s' does not exist. It must be a resolvable path with read access. Will not add any VCs.".formatted(participantsPath));
+            context.getMonitor().warning("Path '%s' does not exist. It must be a resolvable path with read access. Will not add any VCs.".formatted(participantsPath));
         }
     }
 
@@ -58,7 +56,7 @@ public class CatalogNodeDirectoryExtension implements ServiceExtension {
         return targetNode -> {
             var predicateTest = !targetNode.id().equals(context.getParticipantId());
             if (!predicateTest) {
-                monitor.debug("Node filter: skipping node '%s' for participant '%s'".formatted(targetNode.id(), context.getParticipantId()));
+                context.getMonitor().debug("Node filter: skipping node '%s' for participant '%s'".formatted(targetNode.id(), context.getParticipantId()));
             }
             return predicateTest;
         };

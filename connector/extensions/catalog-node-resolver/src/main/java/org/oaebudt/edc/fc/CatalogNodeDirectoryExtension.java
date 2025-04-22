@@ -44,9 +44,9 @@ public class CatalogNodeDirectoryExtension implements ServiceExtension {
     }
 
     @Provider
-    public TargetNodeDirectory createLazyTargetNodeDirectory() {
+    public TargetNodeDirectory createLazyTargetNodeDirectory(ServiceExtensionContext context) {
         if (nodeDirectory == null) {
-            nodeDirectory = new CatalogNodeDirectory(typeManager.getMapper(), participantListFile, didResolverRegistry, monitor);
+            nodeDirectory = new CatalogNodeDirectory(typeManager.getMapper(), participantListFile, didResolverRegistry, context.getMonitor());
         }
         return nodeDirectory;
     }

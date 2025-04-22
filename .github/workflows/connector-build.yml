@@ -62,7 +62,7 @@ jobs:
           IMAGE_TAG: ${{ steps.short-sha.outputs.sha }}
         with:
           context: ./connector
-          file: ./connector/launchers/runtime-embedded/Dockerfile
+          file: ./connector/launchers/oaebudt-connector/Dockerfile
           tags: |
             ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ steps.short-sha.outputs.sha }}
             ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest

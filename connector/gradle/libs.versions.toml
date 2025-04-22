@@ -53,7 +53,6 @@ edc-fc-ext-api = { module = "org.eclipse.edc:federated-catalog-api", version.ref
 edc-fc-spi-crawler = { module = "org.eclipse.edc:crawler-spi", version.ref = "edc" }
 edc-fc-api = { module = "org.eclipse.edc:federated-catalog-api", version.ref = "edc" }
 
-
 # BOM modules
 edc-bom-controlplane = { module = "org.eclipse.edc:controlplane-dcp-bom", version.ref = "edc" }
 edc-bom-dataplane = { module = "org.eclipse.edc:dataplane-base-bom", version.ref = "edc" }

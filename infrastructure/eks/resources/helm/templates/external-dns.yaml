@@ -1,3 +1,4 @@
+---
 policy: ${external_dns_policy}
 domainFilters:
   - ${domain_name}

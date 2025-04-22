@@ -140,6 +140,11 @@ variable "external_secrets_chart_version" {
   type        = string
 }
 
+variable "grafana_loki_stack_chart_version" {
+  type        = string
+  description = "Version of the Grafana/Loki-stack Helm chart"
+}
+
 variable "eks_secret_name_prefix" {
   description = "The prefix for EKS-related secret names"
   type        = string

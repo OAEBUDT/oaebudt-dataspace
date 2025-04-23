@@ -3,20 +3,19 @@ package org.oaebudt.edc.report;
 
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.doThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import jakarta.json.Json;
 import jakarta.json.JsonException;
 import jakarta.json.JsonObject;
-import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
+import org.eclipse.edc.connector.controlplane.services.spi.asset.AssetService;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.result.ServiceResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -33,13 +32,14 @@ public class ReportControllerTest {
     private ReportStore reportStore;
     private Monitor monitor;
     private ReportApiController controller;
+    private AssetService assetService;
 
     @BeforeEach
     void setUp() {
         reportStore = Mockito.mock(ReportStore.class);
         monitor = Mockito.mock(Monitor.class);
-        String managementUrl = "http://localhost:8185";
-        controller = Mockito.spy(new ReportApiController(monitor, reportStore, managementUrl));
+        assetService = Mockito.mock(AssetService.class);
+        controller = Mockito.spy(new ReportApiController(monitor, reportStore, assetService));
     }
 
     @Test
@@ -49,18 +49,17 @@ public class ReportControllerTest {
         String jsonContent = "{\"field\":\"value\"}";
         InputStream inputStream = new ByteArrayInputStream(jsonContent.getBytes());
 
-        ContainerRequestContext requestContext = mock(ContainerRequestContext.class);
-        when(requestContext.getHeaderString("Authorization")).thenReturn("Bearer dummy");
+        when(assetService.create(any())).thenReturn(ServiceResult.success());
 
-        doNothing().when(controller).createAssetInConnector(any(), any(), any());
-
-        Response response = controller.uploadFile(requestContext, inputStream, title, reportType);
+        Response response = controller.uploadFile(inputStream, title, reportType);
 
         assertEquals(Response.Status.CREATED.getStatusCode(), response.getStatus());
         assertTrue(response.getEntity().toString().contains("uploaded and saved"));
 
         ArgumentCaptor<String> jsonCaptor = ArgumentCaptor.forClass(String.class);
         verify(reportStore).saveReport(jsonCaptor.capture(), eq(reportType));
+        verify(assetService).create(any(Asset.class));
+
         JsonObject savedJson = Json.createReader(new ByteArrayInputStream(jsonCaptor.getValue().getBytes())).readObject();
         assertEquals("Test Report", savedJson.getString("title"));
         assertEquals(ReportType.ITEM_REPORT.name(), savedJson.getString("reportType"));
@@ -69,9 +68,8 @@ public class ReportControllerTest {
     @Test
     void uploadFile_invalidJson_returnsBadRequest() {
         InputStream invalidJsonStream = new ByteArrayInputStream("invalid json".getBytes());
-        ContainerRequestContext requestContext = mock(ContainerRequestContext.class);
 
-        Response response = controller.uploadFile(requestContext, invalidJsonStream, "title", ReportType.ITEM_REPORT);
+        Response response = controller.uploadFile(invalidJsonStream, "title", ReportType.ITEM_REPORT);
 
         assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response.getStatus());
         assertTrue(response.getEntity().toString().contains("Failed to process uploaded JSON"));
@@ -81,10 +79,7 @@ public class ReportControllerTest {
     @Test
     void uploadFile_unexpectedException_returnsServerError() {
         InputStream inputStream = new ByteArrayInputStream("{\"foo\":\"bar\"}".getBytes());
-        ContainerRequestContext requestContext = mock(ContainerRequestContext.class);
-        doThrow(new RuntimeException("boom")).when(reportStore).saveReport(any(), any());
-
-        Response response = controller.uploadFile(requestContext, inputStream, "title", ReportType.TITLE_REPORT);
+        Response response = controller.uploadFile(inputStream, "title", ReportType.TITLE_REPORT);
 
         assertEquals(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), response.getStatus());
         assertTrue(response.getEntity().toString().contains("Something went wrong"));

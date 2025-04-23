@@ -6,7 +6,7 @@ dependencies {
     implementation(libs.edc.web.spi)
     implementation(libs.mongodb.driver.sync)
     implementation(libs.jersey.multipart)
-    implementation(libs.edc.connector.client)
+    implementation(libs.edc.controlplane.spi)
 
     testImplementation(libs.edc.junit)
     testImplementation(libs.junit.jupiter)
@@ -14,5 +14,6 @@ dependencies {
     testImplementation(libs.mockito.core)
     testImplementation(libs.testcontainers.mongodb)
     testImplementation(libs.testcontainers.junit)
+    testImplementation(libs.parsson)
 
 }

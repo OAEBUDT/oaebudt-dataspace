@@ -54,7 +54,7 @@ public class MongoReportStoreTest {
         Document savedDoc = collection.find(new Document("reportType", ReportType.ITEM_REPORT.name())).first();
 
         assert savedDoc != null;
-        Assertions.assertEquals("Monthly Sales", savedDoc.getString("title"));
+        Assertions.assertEquals("Title report", savedDoc.getString("title"));
         Assertions.assertEquals(ReportType.ITEM_REPORT.name(), savedDoc.getString("reportType"));
     }
 }

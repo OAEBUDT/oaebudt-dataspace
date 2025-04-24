@@ -135,7 +135,7 @@ spec:
               value: {{ .Values.catalog.crawler.targetsFile | quote }}
             - name: EDC_CATALOG_CACHE_EXECUTION_DELAY_SECONDS
               value: {{ .Values.catalog.crawler.initialDelay | quote }}
-            ## DATA PLANE CONFIGURATION
+            ## DATA PLANE CONFIGURATION ##
             - name: WEB_HTTP_PUBLIC_PORT
               value: {{ .Values.endpoints.public.port | quote }}
             - name: WEB_HTTP_PUBLIC_PATH
@@ -193,6 +193,17 @@ spec:
                 secretKeyRef:
                   name: {{ tpl .Values.vault.hashicorp.tokenSecret . | quote }}
                   key: {{ .Values.vault.hashicorp.tokenSecretKey }}
+            ## REPORT SERVICE CONFIGURATION ##
+            - name: WEB_HTTP_REPORT_PORT
+              value: {{ .Values.endpoints.report.port | quote }}
+            - name: WEB_HTTP_REPORT_PATH
+              value: {{ .Values.endpoints.report.path | quote }}
+            - name: WEB_HTTP_REPORT_AUTH_TYPE
+              value: {{ .Values.endpoints.report.authType | quote }}
+            - name: WEB_DATASOURCE_MONGO_URL
+              value: {{ printf "mongodb://%s:%s@%s-mongodb:27017/%s" (index .Values.mongodb.auth.usernames 0) (index .Values.mongodb.auth.passwords 0) .Release.Name (index .Values.mongodb.auth.databases 0) | required "MongoDB auth values configuration are required" | quote }}
+            - name: WEB_HTTP_AUTH_JWK_URL
+              value: {{ printf "http://%s-keycloak/realms/%s/protocol/openid-connect/certs" .Release.Name .Values.participant.id | quote }}
           ports:
           {{- range $key,$value := .Values.endpoints }}
             - name: {{ $key }}

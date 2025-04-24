@@ -2,7 +2,7 @@
 
 ![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.16.0](https://img.shields.io/badge/AppVersion-1.16.0-informational?style=flat-square)
 
-A Helm chart for deploying a proof-of-concept (PoC) Data Space Connector, including its dependencies, based on Eclipse EDC and supporting the Open Access EBook Usage Data Trust (OAEBUDT) initiative. The deployment consists of a single runtime that includes a Control Plane, Data Plane, Identity Hub, Federated Catalog, and a Web API component. The Web API extends the business logic to support the OAEBUDT eBook context. This chart is designed to work with an existing PostgreSQL database, an existing HashiCorp Vault instance and, an existing Keycloak instance. The chart is not suitable for production use.
+A Helm chart for deploying a proof-of-concept (PoC) Data Space Connector, including its dependencies, based on Eclipse EDC and supporting the Open Access EBook Usage Data Trust (OAEBUDT) initiative. The deployment consists of a single runtime that includes a Control Plane, Data Plane, Identity Hub, Federated Catalog, and a Web API component. The Web API extends the business logic to support the OAEBUDT eBook context. This chart is designed to work with an existing PostgreSQL database, an existing HashiCorp Vault instance, an existing MongoDB instance and, an existing Keycloak instance. The chart is not suitable for production use.
 
 **Homepage:** <https://github.com/OAEBUDT/oaebudt-dataspace/tree/develop/connector/charts/oaebudt-connector>
 
@@ -22,6 +22,7 @@ A Helm chart for deploying a proof-of-concept (PoC) Data Space Connector, includ
 |------------|------|---------|
 | https://helm.releases.hashicorp.com | vault(vault) | 0.30.0 |
 | oci://registry-1.docker.io/bitnamicharts | keycloak(keycloak) | 24.5.8 |
+| oci://registry-1.docker.io/bitnamicharts | mongodb(mongodb) | 16.5.0 |
 | oci://registry-1.docker.io/bitnamicharts | postgresql(postgresql) | 16.6.3 |
 
 ## Values
@@ -63,6 +64,7 @@ A Helm chart for deploying a proof-of-concept (PoC) Data Space Connector, includ
 | endpoints.protocol.port | int | `7104` |  |
 | endpoints.public.path | string | `"/api/public"` |  |
 | endpoints.public.port | int | `17100` |  |
+| endpoints.report.authType | string | `"keycloak"` |  |
 | endpoints.report.path | string | `"/api/report"` |  |
 | endpoints.report.port | int | `8100` |  |
 | endpoints.sts.path | string | `"/api/sts"` |  |
@@ -100,6 +102,12 @@ A Helm chart for deploying a proof-of-concept (PoC) Data Space Connector, includ
 | livenessProbe.periodSeconds | int | `10` |  |
 | livenessProbe.successThreshold | int | `1` |  |
 | livenessProbe.timeoutSeconds | int | `5` |  |
+| mongodb.auth.databases[0] | string | `"oaebudt_report"` |  |
+| mongodb.auth.passwords[0] | string | `"oaebudt_report"` |  |
+| mongodb.auth.rootPassword | string | `"oaebudt_report_root"` |  |
+| mongodb.auth.rootUser | string | `"root"` |  |
+| mongodb.auth.usernames[0] | string | `"oaebudt_report"` |  |
+| mongodb.install | bool | `true` | Switch to enable or disable the MongoDB helm chart |
 | nameOverride | string | `""` |  |
 | nodeSelector | object | `{}` |  |
 | participant.did | string | `""` |  |

@@ -54,6 +54,7 @@ endpoints:
   report:
     port: 8100
     path: /api/report
+    authType: "keycloak"
   # Default endpoint for incoming API calls.
   default:
     port: 7100
@@ -227,8 +228,6 @@ postgresql:
           CREATE USER keycloak WITH PASSWORD 'keycloak';
           CREATE DATABASE keycloak OWNER keycloak;
           GRANT ALL PRIVILEGES ON DATABASE keycloak TO keycloak;
-
-
 # HashiCorp Vault chart configuration
 vault:
   ## ref: https://github.com/hashicorp/vault-helm/blob/main/values.yaml
@@ -251,6 +250,20 @@ vault:
       secret: /v1/secret
       health: /v1/sys/health
       folder: ""
+# PostgreSQL chart configuration
+mongodb:
+  ## ref: https://github.com/bitnami/charts/blob/main/bitnami/mongodb/values.yaml
+  # -- Switch to enable or disable the MongoDB helm chart
+  install: true
+  auth:
+    rootUser: root
+    rootPassword: "oaebudt_report_root"
+    usernames:
+      - "oaebudt_report"
+    passwords:
+      - "oaebudt_report"
+    databases:
+      - "oaebudt_report"
 # Keycloak chart configuration
 keycloak:
   ## ref: https://github.com/bitnami/charts/blob/main/bitnami/keycloak/values.yaml

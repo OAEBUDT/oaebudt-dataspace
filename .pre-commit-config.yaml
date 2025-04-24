@@ -8,4 +8,4 @@ repos:
     hooks:
       - id: helm-docs
         args:
-          - --chart-search-root=connector/charts/oaebudt-connector
+          - --chart-search-root=connector/charts

@@ -1,0 +1,23 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: did
+  {{- with .Values.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  labels:
+    {{- include "oaebudt-connector.labels" . | nindent 4 }}
+    {{- with .Values.service.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: 80
+      targetPort: did
+      protocol: TCP
+      name: did
+  selector:
+    {{- include "oaebudt-connector.selectorLabels" . | nindent 4 }}

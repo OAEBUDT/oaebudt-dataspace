@@ -1,0 +1,88 @@
+{{- if .Release.IsInstall }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Release.Name }}-vault-init
+  labels:
+    {{- include "oaebudt-connector.labels" . | nindent 4 }}
+spec:
+  backoffLimit: 3
+  ttlSecondsAfterFinished: 300
+  template:
+    metadata:
+      name: {{ .Release.Name }}-vault-init
+      labels:
+        {{- include "oaebudt-connector.labels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ .Release.Name }}-vault-init-sa
+      restartPolicy: OnFailure
+      containers:
+        - name: vault-init
+          image: bitnami/kubectl:1.32.3
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -e
+              echo "Installing required tools..."
+              apt-get update && apt-get install -y curl jq unzip
+              curl -o vault.zip https://releases.hashicorp.com/vault/1.19.2/vault_1.19.2_linux_amd64.zip
+              unzip vault.zip && mv vault /usr/local/bin/ && chmod +x /usr/local/bin/vault
+
+              echo "Waiting for Vault to be ready..."
+              until curl -s http://{{ .Release.Name }}-vault:8200/v1/sys/health | grep -q '"initialized":false'; do
+                echo "Vault not ready yet. Retrying in 3s..."
+                sleep 3
+              done
+
+              echo "Initializing Vault..."
+              vault operator init -key-shares=1 -key-threshold=1 -format=json > /tmp/init.json
+
+              UNSEAL_KEY=$(jq -r ".unseal_keys_b64[0]" /tmp/init.json)
+              ROOT_TOKEN=$(jq -r ".root_token" /tmp/init.json)
+
+              echo "Unsealing Vault..."
+              vault operator unseal "$UNSEAL_KEY"
+              echo "Creating a KV secret engine at path=secret..."
+              VAULT_TOKEN=$ROOT_TOKEN vault secrets enable -path=secret -version=2 kv
+
+              echo "Creating Kubernetes Secret with root token..."
+              kubectl create secret generic {{ tpl .Values.vault.hashicorp.tokenSecret . }} \
+                --from-literal={{ .Values.vault.hashicorp.tokenSecretKey }}=$ROOT_TOKEN \
+                --from-literal=unseal-key=$UNSEAL_KEY
+
+              echo "Vault initialized and unsealed successfully"
+              echo "Root token stored in Kubernetes Secret: {{ tpl .Values.vault.hashicorp.tokenSecret . }}"
+          env:
+            - name: VAULT_ADDR
+              value: "http://{{ .Release.Name }}-vault:8200"
+          securityContext:
+            runAsUser: 0
+            allowPrivilegeEscalation: true
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ .Release.Name }}-vault-init-sa
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ .Release.Name }}-vault-init-role
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["create", "get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ .Release.Name }}-vault-init-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ .Release.Name }}-vault-init-role
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Release.Name }}-vault-init-sa
+{{- end }}

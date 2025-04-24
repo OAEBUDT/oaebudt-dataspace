@@ -1,0 +1,34 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.participant.id }}-did
+  labels:
+    {{- include "oaebudt-connector.labels" . | nindent 4 }}
+data:
+  did.json: |
+    {
+      "roles":[],
+      "serviceEndpoints":[
+        {
+          "type": "CredentialService",
+          "serviceEndpoint": "{{ printf "http://credentials.%s.svc.cluster.local%s/v1/participants/%s" .Release.Namespace .Values.endpoints.credentials.path (.Values.participant.did | b64enc) }}",
+          "id": "{{ .Values.participant.id }}-credentialservice-1"
+        },
+        {
+          "type": "ProtocolEndpoint",
+          "serviceEndpoint": "{{ printf "http://dsp.%s.svc.cluster.local%s" .Release.Namespace .Values.endpoints.protocol.path }}",
+          "id": "{{ .Values.participant.id }}-dsp"
+        }
+      ],
+      "active": true,
+      "participantId": "{{ .Values.participant.did }}",
+      "did": "{{ .Values.participant.did }}",
+      "key":{
+        "keyId": "{{ .Values.participant.did }}#key-1",
+        "privateKeyAlias": "{{ .Values.participant.did }}#key-1",
+        "keyGeneratorParams":{
+          "algorithm": "EC"
+        }
+      }
+    }

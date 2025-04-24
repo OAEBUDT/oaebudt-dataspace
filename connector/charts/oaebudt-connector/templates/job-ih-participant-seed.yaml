@@ -1,0 +1,99 @@
+{{- if .Release.IsInstall }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: identity-hub-create-{{ .Values.participant.id | required "participant.id is required" }}
+  labels:
+    {{- include "oaebudt-connector.labels" . | nindent 4 }}
+spec:
+  backoffLimit: 2
+  ttlSecondsAfterFinished: 300
+  template:
+    metadata:
+      name: identity-hub-create-{{ .Values.participant.id | required "participant.id is required" }}
+      labels:
+        {{- include "oaebudt-connector.labels" . | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: create-participant
+          image: alpine:3.18
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -e
+              echo "Installing required tools..."
+              apk add --no-cache curl jq bash
+
+              export PARTICIPANT_ID={{ .Values.participant.id | quote }}
+              export PARTICIPANT_DID_FILE=/etc/dataspace/{{ .Values.participant.id }}/did.json
+              export IDENTITY_API_KEY={{ .Values.dcp.identityHub.superuserKey | quote }}
+              export IDENTITY_API_URL=http://{{ .Values.participant.id }}-connector:{{ .Values.endpoints.identity.port }}{{ .Values.endpoints.identity.path }}/v1alpha/participants/
+              export CONNECTOR_URL="http://{{ .Values.participant.id }}-connector:{{ .Values.endpoints.default.port }}{{ .Values.endpoints.default.path }}/check/readiness"
+
+              echo "Waiting for connector readiness at $CONNECTOR_URL..."
+              MAX_RETRIES=30
+              COUNT=0
+
+              until wget -q --spider "$CONNECTOR_URL" 2>/dev/null; do
+                COUNT=$((COUNT + 1))
+                if [ "$COUNT" -ge "$MAX_RETRIES" ]; then
+                  echo "Connector failed to become ready after $MAX_RETRIES attempts."
+                  exit 1
+                fi
+                echo "Connector not ready. Retrying in 5s... ($COUNT/$MAX_RETRIES)"
+                sleep 5
+              done
+
+              echo "Connector is ready. Seeding Vault for participant: $PARTICIPANT_ID"
+
+              echo "Load participant did JSON for $PARTICIPANT_ID..."
+
+              export DATA=$(cat $PARTICIPANT_DID_FILE)
+
+              echo "Sending participant creation request to $IDENTITY_API_URL..."
+
+              RESPONSE=$(curl --silent --show-error --location "$IDENTITY_API_URL" \
+                --header 'Content-Type: application/json' \
+                --header "x-api-key: $IDENTITY_API_KEY" \
+                --data "$DATA" \
+                --write-out "HTTPSTATUS:%{http_code}")
+
+              STATUS=$?
+
+              if [ $STATUS -ne 0 ]; then
+                echo "Failed to send participant creation request. curl exited with status $STATUS."
+                exit $STATUS
+              fi
+
+              # Extract the body and the status
+              HTTP_BODY=$(echo "$RESPONSE" | sed -e 's/HTTPSTATUS\:.*//g')
+              HTTP_STATUS=$(echo "$RESPONSE" | tr -d '\n' | sed -e 's/.*HTTPSTATUS://')
+
+              if [[ "$HTTP_STATUS" =~ ^2 ]]; then
+                echo "Participant creation request sent successfully."
+                echo "Response:"
+                echo "$HTTP_BODY"
+              else
+                echo "Failed: Received HTTP status $HTTP_STATUS"
+                echo "Response:"
+                echo "$HTTP_BODY"
+                exit 1
+              fi
+          resources:
+            limits:
+              cpu: "250m"
+              memory: "128Mi"
+            requests:
+              cpu: "100m"
+              memory: "64Mi"
+          volumeMounts:
+            - name: {{ .Values.participant.id }}-did
+              mountPath: /etc/dataspace/{{ .Values.participant.id }}
+              readOnly: true
+      volumes:
+        - name: {{ .Values.participant.id }}-did
+          configMap:
+            name: {{ .Values.participant.id }}-did
+{{- end }}

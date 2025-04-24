@@ -63,18 +63,28 @@ public class ReportApiController {
             // create asset if it has not been created already
             createAssetInConnector(title, reportType);
 
+            JsonObject body = Json.createObjectBuilder()
+                    .add("message", "JSON file uploaded and saved")
+                    .build();
+
             return Response.status(Response.Status.CREATED)
-                    .entity("{\"message\":\"JSON file uploaded and saved\"}")
+                    .entity(body.toString())
                     .build();
         } catch (JsonException e) {
             monitor.warning("Error uploading report", e);
+            JsonObject body = Json.createObjectBuilder()
+                    .add("error", "Failed to process uploaded JSON")
+                    .build();
             return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("{\"error\":\"Failed to process uploaded JSON\"}")
+                    .entity(body.toString())
                     .build();
         } catch (Exception e) {
             monitor.warning("Error uploading report", e);
+            JsonObject body = Json.createObjectBuilder()
+                    .add("error", "Something went wrong")
+                    .build();
             return Response.serverError()
-                    .entity("{\"error\":\"Something went wrong\"}")
+                    .entity(body.toString())
                     .build();
         }
 
@@ -110,7 +120,7 @@ public class ReportApiController {
                         monitor.warning("Unable to create asset '%s'. Reason: %s".formatted(
                                 reportType.name(), serviceFailure.getReason()));
                     }
-                });;
+                });
     }
 
 }

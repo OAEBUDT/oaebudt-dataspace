@@ -18,6 +18,8 @@ dependencies {
     testImplementation(libs.testcontainers.nginx)
     testImplementation(libs.testcontainers.hashicorp.vault)
     testImplementation(libs.testcontainers.postgresql)
+    testImplementation(libs.testcontainers.mongodb)
+    testImplementation(libs.mongodb.driver.sync)
 
     testImplementation(testFixtures(libs.edc.sql.test.fixtures))
     testImplementation(testFixtures(libs.edc.ih.test.fixtures))

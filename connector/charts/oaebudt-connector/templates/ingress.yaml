@@ -15,9 +15,16 @@ spec:
   ingressClassName: {{ . }}
   {{- end }}
   rules:
-    - host: {{ printf "%s.%s" .Release.Name .Values.global.domain | required ".Values.global.domain is required" | quote }}
+    - host: {{ .Values.global.domain | required ".Values.global.domain is required" | quote }}
       http:
         paths:
+          - path: {{ .Values.endpoints.report.path }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Values.participant.id }}-connector
+                port:
+                  name: report
           - path: {{ .Values.endpoints.management.path }}
             pathType: Prefix
             backend:

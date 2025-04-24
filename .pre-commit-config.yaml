@@ -1,10 +1,10 @@
 repos:
   -   repo: https://github.com/pre-commit/pre-commit-hooks
-      rev: v2.3.0
+      rev: v5.0.0
       hooks:
         -   id: end-of-file-fixer
   - repo: https://github.com/norwoodj/helm-docs
-    rev:  ""
+    rev:  "v1.14.2"
     hooks:
       - id: helm-docs
         args:

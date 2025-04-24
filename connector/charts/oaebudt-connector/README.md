@@ -2,7 +2,7 @@
 
 ![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.16.0](https://img.shields.io/badge/AppVersion-1.16.0-informational?style=flat-square)
 
-A Helm chart for deploying a proof-of-concept (PoC) Data Space Connector, including its dependencies, based on Eclipse EDC and supporting the Open Access EBook Usage Data Trust (OAEBUDT) initiative. The deployment consists of a single runtime that includes a Control Plane, Data Plane, Identity Hub, Federated Catalog, and a Web API component. The Web API extends the business logic to support the OAEBUDT eBook context. This chart is designed to work with an existing PostgreSQL database and an existing HashiCorp Vault instance.
+A Helm chart for deploying a proof-of-concept (PoC) Data Space Connector, including its dependencies, based on Eclipse EDC and supporting the Open Access EBook Usage Data Trust (OAEBUDT) initiative. The deployment consists of a single runtime that includes a Control Plane, Data Plane, Identity Hub, Federated Catalog, and a Web API component. The Web API extends the business logic to support the OAEBUDT eBook context. This chart is designed to work with an existing PostgreSQL database, an existing HashiCorp Vault instance and, an existing Keycloak instance. The chart is not suitable for production use.
 
 **Homepage:** <https://github.com/OAEBUDT/oaebudt-dataspace/tree/develop/connector/charts/oaebudt-connector>
 
@@ -21,6 +21,7 @@ A Helm chart for deploying a proof-of-concept (PoC) Data Space Connector, includ
 | Repository | Name | Version |
 |------------|------|---------|
 | https://helm.releases.hashicorp.com | vault(vault) | 0.30.0 |
+| oci://registry-1.docker.io/bitnamicharts | keycloak(keycloak) | 24.5.8 |
 | oci://registry-1.docker.io/bitnamicharts | postgresql(postgresql) | 16.6.3 |
 
 ## Values
@@ -62,6 +63,8 @@ A Helm chart for deploying a proof-of-concept (PoC) Data Space Connector, includ
 | endpoints.protocol.port | int | `7104` |  |
 | endpoints.public.path | string | `"/api/public"` |  |
 | endpoints.public.port | int | `17100` |  |
+| endpoints.report.path | string | `"/api/report"` |  |
+| endpoints.report.port | int | `8100` |  |
 | endpoints.sts.path | string | `"/api/sts"` |  |
 | endpoints.sts.port | int | `6106` |  |
 | endpoints.version.path | string | `"/api/version"` |  |
@@ -76,6 +79,21 @@ A Helm chart for deploying a proof-of-concept (PoC) Data Space Connector, includ
 | ingress.className | string | `""` |  |
 | ingress.enabled | string | `"enable"` |  |
 | ingress.tls | list | `[]` |  |
+| keycloak.auth.adminPassword | string | `"oaebudt_dataspace"` |  |
+| keycloak.auth.adminUser | string | `"admin"` |  |
+| keycloak.externalDatabase.existingSecret | string | `"keycloak-db"` |  |
+| keycloak.externalDatabase.existingSecretDatabaseKey | string | `"database"` |  |
+| keycloak.externalDatabase.existingSecretHostKey | string | `"host"` |  |
+| keycloak.externalDatabase.existingSecretPasswordKey | string | `"password"` |  |
+| keycloak.externalDatabase.existingSecretPortKey | string | `"port"` |  |
+| keycloak.externalDatabase.existingSecretUserKey | string | `"user"` |  |
+| keycloak.install | bool | `true` | Switch to enable or disable the Keycloak helm chart |
+| keycloak.participantRealm.accessTokenLifespan | int | `1500` |  |
+| keycloak.participantRealm.clientSecret | string | `"bKE6qbAz8Eugwvloklc03yikLDXHO2Qs"` |  |
+| keycloak.participantRealm.userEmail | string | `""` |  |
+| keycloak.participantRealm.userFirstName | string | `""` |  |
+| keycloak.participantRealm.userLastName | string | `""` |  |
+| keycloak.participantRealm.userPassword | string | `""` |  |
 | livenessProbe.enabled | bool | `true` |  |
 | livenessProbe.failureThreshold | int | `6` |  |
 | livenessProbe.initialDelaySeconds | int | `30` |  |
@@ -93,6 +111,7 @@ A Helm chart for deploying a proof-of-concept (PoC) Data Space Connector, includ
 | postgresql.auth.password | string | `"oaebudt_connector"` |  |
 | postgresql.auth.username | string | `"oaebudt_connector"` | Maximum name length is 31 characters by default |
 | postgresql.install | bool | `true` | Switch to enable or disable the PostgreSQL helm chart |
+| postgresql.primary.initdb.scripts."00_init_extensions.sql" | string | `"CREATE USER keycloak WITH PASSWORD 'keycloak';\nCREATE DATABASE keycloak OWNER keycloak;\nGRANT ALL PRIVILEGES ON DATABASE keycloak TO keycloak;\n"` |  |
 | postgresql.schema.autoCreate | bool | `true` | Enable auto-creation of the schema on boot |
 | readinessProbe.enabled | bool | `true` |  |
 | readinessProbe.failureThreshold | int | `6` |  |

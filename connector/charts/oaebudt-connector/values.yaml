@@ -50,6 +50,10 @@ catalog:
 
 # Connector endpoints configuration
 endpoints:
+  # Backend endpoint.
+  report:
+    port: 8100
+    path: /api/report
   # Default endpoint for incoming API calls.
   default:
     port: 7100
@@ -216,6 +220,14 @@ postgresql:
     # -- Maximum name length is 31 characters by default
     username: "oaebudt_connector"
     password: "oaebudt_connector"
+  primary:
+    initdb:
+      scripts:
+        00_init_extensions.sql: |
+          CREATE USER keycloak WITH PASSWORD 'keycloak';
+          CREATE DATABASE keycloak OWNER keycloak;
+          GRANT ALL PRIVILEGES ON DATABASE keycloak TO keycloak;
+
 
 # HashiCorp Vault chart configuration
 vault:
@@ -239,3 +251,25 @@ vault:
       secret: /v1/secret
       health: /v1/sys/health
       folder: ""
+# Keycloak chart configuration
+keycloak:
+  ## ref: https://github.com/bitnami/charts/blob/main/bitnami/keycloak/values.yaml
+  # -- Switch to enable or disable the Keycloak helm chart
+  install: true
+  auth:
+    adminUser: admin
+    adminPassword: "oaebudt_dataspace"
+  externalDatabase:
+    existingSecret: "keycloak-db"
+    existingSecretHostKey: "host"
+    existingSecretPortKey: "port"
+    existingSecretUserKey: "user"
+    existingSecretDatabaseKey: "database"
+    existingSecretPasswordKey: "password"
+  participantRealm:
+    accessTokenLifespan: 1500
+    clientSecret: "bKE6qbAz8Eugwvloklc03yikLDXHO2Qs"
+    userEmail: ""
+    userFirstName: ""
+    userLastName: ""
+    userPassword: ""

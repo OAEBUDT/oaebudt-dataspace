@@ -1,0 +1,45 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.participant.id }}-realm
+  labels:
+    {{- include "oaebudt-connector.labels" . | nindent 4 }}
+data:
+  {{ .Values.participant.id }}-realm.json: |
+    {
+      "realm": {{ .Values.participant.id | quote }},
+      "enabled": true,
+      "accessTokenLifespan": {{ .Values.keycloak.participantRealm.accessTokenLifespan | default 1500 }},
+      "users": [
+        {
+          "username": {{ .Values.participant.id | quote}},
+          "email": {{ .Values.keycloak.participantRealm.userEmail | required ".Values.keycloak.participantRealm.userEmail is required " | quote }},
+          "emailVerified": false,
+          "firstName": {{ .Values.keycloak.participantRealm.userFirstName | required ".Values.keycloak.participantRealm.userFirstName is required " | quote }},
+          "lastName": {{ .Values.keycloak.participantRealm.userLastName| required ".Values.keycloak.participantRealm.userLastName is required " | quote }},
+          "enabled": true,
+          "credentials": [
+            {
+              "type": "password",
+              "value": {{ .Values.keycloak.participantRealm.userPassword | required ".Values.keycloak.participantRealm.userPassword is required " | quote }},
+              "temporary": false
+            }
+          ],
+          "realmRoles": ["user"]
+        }
+      ],
+      "clients": [
+        {
+          "clientId": {{ .Values.participant.id | quote }},
+          "enabled": true,
+          "protocol": "openid-connect",
+          "redirectUris": [{{ printf "https://%s%s/*" .Values.global.domain .Values.endpoints.report.path  }}],
+          "webOrigins": [{{ printf "https://%s" .Values.global.domain }}],
+          "standardFlowEnabled": true,
+          "directAccessGrantsEnabled": true,
+          "serviceAccountsEnabled": true,
+          "clientAuthenticatorType": "client-secret",
+          "secret": "{{ .Values.keycloak.participantRealm.clientSecret | required ".Values.keycloak.participantRealm.clientSecret" }}"
+        }
+      ]
+    }

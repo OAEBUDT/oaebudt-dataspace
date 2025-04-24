@@ -15,6 +15,9 @@ dependencies {
         exclude(group = "org.eclipse.edc", "data-plane-selector-client")
     }
 
+    runtimeOnly(libs.edc.fc.core)
+    runtimeOnly(libs.edc.fc.api)
+
     runtimeOnly(libs.edc.vault.hashicorp)
 }
 

@@ -86,6 +86,7 @@ public class OaebudtParticipant extends Participant {
 
     public Config getConfiguration(final Integer stsPort) {
         final var map = Map.ofEntries(
+                entry("oaebudt.ds.participants.list.file", getParticipantListFilePath()),
                 entry("edc.catalog.cache.execution.delay.seconds", 10 + ""),
                 entry("edc.dpf.selector.url", "http://localhost:" + controlPlaneControl.get().getPort() + "/control/v1/dataplanes"),
                 entry("edc.dsp.callback.address", controlPlaneProtocol.get().toString()),
@@ -101,7 +102,6 @@ public class OaebudtParticipant extends Participant {
                 entry("edc.runtime.id", id),
                 entry("edc.transfer.proxy.token.signer.privatekey.alias", "private-key-alias"),
                 entry("edc.transfer.proxy.token.verifier.publickey.alias", "public-key-alias"),
-                entry("fc.participants.list", controlPlaneProtocol.get().toString()), // temp for testing crawler
                 entry("web.http.catalog.path", catalogServerUri.get().getPath()),
                 entry("web.http.catalog.port", catalogServerUri.get().getPort() + ""),
                 entry("web.http.control.path", controlPlaneControl.get().getPath()),
@@ -215,13 +215,21 @@ public class OaebudtParticipant extends Participant {
     }
 
     private static String getCredentialsPath(String participant) {
-        System.err.println("Resource path being searched");
         URL resourceUrl = OaebudtParticipant.class.getClassLoader()
                 .getResource("assets/did/v-credentials/"+participant+"/");
         if (resourceUrl == null) {
             throw new IllegalStateException("Credentials path not found in resources");
         }
-        System.out.println("Credentials path :" + resourceUrl.getPath().toString());
+        return Paths.get(resourceUrl.getPath()).toString();
+    }
+
+    private static String getParticipantListFilePath() {
+        URL resourceUrl = OaebudtParticipant.class.getClassLoader()
+                .getResource("assets/participants/participants.json");
+        if (resourceUrl == null) {
+            throw new IllegalStateException("Participant list file path not found in resources");
+        }
+
         return Paths.get(resourceUrl.getPath()).toString();
     }
 }

@@ -41,3 +41,7 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+/charts/oaebudt-connector/charts/vault-0.30.0.tgz
+/charts/oaebudt-connector/charts/postgresql-16.6.3.tgz
+/charts/oaebudt-connector/charts/mongodb-16.5.0.tgz
+/charts/oaebudt-connector/charts/keycloak-24.5.8.tgz

@@ -193,7 +193,7 @@ service:
 
 # This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
 ingress:
-  enabled: enable
+  enabled: true
   className: ""
   annotations: []
   #  kubernetes.io/ingress.class: nginx
@@ -294,6 +294,19 @@ keycloak:
     existingSecretDatabaseKey: "database"
     existingSecretPasswordKey: "password"
   # Importation of a participant's realm
+  # Participant's realm configuration
+  importRealm:
+    enabled: true
+  participantRealm:
+    realm: ""
+    accessTokenLifespan: 3600
+    clientSecret: "bKE6qbAz8Eugwvloklc03yikLDXHO2Qs"
+    username: ""
+    userPassword: ""
+    userEmail: ""
+    userFirstName: ""
+    userLastName: ""
+    userRealmRoles: []
   extraEnvVars:
     # Keycloak argument to import the realm at startup
     - name: KEYCLOAK_EXTRA_ARGS
@@ -311,14 +324,3 @@ keycloak:
         items:
           - key: "participant-realm.json"
             path: "jstor-realm.json"
-  # Participant's realm configuration
-  participantRealm:
-    realm: ""
-    accessTokenLifespan: 3600
-    clientSecret: "bKE6qbAz8Eugwvloklc03yikLDXHO2Qs"
-    username: ""
-    userPassword: ""
-    userEmail: ""
-    userFirstName: ""
-    userLastName: ""
-    userRealmRoles: []

@@ -79,7 +79,7 @@ A Helm chart for deploying a proof-of-concept (PoC) Data Space Connector, includ
 | imagePullSecrets | list | `[]` |  |
 | ingress.annotations | list | `[]` |  |
 | ingress.className | string | `""` |  |
-| ingress.enabled | string | `"enable"` |  |
+| ingress.enabled | bool | `true` |  |
 | ingress.tls | list | `[]` |  |
 | keycloak.auth.adminPassword | string | `"oaebudt_keycloak"` |  |
 | keycloak.auth.adminUser | string | `"admin"` |  |
@@ -98,6 +98,7 @@ A Helm chart for deploying a proof-of-concept (PoC) Data Space Connector, includ
 | keycloak.extraVolumes[0].configMap.items[0].path | string | `"jstor-realm.json"` |  |
 | keycloak.extraVolumes[0].configMap.name | string | `"participant-realm"` |  |
 | keycloak.extraVolumes[0].name | string | `"realm"` |  |
+| keycloak.importRealm.enabled | bool | `true` |  |
 | keycloak.install | bool | `true` | Switch to enable or disable the Keycloak helm chart |
 | keycloak.participantRealm.accessTokenLifespan | int | `3600` |  |
 | keycloak.participantRealm.clientSecret | string | `"bKE6qbAz8Eugwvloklc03yikLDXHO2Qs"` |  |

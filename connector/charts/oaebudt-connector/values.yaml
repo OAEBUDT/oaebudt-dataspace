@@ -4,7 +4,7 @@
 
 global:
   # -- Global dataspace domain (required for ingress)
-  domain: "jstor.oaebudt.think-it.io"
+  domain: ""
 
 # This is to override the chart name.
 nameOverride: ""
@@ -14,19 +14,18 @@ fullnameOverride: ""
 participant:
   # The participant ID determines the name of the credentials to be added to the Identity Hub.
   # Therefore, the participant ID must match the folder name in the credentials' mount path.
-  id: "participant-a"
+  id: ""
   # For internal Kubernetes clusters, use a DID like did:web:did-service.oaebudt.svc.cluster.local,
   # where 'did-service' is the name of the Kubernetes service exposing the DID endpoint,
   # and 'oaebudt' is the namespace where the service and the connector are deployed.
-  did: "did:web:did.participant-a.svc.cluster.local"
+  did: ""
 
 # Decentralized Claims Protocol configuration
 dcp:
   tls:
     enabled: false
   # List of trusted DID issuers
-  trustedIssuers:
-    - "did:web:issuer.oaebudt.svc.cluster.local"
+  trustedIssuers: []
   identityHub:
     # -- Use a base64 key
     superuserKey: "c3VwZXItdXNlcg==.K+CKuM+8XNuEfLggseLntVljpgLnRzPMNo1WT6dWU1HUJP07l50k8AUreEIy3gcYTBn4vxzMWIg+1TDPYsxpug=="
@@ -39,12 +38,10 @@ dcp:
 # Federated catalog configuration
 catalog:
   # Targets Nodes
-  nodes:
+  nodes: []
     # Example node:
     #  - name: participant-b
     #    did: "did:web:did.participant-b.svc.cluster.local"
-    - name: participant-a
-      did: "did:web:did.participant-a.svc.cluster.local"
   crawler:
     # -- Initial delay for the crawling to start. Leave blank for a random delay
     initialDelay: 120
@@ -53,7 +50,7 @@ catalog:
 
 # Connector endpoints configuration
 endpoints:
-  # Backend endpoint.
+  # Reports endpoint.
   report:
     port: 8100
     path: /api/report
@@ -111,9 +108,9 @@ endpoints:
 
 # This sets the container image
 image:
-  repository: oaebudt-connector
+  repository: 605134435349.dkr.ecr.us-east-1.amazonaws.com/oaebudt-dataspace/connector
   pullPolicy: IfNotPresent
-  tag: "0.5"
+  tag: ""
 
 # This section is for setting up autoscaling
 autoscaling:
@@ -228,10 +225,12 @@ postgresql:
   primary:
     initdb:
       scripts:
+        # SQL script to initialize a second database and a user for Keycloak
         00_init_extensions.sql: |
           CREATE USER keycloak WITH PASSWORD 'keycloak';
           CREATE DATABASE keycloak OWNER keycloak;
           GRANT ALL PRIVILEGES ON DATABASE keycloak TO keycloak;
+      # The superuser credentials used to execute the initialization script
       user: "postgres"
       password: "oaebudt_postgres"
 
@@ -263,20 +262,15 @@ mongodb:
   ## ref: https://github.com/bitnami/charts/blob/main/bitnami/mongodb/values.yaml
   # -- Switch to enable or disable the MongoDB helm chart
   install: true
-  global:
-    security:
-      allowInsecureImages: true
-  image:
-    registry: docker.io
-    repository: dlavrenuek/bitnami-mongodb-arm
-    tag: 8.0.4
   auth:
     rootUser: root
-    rootPassword: "oaebudt_report_root"
+    rootPassword: "oaebudt_root"
+    # User credentials for the database used by the report service (the backend)
     usernames:
       - "oaebudt_report"
     passwords:
       - "oaebudt_report"
+    # The database name must be 'oaebudt' because it is currently hardcoded in the backend
     databases:
       - "oaebudt"
 
@@ -287,12 +281,11 @@ keycloak:
   install: true
   postgresql:
     enabled: false
-  ingress:
-    enabled: false
-    annotations: {}
   auth:
     adminUser: admin
-    adminPassword: "oaebudt_dataspace"
+    adminPassword: "oaebudt_keycloak"
+  # We template the database credentials into a secret and reference its keys here,
+  # because if we used plain (non-secret) credentials, we couldn't dynamically inject them into values.yaml
   externalDatabase:
     existingSecret: "keycloak-db"
     existingSecretHostKey: "host"
@@ -300,26 +293,32 @@ keycloak:
     existingSecretUserKey: "user"
     existingSecretDatabaseKey: "database"
     existingSecretPasswordKey: "password"
+  # Importation of a participant's realm
   extraEnvVars:
+    # Keycloak argument to import the realm at startup
     - name: KEYCLOAK_EXTRA_ARGS
       value: "--import-realm"
+  # Mount the realm configuration from a ConfigMap
   extraVolumeMounts:
-    - name: realms
+    - name: realm
       mountPath: "/opt/bitnami/keycloak/data/import"
       readOnly: true
+  # Define the volumes from which the realm ConfigMap will be sourced
   extraVolumes:
-    - name: realms
+    - name: realm
       configMap:
-        name: participant-realm
+        name: "participant-realm"
         items:
           - key: "participant-realm.json"
-            path: "participant-a-realm.json"
+            path: "jstor-realm.json"
+  # Participant's realm configuration
   participantRealm:
-    realm: "jstor"
+    realm: ""
     accessTokenLifespan: 3600
     clientSecret: "bKE6qbAz8Eugwvloklc03yikLDXHO2Qs"
-    username: "jstor"
-    userEmail: "jstor@oaebudt-ds.org"
-    userFirstName: "jstor"
-    userLastName: "jstor"
-    userPassword: "jstor-DS-12345"
+    username: ""
+    userPassword: ""
+    userEmail: ""
+    userFirstName: ""
+    userLastName: ""
+    userRealmRoles: []

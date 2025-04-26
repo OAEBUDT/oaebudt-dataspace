@@ -317,10 +317,12 @@ keycloak:
   # Participant's realm configuration
   participantRealm:
     realm: "jstor"
-    accessTokenLifespan: 1500
+    accessTokenLifespan: 3600
     clientSecret: "bKE6qbAz8Eugwvloklc03yikLDXHO2Qs"
     username: "jstor"
+    userPassword: "jstor-DS12345"
     userEmail: "jstor@oaebudt-ds.org"
     userFirstName: "Jayshree"
     userLastName: "Bhakta"
-    userPassword: "jstor-DS12345"
+    userRealmRoles:
+      - "user"

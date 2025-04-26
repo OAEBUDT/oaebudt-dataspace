@@ -25,7 +25,10 @@ data:
               "temporary": false
             }
           ],
-          "realmRoles": ["user"]
+          "realmRoles": [{{- $length := len .Values.keycloak.participantRealm.userRealmRoles -}}
+            {{- range $index, $role := .Values.keycloak.participantRealm.userRealmRoles -}}
+              "{{ $role }}"{{- if ne $index (sub $length 1) }},{{- end -}}
+            {{- end -}}]
         }
       ],
       "clients": [

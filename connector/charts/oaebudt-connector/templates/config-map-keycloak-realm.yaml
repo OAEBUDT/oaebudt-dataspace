@@ -7,12 +7,12 @@ metadata:
 data:
   participant-realm.json: |
     {
-      "realm": {{ .Values.keycloak.participantRealm.realm | quote }},
+      "realm": {{ .Values.keycloak.participantRealm.realm | required ".Values.keycloak.participantRealm.realm is required " | quote}},
       "enabled": true,
       "accessTokenLifespan": {{ .Values.keycloak.participantRealm.accessTokenLifespan | default 1500 }},
       "users": [
         {
-          "username": {{ .Values.keycloak.participantRealm.username | quote}},
+          "username": {{ .Values.keycloak.participantRealm.username | required ".Values.keycloak.participantRealm.username is required " | quote}},
           "email": {{ .Values.keycloak.participantRealm.userEmail | required ".Values.keycloak.participantRealm.userEmail is required " | quote }},
           "emailVerified": false,
           "firstName": {{ .Values.keycloak.participantRealm.userFirstName | required ".Values.keycloak.participantRealm.userFirstName is required " | quote }},
@@ -33,7 +33,7 @@ data:
       ],
       "clients": [
         {
-          "clientId": {{ .Values.keycloak.participantRealm.realm | quote }},
+          "clientId": {{ .Values.keycloak.participantRealm.realm | required ".Values.keycloak.participantRealm.realm is required " | quote}},
           "enabled": true,
           "protocol": "openid-connect",
           "redirectUris": [{{ printf "https://%s%s/*" .Values.global.domain .Values.endpoints.report.path |quote }}],

@@ -324,6 +324,6 @@ keycloak:
         items:
           - key: "participant-realm.json"
             # Path inside the container (Keycloak will look for this file for realm import)
-            # IMPORTANT: The filename must match the realm name set in 'keycloak.participantRealm.realm',
+            # IMPORTANT: The filename must match the realm name set in '.Values.keycloak.participantRealm.realm',
             # following the format: "<realm-name>-realm.json"
             path: ""

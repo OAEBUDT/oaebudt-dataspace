@@ -8,6 +8,8 @@ import com.mongodb.client.model.ReplaceOptions;
 import org.bson.Document;
 import org.oaebudt.edc.report.model.ReportType;
 
+import java.util.Objects;
+
 public class MongoReportStoreImpl implements ReportStore {
     public static final String DATABASE_NAME = "oaebudt";
     public static final String REPORT_COLLECTION = "report";
@@ -30,5 +32,17 @@ public class MongoReportStoreImpl implements ReportStore {
                 doc,
                 new ReplaceOptions().upsert(true)
         );
+    }
+
+    @Override
+    public Document getReportByType(ReportType reportType) {
+        MongoCollection<Document> collection = database.getCollection(REPORT_COLLECTION);
+
+        Document result = collection.find(Filters.eq("reportType", reportType.name())).first();
+
+        if (Objects.isNull(result)) {
+            System.out.println("Found document: " + result.toJson());
+        }
+        return result;
     }
 }

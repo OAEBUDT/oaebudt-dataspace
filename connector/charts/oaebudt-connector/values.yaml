@@ -293,34 +293,37 @@ keycloak:
     existingSecretUserKey: "user"
     existingSecretDatabaseKey: "database"
     existingSecretPasswordKey: "password"
-  # Importation of a participant's realm
-  # Participant's realm configuration
+  # Importation of a participant's realm configuration
+  # This section is responsible for setting up Keycloak to import a realm at startup.
   importRealm:
-    enabled: true
+    enabled: true  #Enable realm import at Keycloak server startup
   participantRealm:
-    realm: ""
-    accessTokenLifespan: 3600
-    clientSecret: "bKE6qbAz8Eugwvloklc03yikLDXHO2Qs"
-    username: ""
-    userPassword: ""
-    userEmail: ""
-    userFirstName: ""
-    userLastName: ""
-    userRealmRoles: []
+    realm: ""  # Name of the participant's realm (should match the realm file)
+    accessTokenLifespan: 3600  # Access token lifespan in seconds (1 hour)
+    clientSecret: "bKE6qbAz8Eugwvloklc03yikLDXHO2Qs"  # Secret for authenticating the client (e.g., for confidential clients)
+    username: ""  # Admin or initial user username (optional if not setting up users manually)
+    userPassword: ""  # Password for the initial user
+    userEmail: ""  # Email address for the initial user
+    userFirstName: ""  # First name of the initial user
+    userLastName: ""  # Last name of the initial user
+    userRealmRoles: []  # List of realm-level roles assigned to the initial user
   extraEnvVars:
     # Keycloak argument to import the realm at startup
     - name: KEYCLOAK_EXTRA_ARGS
       value: "--import-realm"
-  # Mount the realm configuration from a ConfigMap
+  # Mount the realm JSON file inside the Keycloak container
   extraVolumeMounts:
     - name: realm
       mountPath: "/opt/bitnami/keycloak/data/import"
       readOnly: true
-  # Define the volumes from which the realm ConfigMap will be sourced
+  # Define the volumes Keycloak will use to find the realm file
   extraVolumes:
     - name: realm
       configMap:
         name: "participant-realm"
         items:
           - key: "participant-realm.json"
-            path: "jstor-realm.json"
+            # Path inside the container (Keycloak will look for this file for realm import)
+            # IMPORTANT: The filename must match the realm name set in 'keycloak.participantRealm.realm',
+            # following the format: "<realm-name>-realm.json"
+            path: ""

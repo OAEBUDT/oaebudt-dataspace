@@ -36,12 +36,13 @@ A Helm chart for deploying a proof-of-concept (PoC) Data Space Connector, includ
 | autoscaling.targetCPUUtilizationPercentage | int | `80` |  |
 | catalog.crawler.initialDelay | int | `120` | Initial delay for the crawling to start. Leave blank for a random delay |
 | catalog.crawler.targetsFile | string | `"/etc/dataspace/participants.json"` | File path to a JSON file containing TargetNode entries |
-| catalog.nodes | list | `[]` |  |
+| catalog.nodes[0].did | string | `"did:web:did.participant-a.svc.cluster.local"` |  |
+| catalog.nodes[0].name | string | `"participant-a"` |  |
 | dcp.identityHub.credentials.configMap | string | `"{{ .Values.participant.id | lower }}-credentials"` |  |
 | dcp.identityHub.credentials.mountPath | string | `"/etc/dataspace/did/credentials/{{ .Values.participant.id }}/"` |  |
 | dcp.identityHub.superuserKey | string | `"c3VwZXItdXNlcg==.K+CKuM+8XNuEfLggseLntVljpgLnRzPMNo1WT6dWU1HUJP07l50k8AUreEIy3gcYTBn4vxzMWIg+1TDPYsxpug=="` | Use a base64 key |
 | dcp.tls.enabled | bool | `false` |  |
-| dcp.trustedIssuers | list | `[]` |  |
+| dcp.trustedIssuers[0] | string | `"did:web:issuer.oaebudt.svc.cluster.local"` |  |
 | endpoints.catalog.authKey | string | `"password"` |  |
 | endpoints.catalog.path | string | `"/api/catalog"` |  |
 | endpoints.catalog.port | int | `7102` |  |
@@ -72,10 +73,10 @@ A Helm chart for deploying a proof-of-concept (PoC) Data Space Connector, includ
 | endpoints.version.path | string | `"/api/version"` |  |
 | endpoints.version.port | int | `7106` |  |
 | fullnameOverride | string | `""` |  |
-| global.domain | string | `""` | Global dataspace domain (required for ingress) |
+| global.domain | string | `"jstor.oaebudt.think-it.io"` | Global dataspace domain (required for ingress) |
 | image.pullPolicy | string | `"IfNotPresent"` |  |
-| image.repository | string | `"605134435349.dkr.ecr.us-east-1.amazonaws.com/oaebudt-dataspace/connector"` |  |
-| image.tag | string | `""` |  |
+| image.repository | string | `"oaebudt-connector"` |  |
+| image.tag | string | `"0.5"` |  |
 | imagePullSecrets | list | `[]` |  |
 | ingress.annotations | list | `[]` |  |
 | ingress.className | string | `""` |  |
@@ -89,37 +90,58 @@ A Helm chart for deploying a proof-of-concept (PoC) Data Space Connector, includ
 | keycloak.externalDatabase.existingSecretPasswordKey | string | `"password"` |  |
 | keycloak.externalDatabase.existingSecretPortKey | string | `"port"` |  |
 | keycloak.externalDatabase.existingSecretUserKey | string | `"user"` |  |
+| keycloak.extraEnvVars[0].name | string | `"KEYCLOAK_EXTRA_ARGS"` |  |
+| keycloak.extraEnvVars[0].value | string | `"--import-realm"` |  |
+| keycloak.extraVolumeMounts[0].mountPath | string | `"/opt/bitnami/keycloak/data/import"` |  |
+| keycloak.extraVolumeMounts[0].name | string | `"realms"` |  |
+| keycloak.extraVolumeMounts[0].readOnly | bool | `true` |  |
+| keycloak.extraVolumes[0].configMap.items[0].key | string | `"participant-realm.json"` |  |
+| keycloak.extraVolumes[0].configMap.items[0].path | string | `"participant-a-realm.json"` |  |
+| keycloak.extraVolumes[0].configMap.name | string | `"participant-realm"` |  |
+| keycloak.extraVolumes[0].name | string | `"realms"` |  |
+| keycloak.ingress.annotations | object | `{}` |  |
+| keycloak.ingress.enabled | bool | `false` |  |
 | keycloak.install | bool | `true` | Switch to enable or disable the Keycloak helm chart |
-| keycloak.participantRealm.accessTokenLifespan | int | `1500` |  |
+| keycloak.participantRealm.accessTokenLifespan | int | `3600` |  |
 | keycloak.participantRealm.clientSecret | string | `"bKE6qbAz8Eugwvloklc03yikLDXHO2Qs"` |  |
-| keycloak.participantRealm.userEmail | string | `""` |  |
-| keycloak.participantRealm.userFirstName | string | `""` |  |
-| keycloak.participantRealm.userLastName | string | `""` |  |
-| keycloak.participantRealm.userPassword | string | `""` |  |
+| keycloak.participantRealm.realm | string | `"jstor"` |  |
+| keycloak.participantRealm.userEmail | string | `"jstor@oaebudt-ds.org"` |  |
+| keycloak.participantRealm.userFirstName | string | `"jstor"` |  |
+| keycloak.participantRealm.userLastName | string | `"jstor"` |  |
+| keycloak.participantRealm.userPassword | string | `"jstor-DS-12345"` |  |
+| keycloak.participantRealm.username | string | `"jstor"` |  |
+| keycloak.postgresql.enabled | bool | `false` |  |
 | livenessProbe.enabled | bool | `true` |  |
 | livenessProbe.failureThreshold | int | `6` |  |
 | livenessProbe.initialDelaySeconds | int | `30` |  |
 | livenessProbe.periodSeconds | int | `10` |  |
 | livenessProbe.successThreshold | int | `1` |  |
 | livenessProbe.timeoutSeconds | int | `5` |  |
-| mongodb.auth.databases[0] | string | `"oaebudt_report"` |  |
+| mongodb.auth.databases[0] | string | `"oaebudt"` |  |
 | mongodb.auth.passwords[0] | string | `"oaebudt_report"` |  |
 | mongodb.auth.rootPassword | string | `"oaebudt_report_root"` |  |
 | mongodb.auth.rootUser | string | `"root"` |  |
 | mongodb.auth.usernames[0] | string | `"oaebudt_report"` |  |
+| mongodb.global.security.allowInsecureImages | bool | `true` |  |
+| mongodb.image.registry | string | `"docker.io"` |  |
+| mongodb.image.repository | string | `"dlavrenuek/bitnami-mongodb-arm"` |  |
+| mongodb.image.tag | string | `"8.0.4"` |  |
 | mongodb.install | bool | `true` | Switch to enable or disable the MongoDB helm chart |
 | nameOverride | string | `""` |  |
 | nodeSelector | object | `{}` |  |
-| participant.did | string | `""` |  |
-| participant.id | string | `""` |  |
+| participant.did | string | `"did:web:did.participant-a.svc.cluster.local"` |  |
+| participant.id | string | `"participant-a"` |  |
 | podAnnotations | object | `{}` |  |
 | podLabels | object | `{}` |  |
 | podSecurityContext | object | `{}` |  |
 | postgresql.auth.database | string | `"oaebudt_connector"` | Maximum name length is 31 characters by default |
 | postgresql.auth.password | string | `"oaebudt_connector"` |  |
+| postgresql.auth.postgresPassword | string | `"oaebudt_postgres"` |  |
 | postgresql.auth.username | string | `"oaebudt_connector"` | Maximum name length is 31 characters by default |
 | postgresql.install | bool | `true` | Switch to enable or disable the PostgreSQL helm chart |
+| postgresql.primary.initdb.password | string | `"oaebudt_postgres"` |  |
 | postgresql.primary.initdb.scripts."00_init_extensions.sql" | string | `"CREATE USER keycloak WITH PASSWORD 'keycloak';\nCREATE DATABASE keycloak OWNER keycloak;\nGRANT ALL PRIVILEGES ON DATABASE keycloak TO keycloak;\n"` |  |
+| postgresql.primary.initdb.user | string | `"postgres"` |  |
 | postgresql.schema.autoCreate | bool | `true` | Enable auto-creation of the schema on boot |
 | readinessProbe.enabled | bool | `true` |  |
 | readinessProbe.failureThreshold | int | `6` |  |

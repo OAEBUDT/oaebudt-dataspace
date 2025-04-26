@@ -53,6 +53,13 @@ spec:
                 name: {{ .Values.participant.id }}-connector
                 port:
                   name: public
+          - path: /realms
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Release.Name }}-keycloak
+                port:
+                  name: http
   {{- if .Values.ingress.tls }}
   tls:
     {{- range .Values.ingress.tls }}

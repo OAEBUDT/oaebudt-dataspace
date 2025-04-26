@@ -4,7 +4,7 @@
 
 global:
   # -- Global dataspace domain (required for ingress)
-  domain: "jstor.oaebudt.think-it.io"
+  domain: "liblynx.oaebudt.think-it.io"
 
 # This is to override the chart name.
 nameOverride: ""
@@ -14,11 +14,11 @@ fullnameOverride: ""
 participant:
   # The participant ID determines the name of the credentials to be added to the Identity Hub.
   # Therefore, the participant ID must match the folder name in the credentials' mount path.
-  id: "participant-a"
+  id: "participant-b"
   # For internal Kubernetes clusters, use a DID like did:web:did-service.oaebudt.svc.cluster.local,
   # where 'did-service' is the name of the Kubernetes service exposing the DID endpoint,
   # and 'oaebudt' is the namespace where the service and the connector are deployed.
-  did: "did:web:did.participant-a.svc.cluster.local"
+  did: "did:web:did.participant-b.svc.cluster.local"
 
 # Decentralized Claims Protocol configuration
 dcp:
@@ -43,8 +43,8 @@ catalog:
     # Example node:
     #  - name: participant-b
     #    did: "did:web:did.participant-b.svc.cluster.local"
-    - name: participant-a
-      did: "did:web:did.participant-a.svc.cluster.local"
+    - name: participant-b
+      did: "did:web:did.participant-b.svc.cluster.local"
   crawler:
     # -- Initial delay for the crawling to start. Leave blank for a random delay
     initialDelay: 120
@@ -313,16 +313,16 @@ keycloak:
         name: "participant-realm"
         items:
           - key: "participant-realm.json"
-            path: "jstor-realm.json"
+            path: "liblynx-realm.json"
   # Participant's realm configuration
   participantRealm:
-    realm: "jstor"
+    realm: "liblynx"
     accessTokenLifespan: 3600
     clientSecret: "oaebudt-dataspace"
-    username: "jstor"
-    userPassword: "jstor-DS12345"
-    userEmail: "jstor@oaebudt-ds.org"
-    userFirstName: "Jayshree"
-    userLastName: "Bhakta"
+    username: "liblynx"
+    userPassword: "liblynx-DS12345"
+    userEmail: "liblynx@oaebudt-ds.org"
+    userFirstName: "Michelle"
+    userLastName: "Urberg"
     userRealmRoles:
       - "user"

@@ -95,7 +95,7 @@ A Helm chart for deploying a proof-of-concept (PoC) Data Space Connector, includ
 | keycloak.extraVolumeMounts[0].name | string | `"realm"` |  |
 | keycloak.extraVolumeMounts[0].readOnly | bool | `true` |  |
 | keycloak.extraVolumes[0].configMap.items[0].key | string | `"participant-realm.json"` |  |
-| keycloak.extraVolumes[0].configMap.items[0].path | string | `"dddd"` |  |
+| keycloak.extraVolumes[0].configMap.items[0].path | string | `""` |  |
 | keycloak.extraVolumes[0].configMap.name | string | `"participant-realm"` |  |
 | keycloak.extraVolumes[0].name | string | `"realm"` |  |
 | keycloak.importRealm.enabled | bool | `true` |  |

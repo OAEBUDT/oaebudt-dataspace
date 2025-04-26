@@ -296,25 +296,10 @@ keycloak:
     existingSecretUserKey: "user"
     existingSecretDatabaseKey: "database"
     existingSecretPasswordKey: "password"
-  # Importation of a participant's realm
-  extraEnvVars:
-    # Keycloak argument to import the realm at startup
-    - name: KEYCLOAK_EXTRA_ARGS
-      value: "--import-realm"
-  # Mount the realm configuration from a ConfigMap
-  extraVolumeMounts:
-    - name: realm
-      mountPath: "/opt/bitnami/keycloak/data/import"
-      readOnly: true
-  # Define the volumes from which the realm ConfigMap will be sourced
-  extraVolumes:
-    - name: realm
-      configMap:
-        name: "participant-realm"
-        items:
-          - key: "participant-realm.json"
-            path: "liblynx-realm.json"
-  # Participant's realm configuration
+  # Importation of a participant's realm configuration
+  # This section is responsible for setting up Keycloak to import a realm at startup.
+  importRealm:
+    enabled: true  #Enable realm import at Keycloak server startup
   participantRealm:
     realm: "liblynx"
     accessTokenLifespan: 3600
@@ -326,3 +311,23 @@ keycloak:
     userLastName: "Urberg"
     userRealmRoles:
       - "user"
+  extraEnvVars:
+    # Keycloak argument to import the realm at startup
+    - name: KEYCLOAK_EXTRA_ARGS
+      value: "--import-realm"
+  # Mount the realm JSON file inside the Keycloak container
+  extraVolumeMounts:
+    - name: realm
+      mountPath: "/opt/bitnami/keycloak/data/import"
+      readOnly: true
+  # Define the volumes Keycloak will use to find the realm file
+  extraVolumes:
+    - name: realm
+      configMap:
+        name: "participant-realm"
+        items:
+          - key: "participant-realm.json"
+            # Path inside the container (Keycloak will look for this file for realm import)
+            # IMPORTANT: The filename must match the realm name set in '.Values.keycloak.participantRealm.realm',
+            # following the format: "<realm-name>-realm.json"
+            path: "liblynx-realm.json"

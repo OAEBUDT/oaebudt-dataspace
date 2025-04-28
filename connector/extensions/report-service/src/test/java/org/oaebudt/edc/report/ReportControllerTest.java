@@ -51,7 +51,7 @@ public class ReportControllerTest {
         contractDefinitionService = mock(ContractDefinitionService.class);
         consumerApiBaseUrl = URI.create("Http://random-uri");
         federatedCatalogCache = mock(FederatedCatalogCache.class);
-        controller = Mockito.spy(new ReportApiController(monitor, reportStore, assetService,contractDefinitionService, federatedCatalogCache, consumerApiBaseUrl));
+        controller = Mockito.spy(new ReportApiController(monitor, reportStore, assetService,contractDefinitionService, consumerApiBaseUrl));
     }
 
     @Test

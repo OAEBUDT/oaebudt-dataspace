@@ -2,7 +2,6 @@ package org.oaebudt.edc.report;
 
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
-import org.eclipse.edc.catalog.spi.FederatedCatalogCache;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.services.spi.asset.AssetService;
 import org.eclipse.edc.connector.controlplane.services.spi.contractdefinition.ContractDefinitionService;
@@ -74,9 +73,6 @@ public class ReportApiExtension implements ServiceExtension {
     @Inject
     private Hostname hostname;
 
-    @Inject
-    private FederatedCatalogCache federatedCatalogCache;
-
     private Monitor monitor;
 
     @Override
@@ -93,7 +89,7 @@ public class ReportApiExtension implements ServiceExtension {
 
         webService.registerResource(REPORT, new ReportApiController(
                 context.getMonitor(),
-                reportStore, assetService, contractDefinitionService, federatedCatalogCache, consumerApiBaseUrl));
+                reportStore, assetService, contractDefinitionService, consumerApiBaseUrl));
         webService.registerResource(CONSUMER, new ConsumerApiController(reportStore));
 
     }

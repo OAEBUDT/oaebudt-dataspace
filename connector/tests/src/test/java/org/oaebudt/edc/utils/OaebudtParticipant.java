@@ -64,7 +64,10 @@ public class OaebudtParticipant extends Participant {
             URI.create("http://localhost:" + Ports.getFreePort() + "/api/sts"));
 
     protected LazySupplier<URI> reportServiceUrl = new LazySupplier<>(() ->
-            URI.create("http://localhost:" + Ports.getFreePort() + "/api/report"));
+            URI.create("http://localhost:" + Ports.getFreePort() + "/api/report/"));
+
+    protected LazySupplier<URI> consumerServiceUrl = new LazySupplier<>(() ->
+            URI.create("http://localhost:" + Ports.getFreePort() + "/api/consumer/"));
 
     private OaebudtParticipant() {}
 
@@ -122,7 +125,9 @@ public class OaebudtParticipant extends Participant {
                 entry("web.http.version.port", getFreePort() + ""),
                 entry("web.http.report.port", reportServiceUrl.get().getPort() + ""),
                 entry("web.http.report.path", reportServiceUrl.get().getPath()),
-                entry("web.http.report.auth.type", "keycloak")
+                entry("web.http.report.auth.type", "keycloak"),
+                entry("web.http.consumer.port", consumerServiceUrl.get().getPort() + ""),
+                entry("web.http.consumer.path", consumerServiceUrl.get().getPath())
         );
 
         return ConfigFactory.fromMap(map);

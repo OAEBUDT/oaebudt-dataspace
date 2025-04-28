@@ -6,23 +6,18 @@ import jakarta.json.JsonObject;
 import jakarta.json.JsonReader;
 import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.catalog.spi.FederatedCatalogCache;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
-import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.controlplane.services.spi.asset.AssetService;
 import org.eclipse.edc.connector.controlplane.services.spi.contractdefinition.ContractDefinitionService;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.Criterion;
-import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.glassfish.jersey.media.multipart.FormDataParam;
@@ -32,9 +27,6 @@ import org.oaebudt.edc.report.repository.ReportStore;
 
 import java.io.InputStream;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -53,18 +45,15 @@ public class ReportApiController {
     private final AssetService assetService;
     private final ContractDefinitionService contractDefinitionService;
     private final URI consumerApiBaseUrl;
-    private final FederatedCatalogCache federatedCatalogCache;
 
 
     public ReportApiController(Monitor monitor, ReportStore reportStore, AssetService assetService,
-                               ContractDefinitionService contractDefinitionService,
-                               FederatedCatalogCache federatedCatalogCache, URI consumerApiBaseUrl) {
+                               ContractDefinitionService contractDefinitionService, URI consumerApiBaseUrl) {
         this.reportStore = reportStore;
         this.assetService = assetService;
         this.contractDefinitionService = contractDefinitionService;
         this.monitor = monitor;
         this.consumerApiBaseUrl = consumerApiBaseUrl;
-        this.federatedCatalogCache = federatedCatalogCache;
     }
 
     @POST
@@ -127,31 +116,6 @@ public class ReportApiController {
         }
 
     }
-
-
-    @GET
-    @Path("/aggregate/{reportType}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response aggregateReportBasedOnSearchCriteria(@PathParam("reportType") ReportType reportType,
-                                                         @QueryParam("isbn") String isbn,
-                                                         @QueryParam("performanceType") String attributePerformance) {
-        QuerySpec querySpec = new QuerySpec().toBuilder().build();
-
-        Collection<Catalog> catalogs = federatedCatalogCache.query(querySpec);
-
-        List<Catalog> filteredCatalog = catalogs.stream()
-                .filter(catalog -> catalog.getDatasets().getFirst().getId().equals(reportType.name())).toList();
-
-        List<String> result = new ArrayList<>();
-        filteredCatalog.forEach(catalog -> {
-//            String edr = catalog.getDatasets().get(0).getOffers().
-//            result.add(edr);
-        });
-
-        return Response.ok().build();
-    }
-
-
 
      void createAssetInConnector(String title, ReportType reportType, String uri, OaebudtPolicyType policyType) {
 

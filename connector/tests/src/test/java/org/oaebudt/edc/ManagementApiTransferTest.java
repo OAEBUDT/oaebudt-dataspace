@@ -30,6 +30,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import org.assertj.core.api.Assertions;
+import org.awaitility.Awaitility;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.connector.controlplane.test.system.utils.PolicyFixtures;
 import org.eclipse.edc.identityhub.tests.fixtures.credentialservice.IdentityHubExtension;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
@@ -333,7 +335,76 @@ class ManagementApiTransferTest {
     }
 
     @Test
-    public void shouldUploadReportAndCreateAssetInConnector() {
+    public void shouldUploadReportAndConsumerShouldConsumeReport() throws IOException {
+        PROVIDER.setAuthorizationToken(KEYCLOAK_EXTENSION.getToken());
+        CONSUMER.setAuthorizationToken(KEYCLOAK_EXTENSION.getToken());
+        String reportUri = PROVIDER.getReportServiceUrl().get().toString() + "upload";
+        String accessToken = KEYCLOAK_EXTENSION.getToken();
+        final var consumerEdrReceiver = ClientAndServer.startClientAndServer(getFreePort());
+        consumerEdrReceiver.when(request("/edr")).respond(response());
+        String jsonContent = """
+            {
+              "userId": 123,
+              "status": "active"
+            }
+        """;
+
+        RestAssured
+                .given()
+                .header(HttpHeaderNames.AUTHORIZATION, "Bearer " + accessToken)
+                .multiPart(
+                        "file",                             // form field for file
+                        "data.json",                        // pretend filename
+                        new ByteArrayInputStream(jsonContent.getBytes(StandardCharsets.UTF_8)),
+                        "application/json"
+                )
+                .multiPart("reportType", "TITLE_REPORT")
+                .multiPart("title", "Report_IR")
+                .multiPart("accessLevel", "require-dataprocessor")// additional form data
+                .when()
+                .post(reportUri)
+                .then()
+                .statusCode(201);
+
+        JsonArray jsonArray = CONSUMER.getCatalogDatasets(PROVIDER);
+        Assertions.assertThat(jsonArray.toString()).contains("TITLE_REPORT");
+
+        final String transferProcessId = CONSUMER.requestAssetFrom("TITLE_REPORT", PROVIDER)
+                .withTransferType("HttpData-PULL")
+                .withCallbacks(Json.createArrayBuilder()
+                        .add(createCallback("http://localhost:%s/edr".formatted(consumerEdrReceiver.getPort()), true, Set.of("transfer.process.started")))
+                        .build())
+                .execute();
+
+        CONSUMER.awaitTransferToBeInState(transferProcessId, STARTED);
+
+        final var edrRequests = await().until(() -> consumerEdrReceiver.retrieveRecordedRequests(request("/edr")), it -> it.length > 0);
+
+        final var edr = new ObjectMapper().readTree(edrRequests[0].getBodyAsRawBytes()).get("payload").get("dataAddress").get("properties");
+
+        final var endpoint = edr.get(EDC_NAMESPACE + "endpoint").asText();
+        final var authCode = edr.get(EDC_NAMESPACE + "authorization").asText();
+
+        final var body = given()
+                .header("Authorization", authCode)
+                .when()
+                .get(endpoint)
+                .then()
+                .log().ifValidationFails()
+                .statusCode(200)
+                .extract().body().jsonPath();
+
+        Assertions.assertThat(body.getString("status")).isEqualTo("active");
+        Assertions.assertThat(body.getString("reportType")).isEqualTo("TITLE_REPORT");
+
+        consumerEdrReceiver.stop();
+    }
+
+    @Test
+    public void shouldUploadReportAndConsumerShouldConsumeReport_InvalidAccessLevel() throws IOException {
+        PROVIDER.setAuthorizationToken(KEYCLOAK_EXTENSION.getToken());
+        CONSUMER.setAuthorizationToken(KEYCLOAK_EXTENSION.getToken());
+        String reportUri = PROVIDER.getReportServiceUrl().get().toString() + "upload";
         String accessToken = KEYCLOAK_EXTENSION.getToken();
         String jsonContent = """
             {
@@ -351,14 +422,26 @@ class ManagementApiTransferTest {
                         new ByteArrayInputStream(jsonContent.getBytes(StandardCharsets.UTF_8)),
                         "application/json"
                 )
-                .multiPart("reportType", "TITLE_REPORT") // additional form data
+                .multiPart("reportType", "ITEM_REPORT")
+                .multiPart("title", "Report_IR")
+                .multiPart("accessLevel", "require-sensitive")// additional form data
                 .when()
-                .post(PROVIDER.getReportServiceUrl()+ "/upload")
+                .post(reportUri)
                 .then()
                 .statusCode(201);
 
         JsonArray jsonArray = CONSUMER.getCatalogDatasets(PROVIDER);
-        Assertions.assertThat(jsonArray.toString()).contains("TITLE_REPORT");
+        Assertions.assertThat(jsonArray.toString()).contains("ITEM_REPORT");
+
+        String negotiationId = CONSUMER.initContractNegotiation(PROVIDER, "ITEM_REPORT");
+
+        Awaitility.await().untilAsserted(() -> {
+            String state = CONSUMER.getContractNegotiationState(negotiationId);
+            Assertions.assertThat(state).isEqualTo(ContractNegotiationStates.TERMINATED.name());
+        });
+
+        String state = CONSUMER.getContractNegotiationState(negotiationId);
+        Assertions.assertThat(state).isEqualTo(ContractNegotiationStates.TERMINATED.name());
     }
 
     private String createProviderAsset(OaebudtParticipant participant, final Map<String, Object> dataAddressProperties) {

@@ -18,9 +18,13 @@ import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
 import jakarta.json.Json;
+import jakarta.json.JsonArray;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
+
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Map;
 import java.util.Set;
@@ -33,6 +37,7 @@ import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.eclipse.edc.spi.system.ServiceExtension;
+import org.jboss.resteasy.util.HttpHeaderNames;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -82,6 +87,14 @@ class ManagementApiTransferTest {
     @Order(1)
     @RegisterExtension
     static final PostgresEndToEndExtension CONSUMER_POSTGRESQL_EXTENSION = new PostgresEndToEndExtension();
+
+    @Order(1)
+    @RegisterExtension
+    static final MongoEndToEndExtension PROVIDER_MONGO_EXTENSION = new MongoEndToEndExtension();
+
+    @Order(1)
+    @RegisterExtension
+    static final MongoEndToEndExtension CONSUMER_MONGO_EXTENSION = new MongoEndToEndExtension();
 
     @Order(2)
     @RegisterExtension
@@ -148,6 +161,7 @@ class ManagementApiTransferTest {
                     .configurationProvider(() -> PROVIDER_POSTGRESQL_EXTENSION.configFor(PROVIDER.getName()))
                     .configurationProvider(VAULT_EXTENSION::config)
                     .configurationProvider(KEYCLOAK_EXTENSION::config)
+                    .configurationProvider(PROVIDER_MONGO_EXTENSION::config)
                     .registerSystemExtension(ServiceExtension.class, PROVIDER.seedVaultKeys()));
 
     @Order(12)
@@ -157,7 +171,8 @@ class ManagementApiTransferTest {
                 .configurationProvider(() ->  CONSUMER.getConfiguration(IDENTITY_HUB_CONSUMER.getIdentityHubStsPort()))
                 .configurationProvider(() -> CONSUMER_POSTGRESQL_EXTENSION.configFor(CONSUMER.getName()))
                 .configurationProvider(VAULT_EXTENSION::config)
-                .configurationProvider(KEYCLOAK_EXTENSION::config));
+                .configurationProvider(KEYCLOAK_EXTENSION::config)
+                .configurationProvider(CONSUMER_MONGO_EXTENSION::config));
 
     @BeforeAll
     public static void setup() {
@@ -315,6 +330,35 @@ class ManagementApiTransferTest {
                 .then()
                 .statusCode(401);
 
+    }
+
+    @Test
+    public void shouldUploadReportAndCreateAssetInConnector() {
+        String accessToken = KEYCLOAK_EXTENSION.getToken();
+        String jsonContent = """
+            {
+              "userId": 123,
+              "status": "active"
+            }
+        """;
+
+        RestAssured
+                .given()
+                .header(HttpHeaderNames.AUTHORIZATION, "Bearer " + accessToken)
+                .multiPart(
+                        "file",                             // form field for file
+                        "data.json",                        // pretend filename
+                        new ByteArrayInputStream(jsonContent.getBytes(StandardCharsets.UTF_8)),
+                        "application/json"
+                )
+                .multiPart("reportType", "TITLE_REPORT") // additional form data
+                .when()
+                .post(PROVIDER.getReportServiceUrl()+ "/upload")
+                .then()
+                .statusCode(201);
+
+        JsonArray jsonArray = CONSUMER.getCatalogDatasets(PROVIDER);
+        Assertions.assertThat(jsonArray.toString()).contains("TITLE_REPORT");
     }
 
     private String createProviderAsset(OaebudtParticipant participant, final Map<String, Object> dataAddressProperties) {

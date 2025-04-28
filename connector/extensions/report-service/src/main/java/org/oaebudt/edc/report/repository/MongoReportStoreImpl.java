@@ -38,11 +38,6 @@ public class MongoReportStoreImpl implements ReportStore {
     public Document getReportByType(ReportType reportType) {
         MongoCollection<Document> collection = database.getCollection(REPORT_COLLECTION);
 
-        Document result = collection.find(Filters.eq("reportType", reportType.name())).first();
-
-        if (Objects.isNull(result)) {
-            System.out.println("Found document: " + result.toJson());
-        }
-        return result;
+        return collection.find(Filters.eq("reportType", reportType.name())).first();
     }
 }

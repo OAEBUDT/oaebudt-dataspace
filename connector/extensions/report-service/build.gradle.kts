@@ -7,6 +7,7 @@ dependencies {
     implementation(libs.mongodb.driver.sync)
     implementation(libs.jersey.multipart)
     implementation(libs.edc.controlplane.spi)
+    implementation(libs.edc.fc.spi.core)
 
     testImplementation(libs.edc.junit)
     testImplementation(libs.junit.jupiter)

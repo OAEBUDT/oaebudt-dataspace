@@ -63,6 +63,12 @@ public class OaebudtParticipant extends Participant {
     protected LazySupplier<URI> identityHubSts = new LazySupplier<>(() ->
             URI.create("http://localhost:" + Ports.getFreePort() + "/api/sts"));
 
+    protected LazySupplier<URI> reportServiceUrl = new LazySupplier<>(() ->
+            URI.create("http://localhost:" + Ports.getFreePort() + "/api/report/"));
+
+    protected LazySupplier<URI> consumerServiceUrl = new LazySupplier<>(() ->
+            URI.create("http://localhost:" + Ports.getFreePort() + "/api/consumer/"));
+
     private OaebudtParticipant() {}
 
     public void setAuthorizationToken(String token) {
@@ -108,6 +114,7 @@ public class OaebudtParticipant extends Participant {
                 entry("web.http.control.port", controlPlaneControl.get().getPort() + ""),
                 entry("web.http.management.path", controlPlaneManagement.get().getPath()),
                 entry("web.http.management.port", controlPlaneManagement.get().getPort() + ""),
+                entry("web.http.management.auth.type", "keycloak"),
                 entry("web.http.path", "/api"),
                 entry("web.http.port", getFreePort() + ""),
                 entry("web.http.protocol.path", controlPlaneProtocol.get().getPath()),
@@ -115,7 +122,12 @@ public class OaebudtParticipant extends Participant {
                 entry("web.http.public.path", "/public"),
                 entry("web.http.public.port", getFreePort() + ""),
                 entry("web.http.version.path", "/version"),
-                entry("web.http.version.port", getFreePort() + "")
+                entry("web.http.version.port", getFreePort() + ""),
+                entry("web.http.report.port", reportServiceUrl.get().getPort() + ""),
+                entry("web.http.report.path", reportServiceUrl.get().getPath()),
+                entry("web.http.report.auth.type", "keycloak"),
+                entry("web.http.consumer.port", consumerServiceUrl.get().getPort() + ""),
+                entry("web.http.consumer.path", consumerServiceUrl.get().getPath())
         );
 
         return ConfigFactory.fromMap(map);
@@ -166,6 +178,10 @@ public class OaebudtParticipant extends Participant {
 
     public Integer getIdentityHubStsPort() {
         return identityHubSts.get().getPort();
+    }
+
+    public LazySupplier<URI> getReportServiceUrl() {
+        return reportServiceUrl;
     }
 
     public RequestSpecification baseManagementRequest() {

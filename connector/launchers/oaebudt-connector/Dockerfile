@@ -22,6 +22,9 @@ COPY ./extensions/credential-from-file ./extensions/credential-from-file
 COPY ./extensions/dcp-impl ./extensions/dcp-impl
 COPY ./extensions/superuser-seed ./extensions/superuser-seed
 
+# Copy backend extensions
+COPY ./extensions/report-service ./extensions/report-service
+COPY ./extensions/keycloak-auth ./extensions/keycloak-auth
 
 # Run Gradle to build the JAR with parallel execution for faster builds
 RUN ./gradlew clean :launchers:oaebudt-connector:build --parallel --no-daemon

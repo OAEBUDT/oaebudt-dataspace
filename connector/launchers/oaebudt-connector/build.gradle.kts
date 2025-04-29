@@ -6,6 +6,8 @@ plugins {
 dependencies {
     runtimeOnly(project(":extensions:catalog-node-resolver"))
     runtimeOnly(project(":extensions:dcp-impl"))
+    runtimeOnly(project(":extensions:report-service"))
+    runtimeOnly(project(":extensions:keycloak-auth"))
 
     runtimeOnly(project(":launchers:controlplane")) {
         exclude(group = "org.eclipse.edc", "data-plane-selector-client")

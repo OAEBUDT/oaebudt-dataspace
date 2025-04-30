@@ -343,7 +343,7 @@ resource "helm_release" "loki_stack" {
 
   repository  = "https://grafana.github.io/helm-charts"
   chart       = "loki-stack"
-  namespace   = local.addons_namespace
+  namespace   = "observability"
   version     = var.grafana_loki_stack_chart_version
   max_history = 3
 

@@ -57,7 +57,6 @@ resource "aws_iam_role_policy" "vault_server_actions_policy" {
   policy      = data.aws_iam_policy_document.vault_server_permissions_policy.json
 }
 
-
 resource "aws_eks_pod_identity_association" "vault_server" {
   for_each = toset(local.vault_servers_namespaces)
 

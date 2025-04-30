@@ -8,6 +8,8 @@ dependencies {
     implementation(libs.jersey.multipart)
     implementation(libs.edc.controlplane.spi)
     implementation(libs.edc.fc.spi.core)
+    implementation(libs.edc.spi.dataplane.http)
+    implementation(project(":spi:core-spi"))
 
     testImplementation(libs.edc.junit)
     testImplementation(libs.junit.jupiter)

@@ -19,6 +19,8 @@ dependencyResolutionManagement {
     }
 }
 
+include(":spi:core-spi")
+include(":core:core-service")
 include(":extensions:keycloak-auth")
 include(":extensions:superuser-seed")
 include(":extensions:dcp-impl")

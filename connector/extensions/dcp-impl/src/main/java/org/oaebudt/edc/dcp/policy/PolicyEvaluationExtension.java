@@ -12,9 +12,11 @@ import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.oaebudt.edc.spi.store.ParticipantGroupStore;
 
 import static org.oaebudt.edc.dcp.policy.MembershipCredentialEvaluationFunction.MEMBERSHIP_CONSTRAINT_KEY;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
+import static org.oaebudt.edc.dcp.policy.TrustedGroupCredentialEvaluationFunction.TRUSTED_GROUP_CONSTRAINT_KEY;
 
 public class PolicyEvaluationExtension implements ServiceExtension {
 
@@ -24,6 +26,9 @@ public class PolicyEvaluationExtension implements ServiceExtension {
     @Inject
     private RuleBindingRegistry ruleBindingRegistry;
 
+    @Inject
+    private ParticipantGroupStore participantGroupStore;
+
     CredentialExtractor credentialExtractor = new CredentialExtractor();
 
     @Override
@@ -32,6 +37,10 @@ public class PolicyEvaluationExtension implements ServiceExtension {
         bindPermissionFunction(MembershipCredentialEvaluationFunction.create(credentialExtractor), TransferProcessPolicyContext.class, TransferProcessPolicyContext.TRANSFER_SCOPE, MEMBERSHIP_CONSTRAINT_KEY);
         bindPermissionFunction(MembershipCredentialEvaluationFunction.create(credentialExtractor), ContractNegotiationPolicyContext.class, ContractNegotiationPolicyContext.NEGOTIATION_SCOPE, MEMBERSHIP_CONSTRAINT_KEY);
         bindPermissionFunction(MembershipCredentialEvaluationFunction.create(credentialExtractor), CatalogPolicyContext.class, CatalogPolicyContext.CATALOG_SCOPE, MEMBERSHIP_CONSTRAINT_KEY);
+
+        bindPermissionFunction(TrustedGroupCredentialEvaluationFunction.create(participantGroupStore), TransferProcessPolicyContext.class, TransferProcessPolicyContext.TRANSFER_SCOPE, TRUSTED_GROUP_CONSTRAINT_KEY);
+        bindPermissionFunction(TrustedGroupCredentialEvaluationFunction.create(participantGroupStore), ContractNegotiationPolicyContext.class, ContractNegotiationPolicyContext.NEGOTIATION_SCOPE, TRUSTED_GROUP_CONSTRAINT_KEY);
+        bindPermissionFunction(TrustedGroupCredentialEvaluationFunction.create(participantGroupStore), CatalogPolicyContext.class, CatalogPolicyContext.CATALOG_SCOPE, TRUSTED_GROUP_CONSTRAINT_KEY);
 
         registerDataAccessLevelFunction();
 

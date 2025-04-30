@@ -35,6 +35,7 @@ edc-spi-identity-trust = { module = "org.eclipse.edc:identity-trust-spi", versio
 edc-spi-transform = { module = "org.eclipse.edc:transform-spi", version.ref = "edc" }
 edc-spi-catalog = { module = "org.eclipse.edc:catalog-spi", version.ref = "edc" }
 edc-spi-identity-did = { module = "org.eclipse.edc:identity-did-spi", version.ref = "edc" }
+edc-spi-dataplane-http = { module = "org.eclipse.edc:data-plane-http-spi", version.ref = "edc" }
 mongodb-driver-sync = { group = "org.mongodb", name = "mongodb-driver-sync", version.ref = "mongodb-driver" }
 jersey-multipart = { group = "org.glassfish.jersey.media", name = "jersey-media-multipart", version.ref = "jersey" }
 parsson = { group = "org.eclipse.parsson", name = "parsson", version.ref = "parsson" }

@@ -10,4 +10,5 @@ dependencies {
     implementation(libs.edc.spi.identity.did)
     implementation(libs.edc.lib.jws2020)
     implementation(libs.edc.lib.transform)
+    implementation(project(":spi:core-spi"))
 }

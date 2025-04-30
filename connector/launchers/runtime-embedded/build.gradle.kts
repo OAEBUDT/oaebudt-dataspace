@@ -4,6 +4,7 @@ plugins {
 }
 
 dependencies {
+    runtimeOnly(project(":core:core-service"))
     runtimeOnly(project(":extensions:report-service"))
     runtimeOnly(project(":extensions:keycloak-auth"))
     runtimeOnly(project(":extensions:catalog-node-resolver"))

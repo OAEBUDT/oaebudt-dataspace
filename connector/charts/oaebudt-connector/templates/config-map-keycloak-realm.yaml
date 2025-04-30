@@ -1,4 +1,3 @@
-{{- if .Values.keycloak.importRealm.enabled -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -6,7 +5,7 @@ metadata:
   labels:
     {{- include "oaebudt-connector.labels" . | nindent 4 }}
 data:
-  participant-realm.json: |
+  {{ .Values.keycloak.participantRealm.realm }}-realm.json: |
     {
       "realm": {{ .Values.keycloak.participantRealm.realm | required ".Values.keycloak.participantRealm.realm is required " | quote}},
       "enabled": true,
@@ -25,11 +24,7 @@ data:
               "value": {{ .Values.keycloak.participantRealm.userPassword | required ".Values.keycloak.participantRealm.userPassword is required " | quote }},
               "temporary": false
             }
-          ],
-          "realmRoles": [{{- $length := len .Values.keycloak.participantRealm.userRealmRoles -}}
-            {{- range $index, $role := .Values.keycloak.participantRealm.userRealmRoles -}}
-              "{{ $role }}"{{- if ne $index (sub $length 1) }},{{- end -}}
-            {{- end -}}]
+          ]
         }
       ],
       "clients": [
@@ -47,4 +42,3 @@ data:
         }
       ]
     }
-{{- end }}

@@ -77,7 +77,7 @@ A Helm chart for deploying a proof-of-concept (PoC) Data Space Connector, includ
 | global.domain | string | `""` | Global dataspace domain (required for ingress) |
 | image.pullPolicy | string | `"IfNotPresent"` |  |
 | image.repository | string | `"605134435349.dkr.ecr.us-east-1.amazonaws.com/oaebudt-dataspace/connector"` |  |
-| image.tag | string | `"f6e5613"` |  |
+| image.tag | string | `"0.1"` |  |
 | imagePullSecrets | list | `[]` |  |
 | ingress.annotations."alb.ingress.kubernetes.io/group.name" | string | `"oaebudt-dataspace"` |  |
 | ingress.annotations."alb.ingress.kubernetes.io/healthcheck-path" | string | `"/api/check/liveness"` |  |
@@ -86,7 +86,6 @@ A Helm chart for deploying a proof-of-concept (PoC) Data Space Connector, includ
 | ingress.annotations."alb.ingress.kubernetes.io/scheme" | string | `"internet-facing"` |  |
 | ingress.annotations."alb.ingress.kubernetes.io/ssl-redirect" | string | `"443"` |  |
 | ingress.annotations."alb.ingress.kubernetes.io/target-type" | string | `"ip"` |  |
-| ingress.annotations."internet-facingalb.ingress.kubernetes.io/certificate-arn" | string | `"arn:aws:acm:us-east-1:605134435349:certificate/f5f64987-094b-4de6-9c8c-d81beb7014f7"` |  |
 | ingress.className | string | `"alb"` |  |
 | ingress.enabled | bool | `true` |  |
 | ingress.tls | list | `[]` |  |
@@ -98,22 +97,14 @@ A Helm chart for deploying a proof-of-concept (PoC) Data Space Connector, includ
 | keycloak.externalDatabase.existingSecretPasswordKey | string | `"password"` |  |
 | keycloak.externalDatabase.existingSecretPortKey | string | `"port"` |  |
 | keycloak.externalDatabase.existingSecretUserKey | string | `"user"` |  |
-| keycloak.extraEnvVars[0].name | string | `"KEYCLOAK_EXTRA_ARGS"` |  |
-| keycloak.extraEnvVars[0].value | string | `"--import-realm"` |  |
-| keycloak.extraVolumeMounts[0].mountPath | string | `"/opt/bitnami/keycloak/data/import"` |  |
-| keycloak.extraVolumeMounts[0].name | string | `"realm"` |  |
-| keycloak.extraVolumeMounts[0].readOnly | bool | `true` |  |
-| keycloak.extraVolumes[0].configMap.items[0].key | string | `"participant-realm.json"` |  |
-| keycloak.extraVolumes[0].configMap.items[0].path | string | `""` |  |
-| keycloak.extraVolumes[0].configMap.name | string | `"participant-realm"` |  |
-| keycloak.extraVolumes[0].name | string | `"realm"` |  |
-| keycloak.importRealm.enabled | bool | `true` |  |
 | keycloak.initContainers[0].command[0] | string | `"sh"` |  |
 | keycloak.initContainers[0].command[1] | string | `"-c"` |  |
 | keycloak.initContainers[0].command[2] | string | `"echo \"Installing dependencies...\"\napk add --no-cache curl netcat-openbsd\n\necho \"Waiting for PostgreSQL...\"\nuntil nc -z {{ .Release.Name }}-postgresql 5432; do\necho \"waiting for postgres...\";\nsleep 2;\ndone\necho \"PostgreSQL is ready.\"\n"` |  |
 | keycloak.initContainers[0].image | string | `"alpine:3.21.3"` |  |
 | keycloak.initContainers[0].name | string | `"wait-for-postgresql"` |  |
 | keycloak.install | bool | `true` | Switch to enable or disable the Keycloak helm chart |
+| keycloak.keycloakConfigCli.enabled | bool | `true` |  |
+| keycloak.keycloakConfigCli.existingConfigmap | string | `"participant-realm"` |  |
 | keycloak.participantRealm.accessTokenLifespan | int | `3600` |  |
 | keycloak.participantRealm.clientSecret | string | `"bKE6qbAz8Eugwvloklc03yikLDXHO2Qs"` |  |
 | keycloak.participantRealm.realm | string | `""` |  |

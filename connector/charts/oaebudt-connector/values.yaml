@@ -114,7 +114,7 @@ endpoints:
 image:
   repository: 605134435349.dkr.ecr.us-east-1.amazonaws.com/oaebudt-dataspace/connector
   pullPolicy: IfNotPresent
-  tag: "f6e5613"
+  tag: "0.1"
 
 # This section is for setting up autoscaling
 autoscaling:
@@ -201,7 +201,6 @@ ingress:
   enabled: true
   className: "alb"
   annotations:
-    internet-facingalb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-1:605134435349:certificate/f5f64987-094b-4de6-9c8c-d81beb7014f7
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS":443}]'
     alb.ingress.kubernetes.io/ssl-redirect: "443"
     alb.ingress.kubernetes.io/scheme: internet-facing
@@ -339,9 +338,9 @@ keycloak:
     existingSecretDatabaseKey: "database"
     existingSecretPasswordKey: "password"
   # Importation of a participant's realm configuration
-  # This section is responsible for setting up Keycloak to import a realm at startup.
-  importRealm:
-    enabled: true  #Enable realm import at Keycloak server startup
+  keycloakConfigCli:
+    enabled: true  # Enable Keycloak configuration CLI to import the realm
+    existingConfigmap: "participant-realm" # Name of the ConfigMap containing the Keycloak realm to import
   participantRealm:
     realm: ""  # Name of the participant's realm (should match the realm file)
     accessTokenLifespan: 3600  # Access token lifespan in seconds (1 hour)
@@ -352,23 +351,3 @@ keycloak:
     userFirstName: ""  # First name of the initial user
     userLastName: ""  # Last name of the initial user
     userRealmRoles: []  # List of realm-level roles assigned to the initial user
-  extraEnvVars:
-    # Keycloak argument to import the realm at startup
-    - name: KEYCLOAK_EXTRA_ARGS
-      value: "--import-realm"
-  # Mount the realm JSON file inside the Keycloak container
-  extraVolumeMounts:
-    - name: realm
-      mountPath: "/opt/bitnami/keycloak/data/import"
-      readOnly: true
-  # Define the volumes Keycloak will use to find the realm file
-  extraVolumes:
-    - name: realm
-      configMap:
-        name: "participant-realm"
-        items:
-          - key: "participant-realm.json"
-            # Path inside the container (Keycloak will look for this file for realm import)
-            # IMPORTANT: The filename must match the realm name set in '.Values.keycloak.participantRealm.realm',
-            # following the format: "<realm-name>-realm.json"
-            path: ""

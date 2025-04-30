@@ -14,7 +14,6 @@ import jakarta.json.Json;
 import jakarta.json.JsonException;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.core.Response;
-import org.eclipse.edc.catalog.spi.FederatedCatalogCache;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.controlplane.services.spi.asset.AssetService;
@@ -40,8 +39,6 @@ public class ReportControllerTest {
     private ReportApiController controller;
     private AssetService assetService;
     private ContractDefinitionService contractDefinitionService;
-    private URI consumerApiBaseUrl;
-    private FederatedCatalogCache federatedCatalogCache;
 
     @BeforeEach
     void setUp() {
@@ -49,8 +46,7 @@ public class ReportControllerTest {
         monitor = mock(Monitor.class);
         assetService = mock(AssetService.class);
         contractDefinitionService = mock(ContractDefinitionService.class);
-        consumerApiBaseUrl = URI.create("Http://random-uri");
-        federatedCatalogCache = mock(FederatedCatalogCache.class);
+        URI consumerApiBaseUrl = URI.create("Http://random-uri");
         controller = Mockito.spy(new ReportApiController(monitor, reportStore, assetService,contractDefinitionService, consumerApiBaseUrl));
     }
 
@@ -67,7 +63,7 @@ public class ReportControllerTest {
         Response response = controller.uploadFile(inputStream, title, "require-dataprocessor", reportType);
 
         assertEquals(Response.Status.CREATED.getStatusCode(), response.getStatus());
-        assertTrue(response.getEntity().toString().contains("uploaded and saved"));
+        assertTrue(response.getEntity().toString().contains("Asset created successfully"));
 
         ArgumentCaptor<String> jsonCaptor = ArgumentCaptor.forClass(String.class);
         verify(reportStore).saveReport(jsonCaptor.capture(), eq(reportType));
@@ -106,15 +102,11 @@ public class ReportControllerTest {
         String jsonContent = "{\"field\":\"value\"}";
         InputStream inputStream = new ByteArrayInputStream(jsonContent.getBytes());
 
-        when(assetService.create(any())).thenReturn(ServiceResult.success());
-        when(contractDefinitionService.create(any(ContractDefinition.class))).thenReturn(ServiceResult.success());
-
-        Response response = controller.uploadFile(inputStream, title, "random-accesslevel", reportType);
+        Response response = controller.uploadFile(inputStream, title, null, reportType);
 
         assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response.getStatus());
-        assertTrue(response.getEntity().toString().contains("Policy id not found"));
+        assertTrue(response.getEntity().toString().contains("Invalid access definition"));
 
-        ArgumentCaptor<String> jsonCaptor = ArgumentCaptor.forClass(String.class);
         verifyNoInteractions(reportStore, assetService);
     }
 }

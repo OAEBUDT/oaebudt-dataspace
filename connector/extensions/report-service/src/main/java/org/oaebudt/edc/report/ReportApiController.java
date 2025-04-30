@@ -98,6 +98,9 @@ public class ReportApiController {
                                @FormDataParam("reportType") ReportType reportType) {
 
         try (JsonReader reader = Json.createReader(uploadedInputStream)) {
+            if(Objects.isNull(accessDefinition)) {
+                throw new IllegalArgumentException("Invalid access definition");
+            }
             JsonObject jsonObject = reader.readObject();
 
             JsonObject jsonWithMeta = Json.createObjectBuilder(jsonObject)

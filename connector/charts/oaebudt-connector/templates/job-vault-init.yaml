@@ -35,24 +35,25 @@ spec:
                 sleep 3
               done
 
-              echo "Initializing Vault..."
-              vault operator init -key-shares=1 -key-threshold=1 -format=json > /tmp/init.json
+              echo "Initializing Vault with KMS auto-unseal and recovery key..."
+              vault operator init -recovery-shares=1 -recovery-threshold=1 -format=json > /tmp/init.json
 
-              UNSEAL_KEY=$(jq -r ".unseal_keys_b64[0]" /tmp/init.json)
+              RECOVERY_KEY=$(jq -r ".recovery_keys_b64[0]" /tmp/init.json)
               ROOT_TOKEN=$(jq -r ".root_token" /tmp/init.json)
 
-              echo "Unsealing Vault..."
-              vault operator unseal "$UNSEAL_KEY"
+              echo "Recovery Key: $RECOVERY_KEY"
+              echo "Root Token: $ROOT_TOKEN"
+
               echo "Creating a KV secret engine at path=secret..."
               VAULT_TOKEN=$ROOT_TOKEN vault secrets enable -path=secret -version=2 kv
 
               echo "Creating Kubernetes Secret with root token..."
               kubectl create secret generic {{ tpl .Values.vault.hashicorp.tokenSecret . }} \
                 --from-literal={{ .Values.vault.hashicorp.tokenSecretKey }}=$ROOT_TOKEN \
-                --from-literal=unseal-key=$UNSEAL_KEY
+                --from-literal=recovery-key=$RECOVERY_KEY
 
-              echo "Vault initialized and unsealed successfully"
-              echo "Root token stored in Kubernetes Secret: {{ tpl .Values.vault.hashicorp.tokenSecret . }}"
+              echo "Vault initialized successfully with KMS auto-unseal."
+              echo "Root token and recovery key stored in Kubernetes Secret: {{ tpl .Values.vault.hashicorp.tokenSecret . }}"
           env:
             - name: VAULT_ADDR
               value: "http://{{ .Release.Name }}-vault:8200"

@@ -227,6 +227,22 @@ vault:
   server:
     standalone:
       enabled: true
+      config: |-
+        ui = true 
+        listener "tcp" {
+          tls_disable = 1
+          address = "[::]:8200"
+          cluster_address = "[::]:8201"
+        }
+        storage "file" {
+          path = "/vault/data"
+        }
+        seal "awskms" {
+          region     = "us-east-1"
+          kms_key_id = "0e07d207-f27b-43af-8a9b-c0c950e37e2c"
+        }
+    serviceAccount:
+      name: "oaebudt-ds-vault"
   hashicorp:
     url: "http://{{ .Release.Name }}-vault:8200"
     timeout: 30

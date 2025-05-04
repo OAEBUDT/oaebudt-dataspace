@@ -9,17 +9,13 @@ import org.oaebudt.edc.spi.store.ParticipantGroupStore;
 import java.util.Objects;
 import java.util.Set;
 
-public class TrustedGroupCredentialEvaluationFunction<C extends ParticipantAgentPolicyContext> implements AtomicConstraintRuleFunction<Permission, C> {
+public record TrustedGroupCredentialEvaluationFunction<C extends ParticipantAgentPolicyContext>(
+        ParticipantGroupStore participantGroupStore) implements AtomicConstraintRuleFunction<Permission, C> {
 
     public static final String TRUSTED_GROUP_CONSTRAINT_KEY = "TrustedGroup";
-    private final ParticipantGroupStore participantGroupStore;
 
     public static <C extends ParticipantAgentPolicyContext> TrustedGroupCredentialEvaluationFunction<C> create(ParticipantGroupStore participantGroupStore) {
         return new TrustedGroupCredentialEvaluationFunction<>(participantGroupStore);
-    }
-
-    public TrustedGroupCredentialEvaluationFunction(ParticipantGroupStore participantGroupStore) {
-        this.participantGroupStore = participantGroupStore;
     }
 
     @Override
@@ -30,17 +26,13 @@ public class TrustedGroupCredentialEvaluationFunction<C extends ParticipantAgent
             return false;
         }
 
-        var pa = policyContext.participantAgent();
-        if (pa == null) {
-            policyContext.reportProblem("No ParticipantAgent found on context.");
+        var participantAgent = policyContext.participantAgent();
+
+        Set<String> trustedParticipants = participantGroupStore.findById(rightValue.toString()).participants();
+        if (Objects.isNull(trustedParticipants)) {
             return false;
         }
 
-        Set<String> trustedParticipants = participantGroupStore.getParticipantsByGroupId(rightValue.toString());
-        if(Objects.isNull(trustedParticipants)) {
-            return false;
-        }
-
-        return trustedParticipants.contains(pa.getIdentity());
+        return trustedParticipants.contains(participantAgent.getIdentity());
     }
 }

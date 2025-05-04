@@ -338,8 +338,8 @@ class ManagementApiTransferTest {
     public void shouldUploadReportAndConsumerShouldConsumeReport() throws IOException {
         PROVIDER.setAuthorizationToken(KEYCLOAK_EXTENSION.getToken());
         CONSUMER.setAuthorizationToken(KEYCLOAK_EXTENSION.getToken());
-        String reportUri = PROVIDER.getReportServiceUrl().get().toString() + "upload";
-        String participantUri = PROVIDER.getParticipantServiceUrl().get().toString() + "group";
+        String reportUri = PROVIDER.getWebServiceUrl().get().toString() + "report/upload";
+        String participantUri = PROVIDER.getWebServiceUrl().get().toString() + "participant/group";
         String accessToken = KEYCLOAK_EXTENSION.getToken();
         final var consumerEdrReceiver = ClientAndServer.startClientAndServer(getFreePort());
         consumerEdrReceiver.when(request("/edr")).respond(response());
@@ -423,8 +423,8 @@ class ManagementApiTransferTest {
     public void shouldUploadReportAndConsumerShouldNotConsumeReport_InvalidAccessLevel() {
         PROVIDER.setAuthorizationToken(KEYCLOAK_EXTENSION.getToken());
         CONSUMER.setAuthorizationToken(KEYCLOAK_EXTENSION.getToken());
-        String reportUri = PROVIDER.getReportServiceUrl().get().toString() + "upload";
-        String participantUri = PROVIDER.getParticipantServiceUrl().get().toString() + "group";
+        String reportUri =PROVIDER.getWebServiceUrl().get().toString() + "report/upload";
+        String participantUri = PROVIDER.getWebServiceUrl().get().toString() + "participant/group";
         String accessToken = KEYCLOAK_EXTENSION.getToken();
 
         String allowNobodyJsonBody = """

@@ -16,6 +16,9 @@ COPY ./launchers/dataplane ./launchers/dataplane
 COPY ./launchers/identity-hub ./launchers/identity-hub
 COPY ./launchers/oaebudt-connector ./launchers/oaebudt-connector
 
+# Copy connector cores
+COPY ./core/core-service ./core/core-service
+
 # Copy connector extensions
 COPY ./extensions/catalog-node-resolver ./extensions/catalog-node-resolver
 COPY ./extensions/credential-from-file ./extensions/credential-from-file
@@ -23,7 +26,7 @@ COPY ./extensions/dcp-impl ./extensions/dcp-impl
 COPY ./extensions/superuser-seed ./extensions/superuser-seed
 
 # Copy backend extensions
-COPY ./extensions/report-service ./extensions/report-service
+COPY ./extensions/web-service ./extensions/web-service
 COPY ./extensions/keycloak-auth ./extensions/keycloak-auth
 
 # Run Gradle to build the JAR with parallel execution for faster builds

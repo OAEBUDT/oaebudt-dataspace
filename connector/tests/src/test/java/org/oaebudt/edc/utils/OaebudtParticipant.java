@@ -63,7 +63,7 @@ public class OaebudtParticipant extends Participant {
     protected LazySupplier<URI> identityHubSts = new LazySupplier<>(() ->
             URI.create("http://localhost:" + Ports.getFreePort() + "/api/sts"));
 
-    protected LazySupplier<URI> reportServiceUrl = new LazySupplier<>(() ->
+    protected LazySupplier<URI> webServiceUrl = new LazySupplier<>(() ->
             URI.create("http://localhost:" + Ports.getFreePort() + "/api/report/"));
 
     protected LazySupplier<URI> consumerServiceUrl = new LazySupplier<>(() ->
@@ -123,9 +123,9 @@ public class OaebudtParticipant extends Participant {
                 entry("web.http.public.port", getFreePort() + ""),
                 entry("web.http.version.path", "/version"),
                 entry("web.http.version.port", getFreePort() + ""),
-                entry("web.http.report.port", reportServiceUrl.get().getPort() + ""),
-                entry("web.http.report.path", reportServiceUrl.get().getPath()),
-                entry("web.http.report.auth.type", "keycloak"),
+                entry("web.http.web.port", webServiceUrl.get().getPort() + ""),
+                entry("web.http.web.path", webServiceUrl.get().getPath()),
+                entry("web.http.web.auth.type", "keycloak"),
                 entry("web.http.consumer.port", consumerServiceUrl.get().getPort() + ""),
                 entry("web.http.consumer.path", consumerServiceUrl.get().getPath())
         );
@@ -180,8 +180,8 @@ public class OaebudtParticipant extends Participant {
         return identityHubSts.get().getPort();
     }
 
-    public LazySupplier<URI> getReportServiceUrl() {
-        return reportServiceUrl;
+    public LazySupplier<URI> getWebServiceUrl() {
+        return webServiceUrl;
     }
 
     public RequestSpecification baseManagementRequest() {

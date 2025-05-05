@@ -29,9 +29,9 @@ import java.util.Base64;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+
+import jakarta.json.JsonObjectBuilder;
 import org.assertj.core.api.Assertions;
-import org.awaitility.Awaitility;
-import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.connector.controlplane.test.system.utils.PolicyFixtures;
 import org.eclipse.edc.identityhub.tests.fixtures.credentialservice.IdentityHubExtension;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
@@ -338,10 +338,29 @@ class ManagementApiTransferTest {
     public void shouldUploadReportAndConsumerShouldConsumeReport() throws IOException {
         PROVIDER.setAuthorizationToken(KEYCLOAK_EXTENSION.getToken());
         CONSUMER.setAuthorizationToken(KEYCLOAK_EXTENSION.getToken());
-        String reportUri = PROVIDER.getReportServiceUrl().get().toString() + "upload";
+        String reportUri = PROVIDER.getWebServiceUrl().get().toString() + "report/upload";
+        String participantUri = PROVIDER.getWebServiceUrl().get().toString() + "participant/group";
         String accessToken = KEYCLOAK_EXTENSION.getToken();
         final var consumerEdrReceiver = ClientAndServer.startClientAndServer(getFreePort());
         consumerEdrReceiver.when(request("/edr")).respond(response());
+
+        String jsonBody = """
+            {
+              "groupName": "friends",
+              "participants": ["%s"]
+            }
+        """.formatted(CONSUMER.getId());
+
+        RestAssured
+                .given()
+                .header("Content-Type", "application/json")
+                .header(HttpHeaderNames.AUTHORIZATION, "Bearer " + accessToken)
+                .body(jsonBody)
+                .when()
+                .post(participantUri)
+                .then()
+                .statusCode(201);
+
         String jsonContent = """
             {
               "userId": 123,
@@ -360,7 +379,7 @@ class ManagementApiTransferTest {
                 )
                 .multiPart("reportType", "TITLE_REPORT")
                 .multiPart("title", "Report_IR")
-                .multiPart("accessLevel", "require-dataprocessor")// additional form data
+                .multiPart("accessDefinition", "allow-friends")// additional form data
                 .when()
                 .post(reportUri)
                 .then()
@@ -401,11 +420,31 @@ class ManagementApiTransferTest {
     }
 
     @Test
-    public void shouldUploadReportAndConsumerShouldConsumeReport_InvalidAccessLevel() throws IOException {
+    public void shouldUploadReportAndConsumerShouldNotConsumeReport_InvalidAccessLevel() {
         PROVIDER.setAuthorizationToken(KEYCLOAK_EXTENSION.getToken());
         CONSUMER.setAuthorizationToken(KEYCLOAK_EXTENSION.getToken());
-        String reportUri = PROVIDER.getReportServiceUrl().get().toString() + "upload";
+        String reportUri =PROVIDER.getWebServiceUrl().get().toString() + "report/upload";
+        String participantUri = PROVIDER.getWebServiceUrl().get().toString() + "participant/group";
         String accessToken = KEYCLOAK_EXTENSION.getToken();
+
+        String allowNobodyJsonBody = """
+            {
+              "groupName": "nobody",
+              "participants": []
+            }
+        """;
+
+        RestAssured
+                .given()
+                .header("Content-Type", "application/json")
+                .header(HttpHeaderNames.AUTHORIZATION, "Bearer " + accessToken)
+                .body(allowNobodyJsonBody)
+                .when()
+                .post(participantUri)
+                .then()
+                .statusCode(201);
+
+
         String jsonContent = """
             {
               "userId": 123,
@@ -424,24 +463,29 @@ class ManagementApiTransferTest {
                 )
                 .multiPart("reportType", "ITEM_REPORT")
                 .multiPart("title", "Report_IR")
-                .multiPart("accessLevel", "require-sensitive")// additional form data
+                .multiPart("accessDefinition", "allow-nobody")// additional form data
                 .when()
                 .post(reportUri)
                 .then()
                 .statusCode(201);
 
-        JsonArray jsonArray = CONSUMER.getCatalogDatasets(PROVIDER);
-        Assertions.assertThat(jsonArray.toString()).contains("ITEM_REPORT");
+        JsonObjectBuilder requestBodyBuilder = Json.createObjectBuilder()
+                .add("@context", Json.createObjectBuilder().add("@vocab", "https://w3id.org/edc/v0.0.1/ns/"))
+                .add("@type", "CatalogRequest").add("counterPartyId", PROVIDER.getId())
+                .add("counterPartyAddress", PROVIDER.getProtocolUrl())
+                .add("protocol", "dataspace-protocol-http");
 
-        String negotiationId = CONSUMER.initContractNegotiation(PROVIDER, "ITEM_REPORT");
+        String response = CONSUMER.baseManagementRequest()
+                        .contentType(ContentType.JSON)
+                        .when()
+                        .body(requestBodyBuilder.build())
+                        .post("/v3/catalog/request", new Object[0])
+                        .then().log().ifError()
+                        .statusCode(200)
+                        .extract().body().asString();
 
-        Awaitility.await().untilAsserted(() -> {
-            String state = CONSUMER.getContractNegotiationState(negotiationId);
-            Assertions.assertThat(state).isEqualTo(ContractNegotiationStates.TERMINATED.name());
-        });
+        Assertions.assertThat(response.contains("ITEM_REPORT")).isFalse();
 
-        String state = CONSUMER.getContractNegotiationState(negotiationId);
-        Assertions.assertThat(state).isEqualTo(ContractNegotiationStates.TERMINATED.name());
     }
 
     private String createProviderAsset(OaebudtParticipant participant, final Map<String, Object> dataAddressProperties) {

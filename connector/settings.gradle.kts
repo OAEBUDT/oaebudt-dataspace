@@ -19,12 +19,14 @@ dependencyResolutionManagement {
     }
 }
 
+include(":spi:core-spi")
+include(":core:core-service")
 include(":extensions:keycloak-auth")
 include(":extensions:superuser-seed")
 include(":extensions:dcp-impl")
 include(":extensions:catalog-node-resolver")
 include(":extensions:credential-from-file")
-include(":extensions:report-service")
+include(":extensions:web-service")
 
 include(":launchers:controlplane")
 include(":launchers:dataplane")

@@ -19,6 +19,9 @@ COPY ./launchers/oaebudt-connector ./launchers/oaebudt-connector
 # Copy connector cores
 COPY ./core/core-service ./core/core-service
 
+# Copy connector spis
+COPY ./spi/core-spi ./spi/core-spi
+
 # Copy connector extensions
 COPY ./extensions/catalog-node-resolver ./extensions/catalog-node-resolver
 COPY ./extensions/credential-from-file ./extensions/credential-from-file

@@ -4,10 +4,10 @@ import org.eclipse.edc.participant.spi.ParticipantAgentPolicyContext;
 import org.eclipse.edc.policy.engine.spi.AtomicConstraintRuleFunction;
 import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.policy.model.Permission;
+import org.oaebudt.edc.spi.store.ParticipantGroup;
 import org.oaebudt.edc.spi.store.ParticipantGroupStore;
 
 import java.util.Objects;
-import java.util.Set;
 
 public record TrustedGroupCredentialEvaluationFunction<C extends ParticipantAgentPolicyContext>(
         ParticipantGroupStore participantGroupStore) implements AtomicConstraintRuleFunction<Permission, C> {
@@ -28,11 +28,11 @@ public record TrustedGroupCredentialEvaluationFunction<C extends ParticipantAgen
 
         var participantAgent = policyContext.participantAgent();
 
-        Set<String> trustedParticipants = participantGroupStore.findById(rightValue.toString()).participants();
-        if (Objects.isNull(trustedParticipants)) {
+        ParticipantGroup participantGroup = participantGroupStore.findById(rightValue.toString());
+        if (Objects.isNull(participantGroup)) {
             return false;
         }
 
-        return trustedParticipants.contains(participantAgent.getIdentity());
+        return participantGroup.participants().contains(participantAgent.getIdentity());
     }
 }

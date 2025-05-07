@@ -38,7 +38,7 @@ data:
           "directAccessGrantsEnabled": true,
           "serviceAccountsEnabled": true,
           "clientAuthenticatorType": "client-secret",
-          "secret": "{{ .Values.keycloak.participantRealm.clientSecret | required ".Values.keycloak.participantRealm.clientSecret" }}"
+          "secret": "$(env:CLIENT_SECRET)"
         }
       ]
     }

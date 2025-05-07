@@ -105,8 +105,12 @@ A Helm chart for deploying a proof-of-concept (PoC) Data Space Connector, includ
 | keycloak.install | bool | `true` | Switch to enable or disable the Keycloak helm chart |
 | keycloak.keycloakConfigCli.enabled | bool | `true` |  |
 | keycloak.keycloakConfigCli.existingConfigmap | string | `"participant-realm"` |  |
+| keycloak.keycloakConfigCli.extraEnvVars[0].name | string | `"IMPORT_VARSUBSTITUTION_ENABLED"` |  |
+| keycloak.keycloakConfigCli.extraEnvVars[0].value | string | `"true"` |  |
+| keycloak.keycloakConfigCli.extraEnvVars[1].name | string | `"CLIENT_SECRET"` |  |
+| keycloak.keycloakConfigCli.extraEnvVars[1].valueFrom.secretKeyRef.key | string | `"clientSecret"` |  |
+| keycloak.keycloakConfigCli.extraEnvVars[1].valueFrom.secretKeyRef.name | string | `"keycloak-realm-secrets"` |  |
 | keycloak.participantRealm.accessTokenLifespan | int | `3600` |  |
-| keycloak.participantRealm.clientSecret | string | `"bKE6qbAz8Eugwvloklc03yikLDXHO2Qs"` |  |
 | keycloak.participantRealm.realm | string | `""` |  |
 | keycloak.participantRealm.userEmail | string | `""` |  |
 | keycloak.participantRealm.userFirstName | string | `""` |  |
@@ -181,9 +185,9 @@ A Helm chart for deploying a proof-of-concept (PoC) Data Space Connector, includ
 | vault.hashicorp.url | string | `"http://{{ .Release.Name }}-vault:8200"` |  |
 | vault.injector.enabled | bool | `false` |  |
 | vault.install | bool | `true` | Switch to enable or disable the HashiCorp Vault helm chart |
+| vault.server.config | string | `"ui = true \nlistener \"tcp\" {\n  tls_disable = 1\n  address = \"[::]:8200\"\n  cluster_address = \"[::]:8201\"\n}\nstorage \"file\" {\n  path = \"/vault/data\"\n}\nseal \"awskms\" {\n  region     = \"us-east-1\"\n  kms_key_id = \"0e07d207-f27b-43af-8a9b-c0c950e37e2c\"\n}"` |  |
 | vault.server.dataStorage.size | string | `"2Gi"` |  |
 | vault.server.serviceAccount.name | string | `"oaebudt-ds-vault"` |  |
-| vault.server.standalone.config | string | `"ui = true \nlistener \"tcp\" {\n  tls_disable = 1\n  address = \"[::]:8200\"\n  cluster_address = \"[::]:8201\"\n}\nstorage \"file\" {\n  path = \"/vault/data\"\n}\nseal \"awskms\" {\n  region     = \"us-east-1\"\n  kms_key_id = \"0e07d207-f27b-43af-8a9b-c0c950e37e2c\"\n}"` |  |
 | vault.server.standalone.enabled | bool | `true` |  |
 
 ----------------------------------------------

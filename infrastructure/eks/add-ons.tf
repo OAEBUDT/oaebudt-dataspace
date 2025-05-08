@@ -164,6 +164,27 @@ resource "aws_eks_addon" "ebs_csi_driver" {
   }
 }
 
+resource "kubernetes_storage_class" "gp3_default" {
+  metadata {
+    name = "gp3"
+
+    annotations = {
+      "storageclass.kubernetes.io/is-default-class" = "true"
+    }
+  }
+
+  storage_provisioner    = "kubernetes.io/aws-ebs"
+  reclaim_policy         = "Delete"
+  volume_binding_mode    = "WaitForFirstConsumer"
+  allow_volume_expansion = true
+
+  parameters = {
+    fsType = "ext4"
+    type   = "gp3"
+  }
+
+}
+
 ######################
 # External DNS Addon
 ######################
@@ -337,6 +358,12 @@ resource "helm_release" "external_secrets" {
 # Grafana Loki Stack Addon
 ############################
 
+resource "kubernetes_namespace" "observability" {
+  metadata {
+    name = "observability"
+  }
+}
+
 resource "helm_release" "loki_stack" {
   name        = "loki-stack"
   description = "Kubernetes Loki Stack for collecting logs and visualizing them through Grafana."
@@ -352,6 +379,6 @@ resource "helm_release" "loki_stack" {
   ]
 
   depends_on = [
-    aws_eks_node_group.eks_worker_nodes
+    aws_eks_node_group.eks_worker_nodes,kubernetes_storage_class.gp3_default, kubernetes_namespace.observability
   ]
 }

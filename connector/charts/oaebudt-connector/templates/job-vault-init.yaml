@@ -37,7 +37,7 @@ spec:
                 echo "IMPORTANT: This job is expected to perform the initial Vault setup and create the root token needed by the connector."
                 echo "Since Vault is already initialized, the root token won't be created, and the connector won't be able to authenticate."
                 echo "As a result, the Helm chart release will fail due to missing initialization and bootstrapping of Vault."
-                echo "To reinitialize Vault, you must first clean the backend storage used by Vault)."
+                echo "To reinitialize Vault, you must first clean the backend storage used by Vault."
                 exit 42
               fi
 

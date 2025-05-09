@@ -14,7 +14,7 @@ spec:
       labels:
         {{- include "oaebudt-connector.labels" . | nindent 8 }}
       annotations:
-        "helm.sh/hook": pre-install
+        "helm.sh/hook": post-install
         "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
     spec:
       serviceAccountName: {{ .Release.Name }}-vault-init-sa

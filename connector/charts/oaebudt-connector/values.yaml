@@ -258,22 +258,24 @@ vault:
   server:
     standalone:
       enabled: true
+      config: |-
+        ui = true 
+        listener "tcp" {
+          tls_disable = 1
+          address = "[::]:8200"
+          cluster_address = "[::]:8201"
+        }
+        storage "dynamodb" {
+          region         = "us-east-1"
+          table          = "dev-oaebudt-ds-vault-dynamodb-table"
+          ha_enabled     = "false"
+        }
+        seal "awskms" {
+          region     = "us-east-1"
+          kms_key_id = "45e0519a-0d2f-424b-99cc-a9d0c70b5d74"
+        }
     dataStorage:
-      size: 2Gi
-    config: |-
-      ui = true 
-      listener "tcp" {
-        tls_disable = 1
-        address = "[::]:8200"
-        cluster_address = "[::]:8201"
-      }
-      storage "file" {
-        path = "/vault/data"
-      }
-      seal "awskms" {
-        region     = "us-east-1"
-        kms_key_id = "0e07d207-f27b-43af-8a9b-c0c950e37e2c"
-      }
+      enabled: false
     serviceAccount:
       name: "oaebudt-ds-vault"
   hashicorp:

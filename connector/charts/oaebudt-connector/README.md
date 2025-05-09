@@ -185,6 +185,9 @@ A Helm chart for deploying a proof-of-concept (PoC) Data Space Connector, includ
 | vault.hashicorp.url | string | `"http://{{ .Release.Name }}-vault:8200"` |  |
 | vault.injector.enabled | bool | `false` |  |
 | vault.install | bool | `true` | Switch to enable or disable the HashiCorp Vault helm chart |
+| vault.server.dataStorage.enabled | bool | `false` |  |
+| vault.server.serviceAccount.name | string | `"oaebudt-ds-vault"` |  |
+| vault.server.standalone.config | string | `"ui = true \nlistener \"tcp\" {\n  tls_disable = 1\n  address = \"[::]:8200\"\n  cluster_address = \"[::]:8201\"\n}\nstorage \"dynamodb\" {\n  region         = \"us-east-1\"\n  table          = \"dev-oaebudt-ds-vault-dynamodb-table\"\n  ha_enabled     = \"false\"\n}\nseal \"awskms\" {\n  region     = \"us-east-1\"\n  kms_key_id = \"45e0519a-0d2f-424b-99cc-a9d0c70b5d74\"\n}"` |  |
 | vault.server.config | string | `"ui = true \nlistener \"tcp\" {\n  tls_disable = 1\n  address = \"[::]:8200\"\n  cluster_address = \"[::]:8201\"\n}\nstorage \"file\" {\n  path = \"/vault/data\"\n}\nseal \"awskms\" {\n  region     = \"us-east-1\"\n  kms_key_id = \"0e07d207-f27b-43af-8a9b-c0c950e37e2c\"\n}"` |  |
 | vault.server.dataStorage.size | string | `"2Gi"` |  |
 | vault.server.serviceAccount.name | string | `"oaebudt-ds-vault"` |  |

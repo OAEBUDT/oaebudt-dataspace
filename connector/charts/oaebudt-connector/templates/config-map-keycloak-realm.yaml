@@ -1,3 +1,4 @@
+---
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -10,6 +11,17 @@ data:
       "realm": {{ .Values.keycloak.participantRealm.realm | required ".Values.keycloak.participantRealm.realm is required " | quote}},
       "enabled": true,
       "accessTokenLifespan": {{ .Values.keycloak.participantRealm.accessTokenLifespan | default 1500 }},
+      "roles": {
+        "realm": [
+          {{- $roleLength := len .Values.keycloak.participantRealm.userRealmRoles -}}
+          {{- range $index, $role := .Values.keycloak.participantRealm.userRealmRoles }}
+          {
+            "name": "{{ $role }}",
+            "description": "Role for {{ $role }}"
+          }{{- if ne $index (sub $roleLength 1) }},{{- end -}}
+          {{- end }}
+        ]
+      },
       "users": [
         {
           "username": {{ .Values.keycloak.participantRealm.username | required ".Values.keycloak.participantRealm.username is required " | quote}},
@@ -24,7 +36,11 @@ data:
               "value": {{ .Values.keycloak.participantRealm.userPassword | required ".Values.keycloak.participantRealm.userPassword is required " | quote }},
               "temporary": false
             }
-          ]
+          ],
+          "realmRoles": [{{- $length := len .Values.keycloak.participantRealm.userRealmRoles -}}
+            {{- range $index, $role := .Values.keycloak.participantRealm.userRealmRoles -}}
+              "{{ $role }}"{{- if ne $index (sub $length 1) }},{{- end -}}
+            {{- end -}}]
         }
       ],
       "clients": [
@@ -32,12 +48,13 @@ data:
           "clientId": {{ .Values.keycloak.participantRealm.realm | required ".Values.keycloak.participantRealm.realm is required " | quote}},
           "enabled": true,
           "protocol": "openid-connect",
-          "redirectUris": [{{ printf "https://%s%s/*" .Values.global.domain .Values.endpoints.report.path |quote }}],
+          "redirectUris": [{{ printf "https://%s%s/*" .Values.global.domain .Values.endpoints.web.path |quote }}],
           "webOrigins": [{{ printf "https://%s" .Values.global.domain | quote }}],
           "standardFlowEnabled": true,
           "directAccessGrantsEnabled": true,
           "serviceAccountsEnabled": true,
           "clientAuthenticatorType": "client-secret",
+          "publicClient": false,
           "secret": "$(env:CLIENT_SECRET)"
         }
       ]

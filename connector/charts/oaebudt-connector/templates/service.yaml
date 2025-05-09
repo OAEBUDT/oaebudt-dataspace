@@ -19,10 +19,14 @@ spec:
       targetPort: did
       protocol: TCP
       name: did
-    - port: {{ .Values.endpoints.report.port }}
-      targetPort: report
+    - port: {{ .Values.endpoints.web.port }}
+      targetPort: web
       protocol: TCP
-      name: report
+      name: web
+    - port: {{ .Values.endpoints.consumer.port }}
+      targetPort: consumer
+      protocol: TCP
+      name: consumer
     - port: {{ .Values.endpoints.default.port }}
       targetPort: default
       protocol: TCP

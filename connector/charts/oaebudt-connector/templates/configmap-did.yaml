@@ -12,12 +12,12 @@ data:
       "serviceEndpoints":[
         {
           "type": "CredentialService",
-          "serviceEndpoint": "{{ printf "http://credentials.%s.svc.cluster.local%s/v1/participants/%s" .Release.Namespace .Values.endpoints.credentials.path (.Values.participant.did | b64enc) }}",
+          "serviceEndpoint": "{{ printf "https://%s%s/v1/participants/%s" .Values.global.domain .Values.endpoints.credentials.path (.Values.participant.did | b64enc) }}",
           "id": "{{ .Values.participant.id }}-credentialservice-1"
         },
         {
           "type": "ProtocolEndpoint",
-          "serviceEndpoint": "{{ printf "http://dsp.%s.svc.cluster.local%s" .Release.Namespace .Values.endpoints.protocol.path }}",
+          "serviceEndpoint": "{{ printf "https://%s%s" .Values.global.domain .Values.endpoints.protocol.path }}",
           "id": "{{ .Values.participant.id }}-dsp"
         }
       ],

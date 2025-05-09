@@ -5,8 +5,8 @@
 # The release name must be overridden to 'issuer' to ensure the service is named 'issuer',
 # resulting in the fully qualified Kubernetes DNS name: issuer.oaebudt.svc.cluster.local —
 # which must match the service endpoint defined in the DID document.
-nameOverride: "issuer"
-fullnameOverride: "issuer"
+nameOverride: ""
+fullnameOverride: ""
 
 # Set the service type for Kubernetes
 service:
@@ -20,11 +20,21 @@ extraVolumes:
       items:
         - key: did.json
           path: did.json
+  - name: did-document-index
+    configMap:
+      name: did-document
+      items:
+        - key: did.json
+          path: did.json
+
 
 # Mount the volume to the NGINX server at the well-known path
 extraVolumeMounts:
   - name: did-document
     mountPath: /opt/bitnami/nginx/html/.well-known/
+    readOnly: true
+  - name: did-document-index
+    mountPath: /opt/bitnami/nginx/html/
     readOnly: true
 
 # Create the ConfigMap that holds the DID document
@@ -39,9 +49,9 @@ extraDeploy:
           "service":[],
           "verificationMethod":[
             {
-              "id":"did:web:issuer.oaebudt.svc.cluster.local#key-1",
+              "id":"did:web:operas.oaebudt.think-it.io#key-1",
               "type":"JsonWebKey2020",
-              "controller":"did:web:issuer.oaebudt.svc.cluster.local",
+              "controller":"did:web:operas.oaebudt.think-it.io",
               "publicKeyMultibase":null,
               "publicKeyJwk":{
                 "kty":"OKP",
@@ -53,11 +63,11 @@ extraDeploy:
           "authentication":[
             "key-1"
           ],
-          "id":"did:web:issuer.oaebudt.svc.cluster.local",
+          "id":"did:web:operas.oaebudt.think-it.io",
           "@context":[
             "https://www.w3.org/ns/did/v1",
             {
-              "@base":"did:web:issuer.oaebudt.svc.cluster.local"
+              "@base":"did:web:operas.oaebudt.think-it.io"
             }
           ]
         }
@@ -68,9 +78,28 @@ serverBlock: |
     listen 0.0.0.0:8080;
     root /opt/bitnami/nginx/html;
   
+    location / {
+          index did.json index.html index.htm;
+      }
+  
     location = /.well-known/did.json {
       default_type application/json;
       add_header Access-Control-Allow-Origin *;
       add_header Cache-Control "public, max-age=3600";
     }
   }
+
+# Expose the DID document publicly
+ingress:
+  enabled: true
+  pathType: Prefix
+  ingressClassName: alb
+  annotations:
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS":443}]'
+    alb.ingress.kubernetes.io/ssl-redirect: "443"
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/healthcheck-path: /
+    alb.ingress.kubernetes.io/group.name: "oaebudt-dataspace"
+  hostname: operas.oaebudt.think-it.io
+  path: /

@@ -51,9 +51,9 @@ spec:
               echo "Load participant did JSON for $PARTICIPANT_ID..."
 
               export DATA=$(cat $PARTICIPANT_DID_FILE)
-
+              echo "Waiting for 15 seconds for the superuser to be created..."
+              sleep 15
               echo "Sending participant creation request to $IDENTITY_API_URL..."
-              sleep 5
               RESPONSE=$(curl --silent --show-error --location "$IDENTITY_API_URL" \
                 --header 'Content-Type: application/json' \
                 --header "x-api-key: $IDENTITY_API_KEY" \

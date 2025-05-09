@@ -51,9 +51,9 @@ catalog:
 # Connector endpoints configuration
 endpoints:
   # Reports endpoint.
-  report:
+  web:
     port: 8100
-    path: /api/report
+    path: /api/web
     authType: "keycloak"
   # Reports edr.
   consumer:
@@ -67,7 +67,7 @@ endpoints:
   catalog:
     port: 7102
     path: /api/catalog
-    authKey: "password"
+    authType: "keycloak"
   # Handles internal control operations such as contract negotiations and transfer processes.
   control:
     port: 7103
@@ -80,7 +80,7 @@ endpoints:
   management:
     port: 7105
     path: /api/management
-    authKey: "password"
+    authType: "keycloak"
   # Exposes information about the current version and build of the connector.
   version:
     port: 7106
@@ -101,6 +101,7 @@ endpoints:
   identity:
     port: 6103
     path: /api/identity
+    authType: "keycloak"
   # Enables clients to request credentials in the form of Verifiable Presentations (VPs) as defined by the DCP specification.
   presentation:
     port: 6104
@@ -114,7 +115,7 @@ endpoints:
 image:
   repository: 605134435349.dkr.ecr.us-east-1.amazonaws.com/oaebudt-dataspace/connector
   pullPolicy: IfNotPresent
-  tag: "0.1"
+  tag: "cd5221d"
 
 # This section is for setting up autoscaling
 autoscaling:
@@ -357,7 +358,7 @@ keycloak:
     existingSecretPasswordKey: "password"
   # Importation of a participant's realm configuration
   keycloakConfigCli:
-    enabled: true  # Enable Keycloak configuration CLI to import the realm
+    enabled: true  # Enable Keycloak configuration CLI
     extraEnvVars:
       - name: IMPORT_VARSUBSTITUTION_ENABLED
         value: "true"

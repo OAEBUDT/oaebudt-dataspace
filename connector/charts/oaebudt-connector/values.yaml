@@ -50,6 +50,15 @@ catalog:
 
 # Connector endpoints configuration
 endpoints:
+  # Reports endpoint.
+  report:
+    port: 8100
+    path: /api/report
+    authType: "keycloak"
+  # Reports edr.
+  consumer:
+    port: 8101
+    path: /api/consumer
   # Default endpoint for incoming API calls.
   default:
     port: 7100
@@ -105,7 +114,7 @@ endpoints:
 image:
   repository: 605134435349.dkr.ecr.us-east-1.amazonaws.com/oaebudt-dataspace/connector
   pullPolicy: IfNotPresent
-  tag: ""
+  tag: "0.1"
 
 # This section is for setting up autoscaling
 autoscaling:
@@ -139,7 +148,8 @@ serviceAccount:
 podSecurityContext: {}
 # fsGroup: 2000
 
-securityContext: {}
+securityContext:
+  runAsUser: 0
   # capabilities:
   #   drop:
   #   - ALL
@@ -167,11 +177,11 @@ readinessProbe:
 # Resource management for the container
 resources:
   limits:
-    cpu: 1.5
+    cpu: 300m
     memory: 1536Mi
   requests:
-    cpu: 500m
-    memory: 1024Mi
+    cpu: 100m
+    memory: 256Mi
 
 # Node selector
 nodeSelector: {}
@@ -188,9 +198,16 @@ service:
 
 # This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
 ingress:
-  enabled: enable
-  className: ""
-  annotations: []
+  enabled: true
+  className: "alb"
+  annotations:
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS":443}]'
+    alb.ingress.kubernetes.io/ssl-redirect: "443"
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/healthcheck-path: /api/check/liveness
+    alb.ingress.kubernetes.io/healthcheck-port: "7100"
+    alb.ingress.kubernetes.io/group.name: "oaebudt-dataspace"
   #  kubernetes.io/ingress.class: nginx
   #  kubernetes.io/tls-acme: "true"
   tls: []
@@ -207,6 +224,7 @@ postgresql:
     # -- Enable auto-creation of the schema on boot
     autoCreate: true
   auth:
+    postgresPassword: "oaebudt_postgres"
     # -- Database name must begin with a letter (a-z) or underscore (_)
     # -- Subsequent characters can be letters, digits (0-9), or underscores
     # -- Maximum name length is 31 characters by default
@@ -216,6 +234,19 @@ postgresql:
     # -- Maximum name length is 31 characters by default
     username: "oaebudt_connector"
     password: "oaebudt_connector"
+  primary:
+    persistence:
+      size: 2Gi
+    initdb:
+      scripts:
+        # SQL script to initialize a second database and a user for Keycloak
+        00_init_extensions.sql: |
+          CREATE USER keycloak WITH PASSWORD 'keycloak';
+          CREATE DATABASE keycloak OWNER keycloak;
+          GRANT ALL PRIVILEGES ON DATABASE keycloak TO keycloak;
+      # The superuser credentials used to execute the initialization script
+      user: "postgres"
+      password: "oaebudt_postgres"
 
 # HashiCorp Vault chart configuration
 vault:
@@ -227,20 +258,22 @@ vault:
   server:
     standalone:
       enabled: true
-      config: |-
-        ui = true 
-        listener "tcp" {
-          tls_disable = 1
-          address = "[::]:8200"
-          cluster_address = "[::]:8201"
-        }
-        storage "file" {
-          path = "/vault/data"
-        }
-        seal "awskms" {
-          region     = "us-east-1"
-          kms_key_id = "0e07d207-f27b-43af-8a9b-c0c950e37e2c"
-        }
+    dataStorage:
+      size: 2Gi
+    config: |-
+      ui = true 
+      listener "tcp" {
+        tls_disable = 1
+        address = "[::]:8200"
+        cluster_address = "[::]:8201"
+      }
+      storage "file" {
+        path = "/vault/data"
+      }
+      seal "awskms" {
+        region     = "us-east-1"
+        kms_key_id = "0e07d207-f27b-43af-8a9b-c0c950e37e2c"
+      }
     serviceAccount:
       name: "oaebudt-ds-vault"
   hashicorp:
@@ -255,3 +288,89 @@ vault:
       secret: /v1/secret
       health: /v1/sys/health
       folder: ""
+
+# MongoDB chart configuration
+mongodb:
+  ## ref: https://github.com/bitnami/charts/blob/main/bitnami/mongodb/values.yaml
+  # -- Switch to enable or disable the MongoDB helm chart
+  install: true
+  # Resource management for the container
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+  persistence:
+    size: 2Gi
+  auth:
+    rootUser: root
+    rootPassword: "oaebudt_root"
+    # User credentials for the database used by the report service (the backend)
+    usernames:
+      - "oaebudt_report"
+    passwords:
+      - "oaebudt_report"
+    # The database name must be 'oaebudt' because it is currently hardcoded in the backend
+    databases:
+      - "oaebudt"
+
+# Keycloak chart configuration
+keycloak:
+  ## ref: https://github.com/bitnami/charts/blob/main/bitnami/keycloak/values.yaml
+  # -- Switch to enable or disable the Keycloak helm chart
+  install: true
+  # Resource management for the container
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+  initContainers:
+    - name: wait-for-postgresql
+      image: alpine:3.21.3
+      command:
+        - sh
+        - -c
+        - |
+          echo "Installing dependencies..."
+          apk add --no-cache curl netcat-openbsd
+          
+          echo "Waiting for PostgreSQL..."
+          until nc -z {{ .Release.Name }}-postgresql 5432; do
+          echo "waiting for postgres...";
+          sleep 2;
+          done
+          echo "PostgreSQL is ready."
+  postgresql:
+    enabled: false
+  auth:
+    adminUser: admin
+    adminPassword: "oaebudt_keycloak"
+  # We template the database credentials into a secret and reference its keys here,
+  # because if we used plain (non-secret) credentials, we couldn't dynamically inject them into values.yaml
+  externalDatabase:
+    existingSecret: "keycloak-db"
+    existingSecretHostKey: "host"
+    existingSecretPortKey: "port"
+    existingSecretUserKey: "user"
+    existingSecretDatabaseKey: "database"
+    existingSecretPasswordKey: "password"
+  # Importation of a participant's realm configuration
+  keycloakConfigCli:
+    enabled: true  # Enable Keycloak configuration CLI to import the realm
+    extraEnvVars:
+      - name: IMPORT_VARSUBSTITUTION_ENABLED
+        value: "true"
+      - name: CLIENT_SECRET
+        valueFrom:
+          secretKeyRef:
+            name: keycloak-realm-secrets
+            key: clientSecret
+    existingConfigmap: "participant-realm" # Name of the ConfigMap containing the Keycloak realm to import
+  participantRealm:
+    realm: ""  # Name of the participant's realm (should match the realm file)
+    accessTokenLifespan: 3600  # Access token lifespan in seconds (1 hour)
+    username: ""  # Admin or initial user username (optional if not setting up users manually)
+    userPassword: ""  # Password for the initial user
+    userEmail: ""  # Email address for the initial user
+    userFirstName: ""  # First name of the initial user
+    userLastName: ""  # Last name of the initial user
+    userRealmRoles: []  # List of realm-level roles assigned to the initial user

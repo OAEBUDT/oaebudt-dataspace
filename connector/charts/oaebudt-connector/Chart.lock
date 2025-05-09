@@ -5,5 +5,11 @@ dependencies:
 - name: vault
   repository: https://helm.releases.hashicorp.com
   version: 0.30.0
-digest: sha256:21c60afceee3dfad507b34b0e5bd8ac9d2a14800206273878692da62eb133e55
-generated: "2025-04-16T14:38:22.212378+01:00"
+- name: mongodb
+  repository: oci://registry-1.docker.io/bitnamicharts
+  version: 16.5.0
+- name: keycloak
+  repository: oci://registry-1.docker.io/bitnamicharts
+  version: 24.5.8
+digest: sha256:a3c0c6d9a372adea280493b310740f597d1aa0a8bffd9e0d4f2e93a306563541
+generated: "2025-04-25T11:44:35.819235+01:00"

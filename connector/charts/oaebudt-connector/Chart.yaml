@@ -4,7 +4,8 @@ description: A Helm chart for deploying a proof-of-concept (PoC) Data Space Conn
   based on Eclipse EDC and supporting the Open Access EBook Usage Data Trust (OAEBUDT) initiative.
   The deployment consists of a single runtime that includes a Control Plane, Data Plane, Identity Hub, Federated Catalog, 
   and a Web API component. The Web API extends the business logic to support the OAEBUDT eBook context.
-  This chart is designed to work with an existing PostgreSQL database and an existing HashiCorp Vault instance.
+  This chart is designed to work with an existing PostgreSQL database, an existing HashiCorp Vault instance,
+  an existing MongoDB instance and, an existing Keycloak instance. The chart is not suitable for production use.
 type: application
 version: 0.1.0
 appVersion: "1.16.0"
@@ -27,3 +28,15 @@ dependencies:
     version: "0.30.0"
     repository: https://helm.releases.hashicorp.com
     condition: vault.install
+  # MongoDB
+  - name: mongodb
+    alias: mongodb
+    version: "16.5.0"
+    repository: oci://registry-1.docker.io/bitnamicharts
+    condition: mongodb.install
+  # Keycloak
+  - name: keycloak
+    alias: keycloak
+    version: "24.5.8"
+    repository: oci://registry-1.docker.io/bitnamicharts
+    condition: keycloak.install

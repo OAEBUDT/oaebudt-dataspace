@@ -2,7 +2,7 @@
 
 ![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.16.0](https://img.shields.io/badge/AppVersion-1.16.0-informational?style=flat-square)
 
-A Helm chart for deploying a proof-of-concept (PoC) Data Space Connector, including its dependencies, based on Eclipse EDC and supporting the Open Access EBook Usage Data Trust (OAEBUDT) initiative. The deployment consists of a single runtime that includes a Control Plane, Data Plane, Identity Hub, Federated Catalog, and a Web API component. The Web API extends the business logic to support the OAEBUDT eBook context. This chart is designed to work with an existing PostgreSQL database and an existing HashiCorp Vault instance.
+A Helm chart for deploying a proof-of-concept (PoC) Data Space Connector, including its dependencies, based on Eclipse EDC and supporting the Open Access EBook Usage Data Trust (OAEBUDT) initiative. The deployment consists of a single runtime that includes a Control Plane, Data Plane, Identity Hub, Federated Catalog, and a Web API component. The Web API extends the business logic to support the OAEBUDT eBook context. This chart is designed to work with an existing PostgreSQL database, an existing HashiCorp Vault instance, an existing MongoDB instance and, an existing Keycloak instance. The chart is not suitable for production use.
 
 **Homepage:** <https://github.com/OAEBUDT/oaebudt-dataspace/tree/develop/connector/charts/oaebudt-connector>
 
@@ -21,6 +21,8 @@ A Helm chart for deploying a proof-of-concept (PoC) Data Space Connector, includ
 | Repository | Name | Version |
 |------------|------|---------|
 | https://helm.releases.hashicorp.com | vault(vault) | 0.30.0 |
+| oci://registry-1.docker.io/bitnamicharts | keycloak(keycloak) | 24.5.8 |
+| oci://registry-1.docker.io/bitnamicharts | mongodb(mongodb) | 16.5.0 |
 | oci://registry-1.docker.io/bitnamicharts | postgresql(postgresql) | 16.6.3 |
 
 ## Values
@@ -43,6 +45,8 @@ A Helm chart for deploying a proof-of-concept (PoC) Data Space Connector, includ
 | endpoints.catalog.authKey | string | `"password"` |  |
 | endpoints.catalog.path | string | `"/api/catalog"` |  |
 | endpoints.catalog.port | int | `7102` |  |
+| endpoints.consumer.path | string | `"/api/consumer"` |  |
+| endpoints.consumer.port | int | `8101` |  |
 | endpoints.control.path | string | `"/api/control"` |  |
 | endpoints.control.port | int | `7103` |  |
 | endpoints.credentials.path | string | `"/api/credentials"` |  |
@@ -62,6 +66,9 @@ A Helm chart for deploying a proof-of-concept (PoC) Data Space Connector, includ
 | endpoints.protocol.port | int | `7104` |  |
 | endpoints.public.path | string | `"/api/public"` |  |
 | endpoints.public.port | int | `17100` |  |
+| endpoints.report.authType | string | `"keycloak"` |  |
+| endpoints.report.path | string | `"/api/report"` |  |
+| endpoints.report.port | int | `8100` |  |
 | endpoints.sts.path | string | `"/api/sts"` |  |
 | endpoints.sts.port | int | `6106` |  |
 | endpoints.version.path | string | `"/api/version"` |  |
@@ -70,18 +77,65 @@ A Helm chart for deploying a proof-of-concept (PoC) Data Space Connector, includ
 | global.domain | string | `""` | Global dataspace domain (required for ingress) |
 | image.pullPolicy | string | `"IfNotPresent"` |  |
 | image.repository | string | `"605134435349.dkr.ecr.us-east-1.amazonaws.com/oaebudt-dataspace/connector"` |  |
-| image.tag | string | `""` |  |
+| image.tag | string | `"0.1"` |  |
 | imagePullSecrets | list | `[]` |  |
-| ingress.annotations | list | `[]` |  |
-| ingress.className | string | `""` |  |
-| ingress.enabled | string | `"enable"` |  |
+| ingress.annotations."alb.ingress.kubernetes.io/group.name" | string | `"oaebudt-dataspace"` |  |
+| ingress.annotations."alb.ingress.kubernetes.io/healthcheck-path" | string | `"/api/check/liveness"` |  |
+| ingress.annotations."alb.ingress.kubernetes.io/healthcheck-port" | string | `"7100"` |  |
+| ingress.annotations."alb.ingress.kubernetes.io/listen-ports" | string | `"[{\"HTTP\": 80}, {\"HTTPS\":443}]"` |  |
+| ingress.annotations."alb.ingress.kubernetes.io/scheme" | string | `"internet-facing"` |  |
+| ingress.annotations."alb.ingress.kubernetes.io/ssl-redirect" | string | `"443"` |  |
+| ingress.annotations."alb.ingress.kubernetes.io/target-type" | string | `"ip"` |  |
+| ingress.className | string | `"alb"` |  |
+| ingress.enabled | bool | `true` |  |
 | ingress.tls | list | `[]` |  |
+| keycloak.auth.adminPassword | string | `"oaebudt_keycloak"` |  |
+| keycloak.auth.adminUser | string | `"admin"` |  |
+| keycloak.externalDatabase.existingSecret | string | `"keycloak-db"` |  |
+| keycloak.externalDatabase.existingSecretDatabaseKey | string | `"database"` |  |
+| keycloak.externalDatabase.existingSecretHostKey | string | `"host"` |  |
+| keycloak.externalDatabase.existingSecretPasswordKey | string | `"password"` |  |
+| keycloak.externalDatabase.existingSecretPortKey | string | `"port"` |  |
+| keycloak.externalDatabase.existingSecretUserKey | string | `"user"` |  |
+| keycloak.initContainers[0].command[0] | string | `"sh"` |  |
+| keycloak.initContainers[0].command[1] | string | `"-c"` |  |
+| keycloak.initContainers[0].command[2] | string | `"echo \"Installing dependencies...\"\napk add --no-cache curl netcat-openbsd\n\necho \"Waiting for PostgreSQL...\"\nuntil nc -z {{ .Release.Name }}-postgresql 5432; do\necho \"waiting for postgres...\";\nsleep 2;\ndone\necho \"PostgreSQL is ready.\"\n"` |  |
+| keycloak.initContainers[0].image | string | `"alpine:3.21.3"` |  |
+| keycloak.initContainers[0].name | string | `"wait-for-postgresql"` |  |
+| keycloak.install | bool | `true` | Switch to enable or disable the Keycloak helm chart |
+| keycloak.keycloakConfigCli.enabled | bool | `true` |  |
+| keycloak.keycloakConfigCli.existingConfigmap | string | `"participant-realm"` |  |
+| keycloak.keycloakConfigCli.extraEnvVars[0].name | string | `"IMPORT_VARSUBSTITUTION_ENABLED"` |  |
+| keycloak.keycloakConfigCli.extraEnvVars[0].value | string | `"true"` |  |
+| keycloak.keycloakConfigCli.extraEnvVars[1].name | string | `"CLIENT_SECRET"` |  |
+| keycloak.keycloakConfigCli.extraEnvVars[1].valueFrom.secretKeyRef.key | string | `"clientSecret"` |  |
+| keycloak.keycloakConfigCli.extraEnvVars[1].valueFrom.secretKeyRef.name | string | `"keycloak-realm-secrets"` |  |
+| keycloak.participantRealm.accessTokenLifespan | int | `3600` |  |
+| keycloak.participantRealm.realm | string | `""` |  |
+| keycloak.participantRealm.userEmail | string | `""` |  |
+| keycloak.participantRealm.userFirstName | string | `""` |  |
+| keycloak.participantRealm.userLastName | string | `""` |  |
+| keycloak.participantRealm.userPassword | string | `""` |  |
+| keycloak.participantRealm.userRealmRoles | list | `[]` |  |
+| keycloak.participantRealm.username | string | `""` |  |
+| keycloak.postgresql.enabled | bool | `false` |  |
+| keycloak.resources.requests.cpu | string | `"100m"` |  |
+| keycloak.resources.requests.memory | string | `"256Mi"` |  |
 | livenessProbe.enabled | bool | `true` |  |
 | livenessProbe.failureThreshold | int | `6` |  |
 | livenessProbe.initialDelaySeconds | int | `30` |  |
 | livenessProbe.periodSeconds | int | `10` |  |
 | livenessProbe.successThreshold | int | `1` |  |
 | livenessProbe.timeoutSeconds | int | `5` |  |
+| mongodb.auth.databases[0] | string | `"oaebudt"` |  |
+| mongodb.auth.passwords[0] | string | `"oaebudt_report"` |  |
+| mongodb.auth.rootPassword | string | `"oaebudt_root"` |  |
+| mongodb.auth.rootUser | string | `"root"` |  |
+| mongodb.auth.usernames[0] | string | `"oaebudt_report"` |  |
+| mongodb.install | bool | `true` | Switch to enable or disable the MongoDB helm chart |
+| mongodb.persistence.size | string | `"2Gi"` |  |
+| mongodb.resources.requests.cpu | string | `"100m"` |  |
+| mongodb.resources.requests.memory | string | `"256Mi"` |  |
 | nameOverride | string | `""` |  |
 | nodeSelector | object | `{}` |  |
 | participant.did | string | `""` |  |
@@ -91,8 +145,13 @@ A Helm chart for deploying a proof-of-concept (PoC) Data Space Connector, includ
 | podSecurityContext | object | `{}` |  |
 | postgresql.auth.database | string | `"oaebudt_connector"` | Maximum name length is 31 characters by default |
 | postgresql.auth.password | string | `"oaebudt_connector"` |  |
+| postgresql.auth.postgresPassword | string | `"oaebudt_postgres"` |  |
 | postgresql.auth.username | string | `"oaebudt_connector"` | Maximum name length is 31 characters by default |
 | postgresql.install | bool | `true` | Switch to enable or disable the PostgreSQL helm chart |
+| postgresql.primary.initdb.password | string | `"oaebudt_postgres"` |  |
+| postgresql.primary.initdb.scripts."00_init_extensions.sql" | string | `"CREATE USER keycloak WITH PASSWORD 'keycloak';\nCREATE DATABASE keycloak OWNER keycloak;\nGRANT ALL PRIVILEGES ON DATABASE keycloak TO keycloak;\n"` |  |
+| postgresql.primary.initdb.user | string | `"postgres"` |  |
+| postgresql.primary.persistence.size | string | `"2Gi"` |  |
 | postgresql.schema.autoCreate | bool | `true` | Enable auto-creation of the schema on boot |
 | readinessProbe.enabled | bool | `true` |  |
 | readinessProbe.failureThreshold | int | `6` |  |
@@ -101,11 +160,11 @@ A Helm chart for deploying a proof-of-concept (PoC) Data Space Connector, includ
 | readinessProbe.successThreshold | int | `1` |  |
 | readinessProbe.timeoutSeconds | int | `5` |  |
 | replicaCount | int | `1` |  |
-| resources.limits.cpu | float | `1.5` |  |
+| resources.limits.cpu | string | `"300m"` |  |
 | resources.limits.memory | string | `"1536Mi"` |  |
-| resources.requests.cpu | string | `"500m"` |  |
-| resources.requests.memory | string | `"1024Mi"` |  |
-| securityContext | object | `{}` |  |
+| resources.requests.cpu | string | `"100m"` |  |
+| resources.requests.memory | string | `"256Mi"` |  |
+| securityContext.runAsUser | int | `0` |  |
 | service.annotations | object | `{}` |  |
 | service.labels | object | `{}` |  |
 | service.type | string | `"ClusterIP"` |  |
@@ -126,8 +185,9 @@ A Helm chart for deploying a proof-of-concept (PoC) Data Space Connector, includ
 | vault.hashicorp.url | string | `"http://{{ .Release.Name }}-vault:8200"` |  |
 | vault.injector.enabled | bool | `false` |  |
 | vault.install | bool | `true` | Switch to enable or disable the HashiCorp Vault helm chart |
+| vault.server.config | string | `"ui = true \nlistener \"tcp\" {\n  tls_disable = 1\n  address = \"[::]:8200\"\n  cluster_address = \"[::]:8201\"\n}\nstorage \"file\" {\n  path = \"/vault/data\"\n}\nseal \"awskms\" {\n  region     = \"us-east-1\"\n  kms_key_id = \"0e07d207-f27b-43af-8a9b-c0c950e37e2c\"\n}"` |  |
+| vault.server.dataStorage.size | string | `"2Gi"` |  |
 | vault.server.serviceAccount.name | string | `"oaebudt-ds-vault"` |  |
-| vault.server.standalone.config | string | `"ui = true \nlistener \"tcp\" {\n  tls_disable = 1\n  address = \"[::]:8200\"\n  cluster_address = \"[::]:8201\"\n}\nstorage \"file\" {\n  path = \"/vault/data\"\n}\nseal \"awskms\" {\n  region     = \"us-east-1\"\n  kms_key_id = \"0e07d207-f27b-43af-8a9b-c0c950e37e2c\"\n}"` |  |
 | vault.server.standalone.enabled | bool | `true` |  |
 
 ----------------------------------------------

@@ -17,6 +17,7 @@ dependencies {
         exclude(group = "org.eclipse.edc", "data-plane-selector-client")
     }
 
+    runtimeOnly(project(":core:data-migration"))
     runtimeOnly(libs.edc.fc.core)
     runtimeOnly(libs.edc.fc.api)
 

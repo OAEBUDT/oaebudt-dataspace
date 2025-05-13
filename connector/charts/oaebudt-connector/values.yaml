@@ -115,7 +115,7 @@ endpoints:
 image:
   repository: 605134435349.dkr.ecr.us-east-1.amazonaws.com/oaebudt-dataspace/connector
   pullPolicy: IfNotPresent
-  tag: "cd5221d"
+  tag: "0.1"
 
 # This section is for setting up autoscaling
 autoscaling:

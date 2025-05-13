@@ -78,7 +78,7 @@ A Helm chart for deploying a proof-of-concept (PoC) Data Space Connector, includ
 | global.domain | string | `""` | Global dataspace domain (required for ingress) |
 | image.pullPolicy | string | `"IfNotPresent"` |  |
 | image.repository | string | `"605134435349.dkr.ecr.us-east-1.amazonaws.com/oaebudt-dataspace/connector"` |  |
-| image.tag | string | `"cd5221d"` |  |
+| image.tag | string | `"0.1"` |  |
 | imagePullSecrets | list | `[]` |  |
 | ingress.annotations."alb.ingress.kubernetes.io/group.name" | string | `"oaebudt-dataspace"` |  |
 | ingress.annotations."alb.ingress.kubernetes.io/healthcheck-path" | string | `"/api/check/liveness"` |  |

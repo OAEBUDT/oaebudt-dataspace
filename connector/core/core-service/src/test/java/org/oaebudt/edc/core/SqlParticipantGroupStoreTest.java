@@ -92,4 +92,20 @@ public class SqlParticipantGroupStoreTest {
         assertThat(g2.participants()).containsExactly("y1");
     }
 
+    @Test
+    void save_whenGroupExists_shouldMergeParticipants() { //test upsert operation
+        var groupId = "group-merge";
+
+        // First save
+        store.save(groupId, "p1", "p2");
+
+        // Second save with overlapping and new participants
+        store.save(groupId, "p2", "p3", "p4");
+
+        var result = store.findById(groupId);
+
+        assertThat(result).isNotNull();
+        assertThat(result.id()).isEqualTo(groupId);
+        assertThat(result.participants()).containsExactlyInAnyOrder("p1", "p2", "p3", "p4");
+    }
 }

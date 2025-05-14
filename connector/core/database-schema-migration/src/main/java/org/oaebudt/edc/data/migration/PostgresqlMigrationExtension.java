@@ -15,8 +15,8 @@ import java.util.Properties;
 import static java.util.Optional.ofNullable;
 import static org.flywaydb.core.api.MigrationVersion.LATEST;
 
-@Extension(AbstractPostgresqlMigrationExtension.NAME)
-public class AbstractPostgresqlMigrationExtension implements ServiceExtension {
+@Extension(PostgresqlMigrationExtension.NAME)
+public class PostgresqlMigrationExtension implements ServiceExtension {
     public static final String NAME = "Migration Extension";
 
     public static final String DEFAULT_SCHEMA = "public";

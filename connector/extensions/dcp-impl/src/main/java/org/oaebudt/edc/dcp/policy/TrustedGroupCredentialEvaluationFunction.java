@@ -33,6 +33,6 @@ public record TrustedGroupCredentialEvaluationFunction<C extends ParticipantAgen
             return false;
         }
 
-        return participantGroup.participants().contains(participantAgent.getIdentity());
+        return participantGroup.contains(participantAgent.getIdentity());
     }
 }

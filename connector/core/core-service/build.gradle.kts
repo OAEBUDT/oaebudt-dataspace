@@ -5,7 +5,6 @@ plugins {
 dependencies {
     implementation(project(":spi:core-spi"))
     implementation(libs.edc.core.spi)
-    implementation(libs.mongodb.driver.sync)
     implementation(libs.edc.lib.sql)
 
     implementation(libs.flyway.core)
@@ -14,7 +13,6 @@ dependencies {
     testImplementation(libs.edc.junit)
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.assertj)
-    testImplementation(libs.testcontainers.mongodb)
     testImplementation(libs.testcontainers.junit)
     testImplementation(libs.testcontainers.postgresql)
     testImplementation(libs.postgres)

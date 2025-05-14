@@ -14,19 +14,17 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Map;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 public class SqlParticipantGroupStore extends AbstractSqlStore implements ParticipantGroupStore, SqlStatements {
 
-
     public static final String PARTICIPANT_GROUP_TABLE = "participant_group";
-    public static final String PARTICIPANT_TABLE = "participant";
     public static final String ID_COLUMN = "id";
-    public static final String GROUP_ID_COLUMN = "group_id";
-    public static final String PARTICIPANT_ID_COLUMN = "participant_id";
+    public static final String PARTICIPANTS_COLUMN = "participants";
+
+    private final ObjectMapper mapper;
 
     public SqlParticipantGroupStore(DataSourceRegistry dataSourceRegistry,
                                     String dataSourceName,
@@ -34,16 +32,14 @@ public class SqlParticipantGroupStore extends AbstractSqlStore implements Partic
                                     ObjectMapper objectMapper,
                                     QueryExecutor queryExecutor) {
         super(dataSourceRegistry, dataSourceName, transactionContext, objectMapper, queryExecutor);
+        this.mapper = objectMapper;
     }
 
     @Override
     public ParticipantGroup findById(String groupId) {
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
-                Set<String> participantIds = queryExecutor.query(connection, false, this::mapParticipant, this.findParticipantsByGroupId(), groupId)
-                        .collect(Collectors.toSet());
-
-                return new ParticipantGroup(groupId, participantIds);
+                return queryExecutor.single(connection, true, this::mapParticipantGroup, getFindByIdQuery(), groupId);
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }
@@ -54,12 +50,19 @@ public class SqlParticipantGroupStore extends AbstractSqlStore implements Partic
     public void save(String groupId, String... participantIds) {
         transactionContext.execute(() -> {
             try (var connection = getConnection()) {
-                queryExecutor.execute(connection, getUpsertParticipantGroupStatement(), groupId);
+                // Get existing participants
+                Set<String> existing = Optional.ofNullable(findById(groupId))
+                        .map(ParticipantGroup::participants)
+                        .orElse(new HashSet<>());
 
-                if(participantIds.length > 0) {
-                    queryExecutor.execute(connection, getUpsertMultipleParticipantStatement(groupId, participantIds));
-                }
-            } catch (SQLException e) {
+                // Merge with new ones
+                existing.addAll(Arrays.asList(participantIds));
+
+                String jsonbArray = mapper.writeValueAsString(existing);
+
+                // Upsert group with new JSONB array
+                queryExecutor.execute(connection, getUpsertGroupWithParticipantsQuery(), groupId, jsonbArray);
+            } catch (Exception e) {
                 throw new EdcPersistenceException(e);
             }
         });
@@ -67,63 +70,44 @@ public class SqlParticipantGroupStore extends AbstractSqlStore implements Partic
 
     @Override
     public Set<ParticipantGroup> getAllGroups() {
-
         return transactionContext.execute(() -> {
-
             try (var connection = getConnection()) {
-
-                Map<String, Set<String>> grouped =queryExecutor.query(connection, false, this::mapParticipantGroup, this.findAllParticipants())
-                        .collect(Collectors.groupingBy(
-                                arr -> arr[0], // key
-                                Collectors.mapping(
-                                        arr -> arr[1], // value
-                                        Collectors.filtering(
-                                                Objects::nonNull,
-                                                Collectors.toSet()
-                                        )
-                                )
-                        ));
-
-                Set<ParticipantGroup> result = new HashSet<>();
-                for (Map.Entry<String, Set<String>> entry : grouped.entrySet()) {
-                    result.add(new ParticipantGroup(entry.getKey(), entry.getValue()));
-                }
-                return result;
+                return queryExecutor.query(connection, true, this::mapParticipantGroup, getFindAllQuery())
+                        .collect(Collectors.toSet());
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }
         });
     }
 
-
-    public String getUpsertParticipantGroupStatement() {
-        return "INSERT INTO %s (%s) VALUES (?) ON CONFLICT DO NOTHING;".formatted(PARTICIPANT_GROUP_TABLE, "id");
+    private String getFindByIdQuery() {
+        return "SELECT id, participants FROM %s WHERE id = ?".formatted(PARTICIPANT_GROUP_TABLE);
     }
 
-    public String findParticipantsByGroupId() {
-        return "SELECT %s FROM %s WHERE %s = ?".formatted(PARTICIPANT_ID_COLUMN, PARTICIPANT_TABLE, GROUP_ID_COLUMN);
+    private String getFindAllQuery() {
+        return "SELECT id, participants FROM %s".formatted(PARTICIPANT_GROUP_TABLE);
     }
 
-    public String findAllParticipants() {
-        return "SELECT pg.id, participant_id " +
-                "FROM participant_group pg " +
-                "LEFT JOIN participant p ON " +
-                "pg.id = p.group_id";
+    private String getUpsertGroupWithParticipantsQuery() {
+        return """
+                INSERT INTO %s (id, participants)
+                VALUES (?, ?::jsonb)
+                ON CONFLICT (id) DO UPDATE SET participants = EXCLUDED.participants
+                """.formatted(PARTICIPANT_GROUP_TABLE);
     }
 
-    public String getUpsertMultipleParticipantStatement(String groupId, String... participantIds) {
-        var str = Arrays.stream(participantIds).map(participantId -> "('%s', '%s')".formatted(groupId, participantId)).collect(Collectors.joining(","));
-        return "INSERT INTO %s (%s, %s) VALUES %s ON CONFLICT DO NOTHING;".formatted(PARTICIPANT_TABLE, GROUP_ID_COLUMN, PARTICIPANT_ID_COLUMN, str);
-    }
+    private ParticipantGroup mapParticipantGroup(ResultSet resultSet) throws SQLException {
+        var id = resultSet.getString(ID_COLUMN);
+        var jsonb = resultSet.getString(PARTICIPANTS_COLUMN);
 
-    private String mapParticipant(ResultSet resultSet) throws SQLException {
-        return resultSet.getString(PARTICIPANT_ID_COLUMN);
-    }
+        Set<String> participants;
+        try {
+            String[] arr = mapper.readValue(jsonb, String[].class);
+            participants = arr == null ? new HashSet<>() : new HashSet<>(Arrays.asList(arr));
+        } catch (Exception e) {
+            throw new SQLException("Failed to parse JSONB participants", e);
+        }
 
-    private String[] mapParticipantGroup(ResultSet resultSet) throws SQLException {
-        var participantId =  resultSet.getString(PARTICIPANT_ID_COLUMN);
-        var groupId = resultSet.getString(ID_COLUMN);
-
-        return new String[]{groupId, participantId};
+        return new ParticipantGroup(id, participants);
     }
 }

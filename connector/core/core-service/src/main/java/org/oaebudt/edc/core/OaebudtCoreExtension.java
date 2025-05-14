@@ -4,12 +4,10 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.system.ServiceExtension;
-import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
-import org.oaebudt.edc.core.store.InMemoryParticipantGroupStore;
 import org.oaebudt.edc.core.store.SqlParticipantGroupStore;
 import org.oaebudt.edc.spi.store.ParticipantGroupStore;
 
@@ -36,16 +34,6 @@ public class OaebudtCoreExtension implements ServiceExtension {
     @Override
     public String name() {
         return NAME;
-    }
-
-    @Override
-    public void initialize(ServiceExtensionContext context) {
-        ServiceExtension.super.initialize(context);
-    }
-
-    @Provider(isDefault = true)
-    public ParticipantGroupStore inMemoryParticipantStore() {
-        return new InMemoryParticipantGroupStore();
     }
 
     @Provider

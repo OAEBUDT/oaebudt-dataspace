@@ -79,22 +79,22 @@ spec:
               value: {{ .Values.dcp.tls.enabled | quote }}
             ## IAM CONFIGURATION ##
             - name: EDC_IAM_ISSUER_ID
-              value: {{ printf "did:web:did.%s.svc.cluster.local" .Release.Namespace | quote }}
+              value: {{ .Values.participant.did | quote }}
             - name: EDC_IH_IAM_ID
-              value: {{ printf "did:web:did.%s.svc.cluster.local" .Release.Namespace | quote }}
+              value: {{ .Values.participant.did | quote }}
             - name: EDC_IAM_DID_TRUSTED_ISSUERS
               value: {{ join "," .Values.dcp.trustedIssuers | required "At least one item in .Values.dcp.trustedIssuers is required" | quote }}
             ## STS CONFIGURATION ##
             - name: EDC_IAM_STS_PRIVATEKEY_ALIAS
-              value: {{ printf "did:web:did.%s.svc.cluster.local#key-1" .Release.Namespace | quote }}
+              value: {{ printf "%s#key-1" .Values.participant.did | quote }}
             - name: EDC_IAM_STS_PUBLICKEY_ID
-              value: {{ printf "did:web:did.%s.svc.cluster.local#key-1" .Release.Namespace | quote }}
+              value: {{ printf "%s#key-1" .Values.participant.did | quote }}
             - name: EDC_IAM_STS_OAUTH_CLIENT_ID
-              value: {{ printf "did:web:did.%s.svc.cluster.local" .Release.Namespace | quote }}
+              value: {{ .Values.participant.did | quote }}
             - name: EDC_IAM_STS_OAUTH_CLIENT_SECRET_ALIAS
-              value: {{ printf "did:web:did.%s.svc.cluster.local-sts-client-secret" .Release.Namespace | quote }}
+              value: {{ printf "%s-sts-client-secret" .Values.participant.did | quote }}
             - name: EDC_IAM_STS_OAUTH_TOKEN_URL
-              value: {{ printf "http://sts.%s.svc.cluster.local%s/token" .Release.Namespace .Values.endpoints.sts.path | quote }}
+              value: {{ printf "https://%s%s/token" .Values.global.domain .Values.endpoints.sts.path | quote }}
             ## CONTROL PLANE API CONFIGURATION ##
             - name: WEB_HTTP_PORT
               value: {{ .Values.endpoints.default.port | quote }}
@@ -105,12 +105,14 @@ spec:
             - name: WEB_HTTP_CATALOG_PATH
               value: {{ .Values.endpoints.catalog.path | quote }}
             - name: WEB_HTTP_CATALOG_AUTH_TYPE
-              value: "tokenbased"
+              value: {{ .Values.endpoints.catalog.authType | quote }}
+          {{- if eq .Values.endpoints.catalog.authType "tokenbased" }}
             - name: WEB_HTTP_CATALOG_AUTH_KEY
               valueFrom:
                 secretKeyRef:
                   name: x-api-keys
                   key: catalog-key
+          {{- end }}
             - name: WEB_HTTP_CONTROL_PORT
               value: {{ .Values.endpoints.control.port | quote }}
             - name: WEB_HTTP_CONTROL_PATH
@@ -124,19 +126,21 @@ spec:
             - name: WEB_HTTP_MANAGEMENT_PATH
               value: {{ .Values.endpoints.management.path | quote }}
             - name: WEB_HTTP_MANAGEMENT_AUTH_TYPE
-              value: "tokenbased"
+              value: {{ .Values.endpoints.management.authType | quote }}
+          {{- if eq .Values.endpoints.management.authType "tokenbased" }}
             - name: WEB_HTTP_MANAGEMENT_AUTH_KEY
               valueFrom:
                 secretKeyRef:
                   name: x-api-keys
                   key: management-key
+          {{- end }}
             - name: WEB_HTTP_VERSION_PORT
               value: {{ .Values.endpoints.version.port | quote }}
             - name: WEB_HTTP_VERSION_PATH
               value: {{ .Values.endpoints.version.path | quote }}
             ## DSP CONFIGURATION ##
             - name: EDC_DSP_CALLBACK_ADDRESS
-              value: {{ printf "http://dsp.%s.svc.cluster.local%s" .Release.Namespace .Values.endpoints.protocol.path }}
+              value: {{ printf "https://%s%s" .Values.global.domain .Values.endpoints.protocol.path }}
             ## Catalog CONFIGURATION ##
             - name: OAEBUDT_DS_PARTICIPANTS_LIST_FILE
               value: {{ .Values.catalog.crawler.targetsFile | quote }}
@@ -147,12 +151,14 @@ spec:
               value: {{ .Values.endpoints.public.port | quote }}
             - name: WEB_HTTP_PUBLIC_PATH
               value: {{ .Values.endpoints.public.path | quote }}
+            - name: EDC_DATAPLANE_API_PUBLIC_BASEURL
+              value: {{ printf "https://%s%s" .Values.global.domain .Values.endpoints.public.path }}
             - name: EDC_TRANSFER_PROXY_TOKEN_VERIFIER_PUBLICKEY_ALIAS
-              value: {{ printf "did:web:did.%s.svc.cluster.local#key-1" .Release.Namespace | quote }}
+              value: {{ printf "%s#key-1" .Values.participant.did | quote }}
             - name: EDC_TRANSFER_PROXY_TOKEN_SIGNER_PRIVATEKEY_ALIAS
-              value: {{ printf "did:web:did.%s.svc.cluster.local#key-1" .Release.Namespace | quote }}
+              value: {{ printf "%s#key-1" .Values.participant.did | quote }}
             - name: EDC_DPF_SELECTOR_URL
-              value: {{ printf "http://dpf.%s.svc.cluster.local%s/v1/dataplanes" .Release.Namespace .Values.endpoints.control.path }}
+              value: {{ printf "https://%s%s" .Values.global.domain .Values.endpoints.control.path }}
             ## IDENTITY HUB API CONFIGURATION ##
             - name: WEB_HTTP_DID_PORT
               value: {{ .Values.endpoints.did.port | quote }}
@@ -201,12 +207,12 @@ spec:
                   name: {{ tpl .Values.vault.hashicorp.tokenSecret . | quote }}
                   key: {{ .Values.vault.hashicorp.tokenSecretKey }}
             ## REPORT SERVICE CONFIGURATION ##
-            - name: WEB_HTTP_REPORT_PORT
-              value: {{ .Values.endpoints.report.port | quote }}
-            - name: WEB_HTTP_REPORT_PATH
-              value: {{ .Values.endpoints.report.path | quote }}
-            - name: WEB_HTTP_REPORT_AUTH_TYPE
-              value: {{ .Values.endpoints.report.authType | quote }}
+            - name: WEB_HTTP_WEB_PORT
+              value: {{ .Values.endpoints.web.port | quote }}
+            - name: WEB_HTTP_WEB_PATH
+              value: {{ .Values.endpoints.web.path | quote }}
+            - name: WEB_HTTP_WEB_AUTH_TYPE
+              value: {{ .Values.endpoints.web.authType | quote }}
             - name: WEB_DATASOURCE_MONGO_URL
               value: {{ printf "mongodb://%s:%s@%s-mongodb:27017/%s" (index .Values.mongodb.auth.usernames 0) (index .Values.mongodb.auth.passwords 0) .Release.Name (index .Values.mongodb.auth.databases 0) | required "MongoDB auth values configuration are required" | quote }}
             - name: WEB_HTTP_AUTH_JWK_URL

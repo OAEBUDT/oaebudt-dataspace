@@ -42,7 +42,7 @@ A Helm chart for deploying a proof-of-concept (PoC) Data Space Connector, includ
 | dcp.identityHub.superuserKey | string | `"c3VwZXItdXNlcg==.K+CKuM+8XNuEfLggseLntVljpgLnRzPMNo1WT6dWU1HUJP07l50k8AUreEIy3gcYTBn4vxzMWIg+1TDPYsxpug=="` | Use a base64 key |
 | dcp.tls.enabled | bool | `false` |  |
 | dcp.trustedIssuers | list | `[]` |  |
-| endpoints.catalog.authKey | string | `"password"` |  |
+| endpoints.catalog.authType | string | `"keycloak"` |  |
 | endpoints.catalog.path | string | `"/api/catalog"` |  |
 | endpoints.catalog.port | int | `7102` |  |
 | endpoints.consumer.path | string | `"/api/consumer"` |  |
@@ -55,9 +55,10 @@ A Helm chart for deploying a proof-of-concept (PoC) Data Space Connector, includ
 | endpoints.default.port | int | `7100` |  |
 | endpoints.did.path | string | `"/"` |  |
 | endpoints.did.port | int | `80` |  |
+| endpoints.identity.authType | string | `"keycloak"` |  |
 | endpoints.identity.path | string | `"/api/identity"` |  |
 | endpoints.identity.port | int | `6103` |  |
-| endpoints.management.authKey | string | `"password"` |  |
+| endpoints.management.authType | string | `"keycloak"` |  |
 | endpoints.management.path | string | `"/api/management"` |  |
 | endpoints.management.port | int | `7105` |  |
 | endpoints.presentation.path | string | `"/api/presentation"` |  |
@@ -66,13 +67,13 @@ A Helm chart for deploying a proof-of-concept (PoC) Data Space Connector, includ
 | endpoints.protocol.port | int | `7104` |  |
 | endpoints.public.path | string | `"/api/public"` |  |
 | endpoints.public.port | int | `17100` |  |
-| endpoints.report.authType | string | `"keycloak"` |  |
-| endpoints.report.path | string | `"/api/report"` |  |
-| endpoints.report.port | int | `8100` |  |
 | endpoints.sts.path | string | `"/api/sts"` |  |
 | endpoints.sts.port | int | `6106` |  |
 | endpoints.version.path | string | `"/api/version"` |  |
 | endpoints.version.port | int | `7106` |  |
+| endpoints.web.authType | string | `"keycloak"` |  |
+| endpoints.web.path | string | `"/api/web"` |  |
+| endpoints.web.port | int | `8100` |  |
 | fullnameOverride | string | `""` |  |
 | global.domain | string | `""` | Global dataspace domain (required for ingress) |
 | image.pullPolicy | string | `"IfNotPresent"` |  |
@@ -188,9 +189,6 @@ A Helm chart for deploying a proof-of-concept (PoC) Data Space Connector, includ
 | vault.server.dataStorage.enabled | bool | `false` |  |
 | vault.server.serviceAccount.name | string | `"oaebudt-ds-vault"` |  |
 | vault.server.standalone.config | string | `"ui = true \nlistener \"tcp\" {\n  tls_disable = 1\n  address = \"[::]:8200\"\n  cluster_address = \"[::]:8201\"\n}\nstorage \"dynamodb\" {\n  region         = \"us-east-1\"\n  table          = \"dev-oaebudt-ds-vault-dynamodb-table\"\n  ha_enabled     = \"false\"\n}\nseal \"awskms\" {\n  region     = \"us-east-1\"\n  kms_key_id = \"45e0519a-0d2f-424b-99cc-a9d0c70b5d74\"\n}"` |  |
-| vault.server.config | string | `"ui = true \nlistener \"tcp\" {\n  tls_disable = 1\n  address = \"[::]:8200\"\n  cluster_address = \"[::]:8201\"\n}\nstorage \"file\" {\n  path = \"/vault/data\"\n}\nseal \"awskms\" {\n  region     = \"us-east-1\"\n  kms_key_id = \"0e07d207-f27b-43af-8a9b-c0c950e37e2c\"\n}"` |  |
-| vault.server.dataStorage.size | string | `"2Gi"` |  |
-| vault.server.serviceAccount.name | string | `"oaebudt-ds-vault"` |  |
 | vault.server.standalone.enabled | bool | `true` |  |
 
 ----------------------------------------------

@@ -30,6 +30,7 @@ public record TrustedGroupCredentialEvaluationFunction<C extends ParticipantAgen
 
         ParticipantGroup participantGroup = participantGroupStore.findById(rightValue.toString());
         if (Objects.isNull(participantGroup)) {
+            policyContext.reportProblem("Participant group doesn't exist");
             return false;
         }
 

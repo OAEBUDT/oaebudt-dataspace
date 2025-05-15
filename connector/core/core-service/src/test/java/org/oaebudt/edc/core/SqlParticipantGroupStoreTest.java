@@ -4,14 +4,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.testfixtures.PostgresqlStoreSetupExtension;
-import org.junit.jupiter.api.AfterEach;
+import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.oaebudt.edc.core.store.SqlParticipantGroupStore;
 import org.oaebudt.edc.spi.store.ParticipantGroup;
 
-import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -22,14 +21,18 @@ public class SqlParticipantGroupStoreTest {
     private SqlParticipantGroupStore store;
 
     @BeforeEach
-    void setUp(PostgresqlStoreSetupExtension extension, QueryExecutor queryExecutor) throws IOException {
-        var inputStream = getClass().getClassLoader().getResourceAsStream("schema.sql");
-        assert inputStream != null;
-        var schema = new String(inputStream.readAllBytes());
-        extension.runQuery(schema);
-
+    void setUp(PostgresqlStoreSetupExtension extension, QueryExecutor queryExecutor) {
         var dataSourceRegistry = extension.getDataSourceRegistry();
         var datasourceName = extension.getDatasourceName();
+        var dataSource = dataSourceRegistry.resolve(datasourceName);
+
+        var flyway = Flyway.configure()
+                .dataSource(dataSource)
+                .locations("classpath:db/migration")
+                .load();
+
+        flyway.migrate();
+
         this.store = new SqlParticipantGroupStore(
                 dataSourceRegistry,
                 datasourceName,
@@ -37,15 +40,6 @@ public class SqlParticipantGroupStoreTest {
                 new ObjectMapper(),
                 queryExecutor
         );
-    }
-
-    @AfterEach
-    void tearDown(PostgresqlStoreSetupExtension extension) throws IOException {
-        var inputStream = getClass().getClassLoader().getResourceAsStream("schema-teardown.sql");
-        assert inputStream != null;
-        var schema = new String(inputStream.readAllBytes());
-        extension.runQuery(schema);
-
     }
 
     @Test
@@ -93,7 +87,7 @@ public class SqlParticipantGroupStoreTest {
     }
 
     @Test
-    void save_whenGroupExists_shouldMergeParticipants() { //test upsert operation
+    void save_whenGroupExists_shouldMergeParticipants() {
         var groupId = "group-merge";
 
         // First save

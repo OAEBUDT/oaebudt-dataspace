@@ -21,7 +21,6 @@ dependencyResolutionManagement {
 
 include(":spi:core-spi")
 include(":core:core-service")
-include(":core:database-schema-migration")
 include(":extensions:keycloak-auth")
 include(":extensions:superuser-seed")
 include(":extensions:dcp-impl")

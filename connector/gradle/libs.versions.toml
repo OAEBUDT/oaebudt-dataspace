@@ -19,6 +19,7 @@ postgres = "42.7.5"
 mongodb-driver = "4.11.1"
 jersey = "3.1.3"
 parsson = "1.1.1"
+flyway = "11.3.3"
 
 [libraries]
 # upstream EDC dependencies
@@ -39,6 +40,8 @@ edc-spi-dataplane-http = { module = "org.eclipse.edc:data-plane-http-spi", versi
 mongodb-driver-sync = { group = "org.mongodb", name = "mongodb-driver-sync", version.ref = "mongodb-driver" }
 jersey-multipart = { group = "org.glassfish.jersey.media", name = "jersey-media-multipart", version.ref = "jersey" }
 parsson = { group = "org.eclipse.parsson", name = "parsson", version.ref = "parsson" }
+flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
+flyway-database-postgres = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway" }
 
 
 # EDC lib dependencies
@@ -47,6 +50,7 @@ edc-lib-transform = { module = "org.eclipse.edc:transform-lib", version.ref = "e
 edc-lib-crypto = { module = "org.eclipse.edc:crypto-common-lib", version.ref = "edc" }
 edc-lib-keys = { module = "org.eclipse.edc:keys-lib", version.ref = "edc" }
 edc-lib-jsonld = { module = "org.eclipse.edc:json-ld-lib", version.ref = "edc" }
+edc-lib-sql = { module = "org.eclipse.edc:sql-lib", version.ref = "edc" }
 
 # identityhub SPI modules
 #edc-ih-spi-store = { module = "org.eclipse.edc:identity-hub-store-spi", version.ref = "edc" }

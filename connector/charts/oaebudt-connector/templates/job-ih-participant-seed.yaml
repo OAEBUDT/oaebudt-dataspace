@@ -79,6 +79,9 @@ spec:
                 echo "Participant creation request sent successfully."
                 echo "Response:"
                 echo "$HTTP_BODY"
+              elif echo "$HTTP_BODY" | grep -q "Another participant with the same DID"; then
+                echo "Participant already exists. Skipping creation. Exiting."
+                exit 0
               else
                 echo "Failed: Received HTTP status $HTTP_STATUS"
                 echo "Response:"

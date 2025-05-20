@@ -8,6 +8,7 @@ on:
       - "connector/**"
       - "!**.md"
       - "!docs/**"
+      - "!connector/charts/oaebudt-connector/.argocd-source-*.yaml"
   pull_request:
     branches:
       - "develop"

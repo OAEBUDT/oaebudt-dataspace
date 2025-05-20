@@ -1,4 +1,3 @@
-{{- if .Release.IsInstall }}
 ---
 apiVersion: batch/v1
 kind: Job
@@ -6,9 +5,14 @@ metadata:
   name: identity-hub-create-{{ .Values.participant.id | required "participant.id is required" }}
   labels:
     {{- include "oaebudt-connector.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/hook: post-install
+    helm.sh/hook-delete-policy: hook-succeeded,before-hook-creation
+    helm.sh/hook-weight: '-1'
 spec:
-  backoffLimit: 3
-  ttlSecondsAfterFinished: 300
+  parallelism: 1
+  completions: 1
+  backoffLimit: 2
   template:
     metadata:
       name: identity-hub-create-{{ .Values.participant.id | required "participant.id is required" }}
@@ -96,4 +100,3 @@ spec:
         - name: {{ .Values.participant.id }}-did
           configMap:
             name: {{ .Values.participant.id }}-did
-{{- end }}

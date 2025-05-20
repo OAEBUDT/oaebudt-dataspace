@@ -65,7 +65,6 @@ jobs:
           file: ./connector/launchers/oaebudt-connector/Dockerfile
           tags: |
             ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ steps.short-sha.outputs.sha }}
-            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
           platforms: linux/amd64
           push: true
           cache-from: type=gha

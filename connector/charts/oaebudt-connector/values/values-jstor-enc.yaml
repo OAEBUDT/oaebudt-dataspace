@@ -1,0 +1,58 @@
+global:
+    domain: ENC[AES256_GCM,data:MjQgZL/y88ED22h2nMUv+cLOkQFcGqNUFw==,iv:JiJeYmMwSCRaipnWYuxJxOrs7paotR4nR307lg90HIQ=,tag:hPFxzYCimeHmCN1e/WQCvQ==,type:str]
+participant:
+    id: ENC[AES256_GCM,data:3x3acro=,iv:hPkyClLXgs5c8GGcFloQGs8wk7mo1j8+q6Rw6RSyNDI=,tag:H0dxptYrXKsZyH8h4BNTlg==,type:str]
+    did: ENC[AES256_GCM,data:rNC75yy4GkVS4DFPYlL6Egc1/2BDZY7ER/sBMPlNttrm,iv:GK81IA+/6/1Uf+qV+byVT9erkkleZNEzMWtQD6TLmOA=,tag:vvb60QznAIkEPn8djiVQLw==,type:str]
+dcp:
+    trustedIssuers:
+        - ENC[AES256_GCM,data:IQInEX4827SENQLgT1dgv3rWkepOdWVxoboj32UH5Xkzrw==,iv:roWO06x8jU2wn8ZDlMhuA1yNd/vS/fl58xvrlMzdnIc=,tag:eTUXTafaWOWxX4MkjnNimg==,type:str]
+    identityHub:
+        superuserKey: ENC[AES256_GCM,data:UC9JqZKjbOzhoElCQpGY7Xl8l6T5w18BJJSXwsUyHwFPJQGyHxeHMwFTmAgrgqJs7/0Z8fokGZiBn1P9juMQzf9JSr6gNxASv5y6/gOyVF4tgB0/gTzQVMt77+sgHSurd5+icnKD5KYpgW28OUY7HxQ=,iv:Rw1AvTYyVL/lI98HGStwAZ4wEiXHcMxrvGCEhQFtolo=,tag:HAs/Wg5mE8E0JQpKUsh2OQ==,type:str]
+catalog:
+    nodes:
+        - name: ENC[AES256_GCM,data:3VtKJB0=,iv:ceNgD0G1q7wtsdE1I0+kPy+4NalayOR2MLILrqTlBkg=,tag:JjBeGtPL8RT2OCYJzabv5g==,type:str]
+          did: ENC[AES256_GCM,data:viBHGwv67wtai5LKYlm0UjXeJByG1MLg4IVrdKLOh/nJ,iv:idqJQmlBfQ/W6HnRjVHc033jBF6lzGy20wKJKCIa66s=,tag:e7zDcEWj7OObikUPttv+/g==,type:str]
+        - name: ENC[AES256_GCM,data:wljni2cpWg==,iv:xDYH9vPQWXfnsiw/0yeNITEQjIZWpV4j3IvUBxGJicQ=,tag:+FbirLlSw64wqyAuVn/34A==,type:str]
+          did: ENC[AES256_GCM,data:SWEAV0z1N3Km0Amda8zQ2aa90Nc1FdEXgUEt/lcQikiPHmo=,iv:RGMhg52OsQQRqdNYBB4x3gkze0MFM+7XpI7MMu+00rs=,tag:qCONf+EdWv3m1O6CV9RRSg==,type:str]
+        - name: ENC[AES256_GCM,data:+xlLGb6GKAeI1UkTZt3dVDWN,iv:QfhWgyG56C1OO2cjrCZwLJpaDtDS7dKuS4VV78DbzLo=,tag:wtqo6SFiBG2suGdGST9mbg==,type:str]
+          did: ENC[AES256_GCM,data:GJvwAlB3B279UHoUGU22Wry7sfMYUeL0vFqPmTmFSjkLINt5+T8bZW40PZGHkg==,iv:im2tiEBvVlNNNAIaFo2g1y5o72vICJzFTuB/tTZiVbw=,tag:A064KSQZ3HmOVdxCCTjuew==,type:str]
+        - name: ENC[AES256_GCM,data:9tXBCiGf4kg=,iv:Z+8jRAWHdxIV+6uLC5+w7Us5vSi1le4UI4V6p2CetqM=,tag:Igqh4bqv2KVMQdqtlHbAxQ==,type:str]
+          did: ENC[AES256_GCM,data:BPtn+q4Aaz3cdk3W70cdvH3JE5OrkTOYC8vMjek5mfDGE6uS,iv:kEiWiBk/vemED6tEwToTiSQ+ymAkV3TuR+4ltMDd2kA=,tag:xtYLSUOEG+K/ecwdFlsDqQ==,type:str]
+        - name: ENC[AES256_GCM,data:ID4I3DWF7tIPKi9W,iv:K5P5112PwM9vxaAKweU4l/8YPM2NL5+fpcHBdmrrZiE=,tag:iW9+7EszXuDgps7XdJSDiQ==,type:str]
+          did: ENC[AES256_GCM,data:SfX4hO+yJxSZmsOrYq9IESY70koXbD7ObR/OIkA4d8Lp3SR9a0t95w==,iv:EwNoALgfH6P8qE+ED48KOx89xRS/xGLJP31A1Khe91M=,tag:rOmwhkHPA5VvLcNkCJjIRQ==,type:str]
+        - name: ENC[AES256_GCM,data:BJxbmTmje8olQqWgjw==,iv:9X2kMEFLGTb59thyGoP3oH/DjcNqIgRfu2RA3hx4Nog=,tag:0DuMAUFhF8jf7PWxrVHOMA==,type:str]
+          did: ENC[AES256_GCM,data:k6IqeGNN3gG6fjVR8P2c8UTjW/Zvu8NNCtILV1vb5BiZI4FnMRnPWH0=,iv:DlspBW5tYHRhUiIgJOGwCTbVoi9d2vH/HZSaLidrXM8=,tag:peuD4kZPSe3lrAisbWJO7A==,type:str]
+vault:
+    server:
+        standalone:
+            enabled: ENC[AES256_GCM,data:m/Nu4A==,iv:Vd/KDxeG9Qw6Z7wxB7qF9pL1kc0aVQPxsTeVkQu5rJc=,tag:9kXtWO1FK4BEKCHdQET+4w==,type:bool]
+            config: ENC[AES256_GCM,data:206cteFyoWBsfJcjOIxbIsB7yIU5gvIj7s4IDIGvEKaB9Cj/DICgvRIAK7+Q4+3zRfdnZTJ0eGEar1KssoELfsJOZFrG1Y/RpHqNupyzLDrfnzdPArEWDPq596kgiaEkETj1l9X2MJs1w4xe9/E6z11dZo9NpFpbqSXdHrpUesn8J3JouyGoL03bgIFxlHXPeyXZbHQO3O5zi07LwXDtS2AniJfJxFE2IBBIRVrrgs9r51HFk01r0SADXCPB4dvkpgFwsRULmByTd0OaHo0vhKVx5GVkqZNl9+g1CSyoo28llzUQdZC7pflkjUsomF5iXbgWKdkdKsuogLN3bxMrLBDijzHFEYKRNTnatx+r+AmdiqoKrxxQRZejdGIze7i1jaEGkklAif1RXAtGmTF4foTyAbPD/WtZKNMaQQkjmwRo4IjpRs8L/l6yj8JuHW+mo3IGIu5bMXxMPg==,iv:dAUrjXTfJR07xk9KMcP0xaTZbEwW7TSI4Tv+rzVtLRw=,tag:tewQmjNEwEz/rG3CKxMAKA==,type:str]
+keycloak:
+    auth:
+        adminUser: ENC[AES256_GCM,data:yG5kvdI=,iv:SK/rXJmHlDgubpIYNUywjWLV7qamyci49JdbCZKjTWM=,tag:tzP5ESO1W4Orhwf0f/rSBg==,type:str]
+        adminPassword: ENC[AES256_GCM,data:CoLd/IVrk4TyO9+vcrVRca1lvURD,iv:neE4wYn25ybq0gMxP2Pt0a9ELPy4XdQek+KJaRSC7aQ=,tag:Cz6H1TS3LTxf72JIRy/sgg==,type:str]
+    participantRealm:
+        realm: ENC[AES256_GCM,data:XE012vE=,iv:wmVymd/yU7DRx63mKEBeX30UgPkGd4VE2inCng/EWn0=,tag:uZMteYTHzEC2q4WNJAxb8Q==,type:str]
+        accessTokenLifespan: ENC[AES256_GCM,data:Fp/GEA==,iv:IlmB29qftJWmZm7snzQ2EUTOxWl9205oH0luhYXyUcY=,tag:NBANgQOnES8Y2Gcu9COrfw==,type:int]
+        username: ENC[AES256_GCM,data:UpW9TIU=,iv:ia8ik+KGBjQaG7cnRvPSiZkFYBFGnYsJ2mRMpegBKbE=,tag:fV+lEQ04PWuYjbFD7m6+yA==,type:str]
+        userPassword: ENC[AES256_GCM,data:igWZ8DMiM0dCVsk=,iv:D302qMl+QcwLYVl6PySvWxJajJ5yvk1Ummt3JwzcM0k=,tag:+HfhLJRX8El+j9UO01UiLA==,type:str]
+        userEmail: ENC[AES256_GCM,data:PBSrP+cwnpZo0S8FAL9MVHU=,iv:n1+KAPAqE3K+zYJ5KXWRNfilt/WiAC/MP03p+/ko5Qk=,tag:ifW24WNWua/PID1684W+fQ==,type:str]
+        userFirstName: ENC[AES256_GCM,data:GatixsyAhzI=,iv:fk/n8B+94Dy8F8gJJKFj2whyGTlKZn9LmVMtcp52Mtc=,tag:fdyXDyz+D/llSj4mSkfBbg==,type:str]
+        userLastName: ENC[AES256_GCM,data:DBAflhW/,iv:Bvdlc0BTWmHz9MSfUOm5NsmlC+snn3/gy1xrWtYpUuk=,tag:Xxhgg/wJ4J5isOjc6amdyg==,type:str]
+        userRealmRoles:
+            - ENC[AES256_GCM,data:pZAr1A==,iv:D0kT+mI3KIWYJ21FYj4Q5/F51tvCNX1d2cdGwb15778=,tag:NE8PT4nzBeoWb7XUlBEi2g==,type:str]
+sops:
+    age:
+        - recipient: age189s8gx6f43q688c9gxfkye9zsjudjnxlm69u76zvrujx5r2rxy5s25duc2
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSAwbmhGMGNwMmtEam42ZlJR
+            bTAveEhvUHdFWjRJMmVOY29DR0w1NGRaSGdnCjVva01PSXY1S1orTG55blE2akZu
+            d0srVWF1TTJBSjM5dFJBQ3dUZmpxcGcKLS0tIFBJN0gwc2RMRExZdTcvQUNTRE9l
+            ZG5tQUcrVXgzUEpac21ROERQVGlseWMKJunnI/1DM37OXedA5oFW6QAP/PfW2PXp
+            dIWkEHMZB+Z7JdgReTyvMfYh3isL+uUTl/MLW2Hi0MQl8OluLuC5yQ==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2025-05-20T11:27:57Z"
+    mac: ENC[AES256_GCM,data:xiGjL6kx5F4Pn3ezfbOPdgtrczcG8wnbb5nMLqiep8qVm5jwnQCEjDx3VsZvtc+3Zw5xTM3wvp+DturjhFAHWtYlOLkunJPdUs/iUTodxfI5ecn+lTpA6c5MEWKynrLttdqaQNKUAzJc9zgbgVAJKSvQCUdpa3uEv69waAYCCuo=,iv:dg0PA8PP0iBMb+s3DL4hC7JUSUjfN9AJvbKQaaKeJns=,tag:X+RCetpLsj5j1pgpBTExXQ==,type:str]
+    unencrypted_suffix: _unencrypted
+    version: 3.10.2

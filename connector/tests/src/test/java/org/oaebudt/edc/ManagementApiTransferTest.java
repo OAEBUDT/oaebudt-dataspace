@@ -343,6 +343,22 @@ class ManagementApiTransferTest {
         String accessToken = KEYCLOAK_EXTENSION.getToken();
         final var consumerEdrReceiver = ClientAndServer.startClientAndServer(getFreePort());
         consumerEdrReceiver.when(request("/edr")).respond(response());
+        String metadata = "{" +
+                "        \"legalOrganizationName\": \"University Press Analytics\"," +
+                "        \"countryOfOrganization\": \"United States\"," +
+                "        \"organizationWebsite\": \"https://www.example-press.org\"," +
+                "        \"contactPerson\": \"Jane Smith\"," +
+                "        \"contactEmail\": \"jane.smith@example-press.org\"," +
+                "        \"dataProcessingDescription\": \"Raw usage logs are processed using COUNTER Release 5 processing rules to filter robot and double-click activities. We use the open-source COUNTER-Robots library for robot detection.\"," +
+                "        \"qualityAssuranceMeasures\": \"Monthly data validation process including outlier detection, completeness checking, and comparison with historical patterns. Automated and manual review processes are in place.\"," +
+                "        \"dataLicensingTerms\": \"Data is provided under CC-BY license. Data recipients may use data for analysis and decision-making but must attribute the source.\"," +
+                "        \"dataAccuracyLevel\": 3," +
+                "        \"dataGenerationTransparencyLevel\": 2," +
+                "        \"dataDeliveryReliabilityLevel\": 3," +
+                "        \"dataFrequencyLevel\": 2," +
+                "        \"dataGranularityLevel\": 2," +
+                "        \"dataConsistencyLevel\": 2" +
+                "    }";
 
         String jsonBody = """
             {
@@ -379,6 +395,7 @@ class ManagementApiTransferTest {
                 )
                 .multiPart("reportType", "TITLE_REPORT")
                 .multiPart("title", "Report_IR")
+                .multiPart("metadata", metadata)
                 .multiPart("accessDefinition", "allow-friends")// additional form data
                 .when()
                 .post(reportUri)
@@ -427,6 +444,23 @@ class ManagementApiTransferTest {
         String participantUri = PROVIDER.getWebServiceUrl().get().toString() + "participant/group";
         String accessToken = KEYCLOAK_EXTENSION.getToken();
 
+        String metadata = "{" +
+                "        \"legalOrganizationName\": \"University Press Analytics\"," +
+                "        \"countryOfOrganization\": \"United States\"," +
+                "        \"organizationWebsite\": \"https://www.example-press.org\"," +
+                "        \"contactPerson\": \"Jane Smith\"," +
+                "        \"contactEmail\": \"jane.smith@example-press.org\"," +
+                "        \"dataProcessingDescription\": \"Raw usage logs are processed using COUNTER Release 5 processing rules to filter robot and double-click activities. We use the open-source COUNTER-Robots library for robot detection.\"," +
+                "        \"qualityAssuranceMeasures\": \"Monthly data validation process including outlier detection, completeness checking, and comparison with historical patterns. Automated and manual review processes are in place.\"," +
+                "        \"dataLicensingTerms\": \"Data is provided under CC-BY license. Data recipients may use data for analysis and decision-making but must attribute the source.\"," +
+                "        \"dataAccuracyLevel\": 3," +
+                "        \"dataGenerationTransparencyLevel\": 2," +
+                "        \"dataDeliveryReliabilityLevel\": 3," +
+                "        \"dataFrequencyLevel\": 2," +
+                "        \"dataGranularityLevel\": 2," +
+                "        \"dataConsistencyLevel\": 2" +
+                "    }";
+
         String allowNobodyJsonBody = """
             {
               "groupName": "nobody",
@@ -463,6 +497,7 @@ class ManagementApiTransferTest {
                 )
                 .multiPart("reportType", "ITEM_REPORT")
                 .multiPart("title", "Report_IR")
+                .multiPart("metadata", metadata)
                 .multiPart("accessDefinition", "allow-nobody")// additional form data
                 .when()
                 .post(reportUri)

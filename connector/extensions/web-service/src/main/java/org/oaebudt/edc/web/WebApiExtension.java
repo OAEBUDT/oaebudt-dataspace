@@ -21,6 +21,7 @@ import org.oaebudt.edc.web.repository.ReportStore;
 import org.oaebudt.edc.web.repository.MongoReportStoreImpl;
 import org.oaebudt.edc.spi.store.ParticipantGroupStore;
 import org.oaebudt.edc.web.service.ParticipantGroupService;
+import org.oaebudt.edc.web.service.ReportService;
 
 
 import java.net.URI;
@@ -42,7 +43,6 @@ public class WebApiExtension implements ServiceExtension {
 
     @Configuration
     private MongoDbConfiguration mongoDbConfiguration;
-
 
     @Inject
     private WebService webService;
@@ -78,13 +78,13 @@ public class WebApiExtension implements ServiceExtension {
         ReportStore reportStore = new MongoReportStoreImpl(client);
 
         ParticipantGroupService participantGroupService = new ParticipantGroupService(participantGroupStore, policyDefinitionService, monitor);
+        ReportService reportService = new ReportService(context.getMonitor(), reportStore, assetService, contractDefinitionService, consumerApiBaseUrl);
 
         portMappingRegistry.register(new PortMapping(WEB, reportApiConfiguration.port(), reportApiConfiguration.path()));
         portMappingRegistry.register(new PortMapping(CONSUMER, consumerApiConfiguration.port(), consumerApiConfiguration.path()));
 
         webService.registerResource(WEB, new ReportApiController(
-                context.getMonitor(),
-                reportStore, assetService, contractDefinitionService, consumerApiBaseUrl));
+                context.getMonitor(), reportService));
         webService.registerResource(WEB, new ParticipantGroupApiController(participantGroupService, monitor));
         webService.registerResource(CONSUMER, new ConsumerApiController(reportStore));
     }

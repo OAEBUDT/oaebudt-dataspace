@@ -1,3 +1,4 @@
+{{- if .Release.IsInstall }}
 ---
 apiVersion: batch/v1
 kind: Job
@@ -5,12 +6,6 @@ metadata:
   name: identity-hub-create-{{ .Values.participant.id | required "participant.id is required" }}
   labels:
     {{- include "oaebudt-connector.labels" . | nindent 4 }}
-  annotations:
-{{/*    helm.sh/hook: post-install*/}}
-{{/*    helm.sh/hook-delete-policy: hook-succeeded,before-hook-creation*/}}
-{{/*    helm.sh/hook-weight: '1'*/}}
-    argocd.argoproj.io/hook: Sync
-    argocd.argoproj.io/hook-delete-policy: HookSucceeded
 spec:
   parallelism: 1
   completions: 1
@@ -102,3 +97,4 @@ spec:
         - name: {{ .Values.participant.id }}-did
           configMap:
             name: {{ .Values.participant.id }}-did
+{{- end }}

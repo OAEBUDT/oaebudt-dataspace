@@ -34,6 +34,9 @@ dcp:
     credentials:
       configMap: "{{ .Values.participant.id | lower }}-credentials"
       mountPath: "/etc/dataspace/did/credentials/{{ .Values.participant.id }}/"
+  verifiableCredentials:
+    dataprocessor: |
+    membership: |
 
 # Federated catalog configuration
 catalog:

@@ -42,6 +42,8 @@ A Helm chart for deploying a proof-of-concept (PoC) Data Space Connector, includ
 | dcp.identityHub.superuserKey | string | `"c3VwZXItdXNlcg==.K+CKuM+8XNuEfLggseLntVljpgLnRzPMNo1WT6dWU1HUJP07l50k8AUreEIy3gcYTBn4vxzMWIg+1TDPYsxpug=="` | Use a base64 key |
 | dcp.tls.enabled | bool | `false` |  |
 | dcp.trustedIssuers | list | `[]` |  |
+| dcp.verifiableCredentials.dataprocessor | string | `""` |  |
+| dcp.verifiableCredentials.membership | string | `""` |  |
 | endpoints.catalog.authType | string | `"keycloak"` |  |
 | endpoints.catalog.path | string | `"/api/catalog"` |  |
 | endpoints.catalog.port | int | `7102` |  |

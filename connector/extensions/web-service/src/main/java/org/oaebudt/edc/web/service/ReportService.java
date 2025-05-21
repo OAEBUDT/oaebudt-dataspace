@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
+import jakarta.json.JsonException;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonReader;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
@@ -14,6 +15,7 @@ import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.result.ServiceFailure;
+import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.oaebudt.edc.web.dto.CreateAssetRequest;
 import org.oaebudt.edc.web.model.ReportType;
@@ -24,7 +26,6 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
-import java.util.UUID;
 
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
@@ -45,9 +46,13 @@ public class ReportService {
         this.consumerApiBaseUrl = consumerApiBaseUrl;
     }
 
-    public void createAsset(CreateAssetRequest request) {
+    public ServiceResult<Void> createAsset(CreateAssetRequest request) {
         validateCreateAsset(request);
-        MetadataValidator.validate(request.metadata());
+        ValidationResult validationResult = MetadataValidator.validate(request.metadata());
+
+        if(validationResult.failed()) {
+            return ServiceResult.badRequest(validationResult.getErrors());
+        }
 
         createAssetInConnector(
                 request.title(),
@@ -60,27 +65,40 @@ public class ReportService {
                 request.authCode(),
                 request.headers()
         );
+        return ServiceResult.success();
     }
 
-    public void uploadAndCreateAsset(InputStream file, String title, String accessDefinition, String metadataJson, ReportType reportType) throws JsonProcessingException {
-        JsonReader reader = Json.createReader(file);
-        if (Objects.isNull(accessDefinition)) {
-            throw new IllegalArgumentException("Invalid access definition");
+    public ServiceResult<Void> uploadAndCreateAsset(InputStream file, String title, String accessDefinition, String metadataJson, ReportType reportType) {
+        try (JsonReader reader = Json.createReader(file)) {
+            if (Objects.isNull(accessDefinition)) {
+                return ServiceResult.badRequest("Invalid access definition");
+            }
+
+            Map<String, Object> metadata = objectMapper.readValue(metadataJson, new TypeReference<>() {});
+
+            ValidationResult validationResult = MetadataValidator.validate(metadata);
+            if(validationResult.failed()) {
+                return ServiceResult.badRequest(validationResult.getErrors());
+            }
+
+            JsonObject jsonObject = reader.readObject();
+            JsonObject enriched = Json.createObjectBuilder(jsonObject)
+                    .add("title", title)
+                    .add("reportType", reportType.name())
+                    .build();
+
+            reportStore.saveReport(enriched.toString(), reportType);
+
+            String uri = consumerApiBaseUrl.resolve("report?reportType=" + reportType.name()).toString();
+            createAssetInConnector(title, metadata, reportType, accessDefinition, uri, "GET", null, null, Collections.emptyMap());
+
+            return ServiceResult.success();
+        } catch (JsonProcessingException e) {
+            return ServiceResult.badRequest("Invalid metadata json: " + e.getMessage());
+        } catch (JsonException e) {
+            return ServiceResult.badRequest("Invalid report json: " + e.getMessage());
         }
 
-        Map<String, Object> metadata = objectMapper.readValue(metadataJson, new TypeReference<>() {});
-        MetadataValidator.validate(metadata);
-
-        JsonObject jsonObject = reader.readObject();
-        JsonObject enriched = Json.createObjectBuilder(jsonObject)
-                .add("title", title)
-                .add("reportType", reportType.name())
-                .build();
-
-        reportStore.saveReport(enriched.toString(), reportType);
-
-        String uri = consumerApiBaseUrl.resolve("report?reportType=" + reportType.name()).toString();
-        createAssetInConnector(title, metadata, reportType, accessDefinition, uri, "GET", null, null, Collections.emptyMap());
     }
 
     private void createAssetInConnector(String title, Map<String, Object> assetMetadata, ReportType reportType,

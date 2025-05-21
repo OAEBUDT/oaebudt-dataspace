@@ -1,7 +1,6 @@
 package org.oaebudt.edc.web.service;
 
-
-import java.net.URL;
+import java.net.URI;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -11,53 +10,59 @@ public class MetadataValidator {
             "^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}$", Pattern.CASE_INSENSITIVE
     );
 
+    public static ValidationResult validate(Map<String, Object> metadata) {
+        ValidationResult result = ValidationResult.ok();
 
-    public static void validate(Map<String, Object> metadata) {
+        result.merge(validateRequiredString(metadata, "legalOrganizationName"));
+        result.merge(validateRequiredString(metadata, "countryOfOrganization"));
+        result.merge(validateRequiredString(metadata, "contactPerson"));
+        result.merge(validateRequiredString(metadata, "dataProcessingDescription"));
+        result.merge(validateRequiredString(metadata, "qualityAssuranceMeasures"));
+        result.merge(validateRequiredString(metadata, "dataLicensingTerms"));
 
-        validateRequiredString(metadata, "legalOrganizationName");
-        validateRequiredString(metadata, "countryOfOrganization");
-        validateRequiredString(metadata, "contactPerson");
-        validateRequiredString(metadata, "dataProcessingDescription");
-        validateRequiredString(metadata, "qualityAssuranceMeasures");
-        validateRequiredString(metadata, "dataLicensingTerms");
+        result.merge(validateUrl(metadata, "organizationWebsite"));
+        result.merge(validateEmail(metadata, "contactEmail"));
 
-        validateUrl(metadata, "organizationWebsite");
-        validateEmail(metadata, "contactEmail");
+        result.merge(validateLevel(metadata, "dataAccuracyLevel"));
+        result.merge(validateLevel(metadata, "dataGenerationTransparencyLevel"));
+        result.merge(validateLevel(metadata, "dataDeliveryReliabilityLevel"));
+        result.merge(validateLevel(metadata, "dataFrequencyLevel"));
+        result.merge(validateLevel(metadata, "dataGranularityLevel"));
+        result.merge(validateLevel(metadata, "dataConsistencyLevel"));
 
-        validateLevel(metadata, "dataAccuracyLevel");
-        validateLevel(metadata, "dataGenerationTransparencyLevel");
-        validateLevel(metadata, "dataDeliveryReliabilityLevel");
-        validateLevel(metadata, "dataFrequencyLevel");
-        validateLevel(metadata, "dataGranularityLevel");
-        validateLevel(metadata, "dataConsistencyLevel");
+        return result;
     }
 
 
-    private static void validateRequiredString(Map<String, Object> map, String key) {
+    private static ValidationResult validateRequiredString(Map<String, Object> map, String key) {
         if (!map.containsKey(key) || !(map.get(key) instanceof String) || ((String) map.get(key)).trim().isEmpty()) {
-            throw new IllegalArgumentException(key + " is required and must be a non-empty string");
+            return ValidationResult.fail(key + " is required and must be a non-empty string");
         }
+        return ValidationResult.ok();
     }
 
-    private static void validateUrl(Map<String, Object> map, String key) {
+    private static ValidationResult validateUrl(Map<String, Object> map, String key) {
         try {
-            new URL((String) map.get(key));
+            URI.create((String) map.get(key)).toURL();
         } catch (Exception e) {
-            throw new IllegalArgumentException(key + " must be a valid URL");
+            return ValidationResult.fail(key + " must be a valid URL");
         }
+        return ValidationResult.ok();
     }
 
-    private static void validateEmail(Map<String, Object> map, String key) {
+    private static ValidationResult validateEmail(Map<String, Object> map, String key) {
         String email = (String) map.get(key);
         if (email == null || !EMAIL_REGEX.matcher(email).matches()) {
-            throw new IllegalArgumentException(key + " must be a valid email address");
+            return ValidationResult.fail(key + " must be a valid email address");
         }
+        return ValidationResult.ok();
     }
 
-    private static void validateLevel(Map<String, Object> map, String key) {
+    private static ValidationResult validateLevel(Map<String, Object> map, String key) {
         Object value = map.get(key);
         if (!(value instanceof Integer) || ((int) value < 1 || (int) value > 3)) {
-            throw new IllegalArgumentException(key + " must be an integer between 1 and 3");
+            return ValidationResult.fail(key + " must be an integer between 1 and 3");
         }
+        return ValidationResult.ok();
     }
 }

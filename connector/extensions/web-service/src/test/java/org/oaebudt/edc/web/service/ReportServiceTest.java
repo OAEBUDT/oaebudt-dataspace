@@ -1,6 +1,8 @@
 package org.oaebudt.edc.web.service;
 
-import jakarta.json.JsonException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.controlplane.services.spi.asset.AssetService;
@@ -18,10 +20,10 @@ import org.oaebudt.edc.web.repository.ReportStore;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.URI;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -40,31 +42,33 @@ public class ReportServiceTest {
     private URI consumerApiBaseUrl;
 
     private static Stream<Arguments> invalidMetadataProvider() {
+        ObjectMapper mapper = new ObjectMapper();
+
         return Stream.of(
-                Arguments.of("{}", "legalOrganizationName is required"),
-                Arguments.of("{\"legalOrganizationName\":\"\",\"countryOfOrganization\":\"US\",\"contactPerson\":\"Jane\",\"dataProcessingDescription\":\"desc\",\"qualityAssuranceMeasures\":\"qa\",\"dataLicensingTerms\":\"terms\",\"organizationWebsite\":\"http://valid.com\",\"contactEmail\":\"valid@example.com\",\"dataAccuracyLevel\":1,\"dataGenerationTransparencyLevel\":1,\"dataDeliveryReliabilityLevel\":1,\"dataFrequencyLevel\":1,\"dataGranularityLevel\":1,\"dataConsistencyLevel\":1}", "legalOrganizationName is required"),
-                Arguments.of("{\"legalOrganizationName\":\"Org\",\"countryOfOrganization\":\"US\",\"contactPerson\":\"Jane\",\"dataProcessingDescription\":\"desc\",\"qualityAssuranceMeasures\":\"qa\",\"dataLicensingTerms\":\"terms\",\"organizationWebsite\":\"invalid-url\",\"contactEmail\":\"valid@example.com\",\"dataAccuracyLevel\":1,\"dataGenerationTransparencyLevel\":1,\"dataDeliveryReliabilityLevel\":1,\"dataFrequencyLevel\":1,\"dataGranularityLevel\":1,\"dataConsistencyLevel\":1}", "organizationWebsite must be a valid URL"),
-                Arguments.of("{\"legalOrganizationName\":\"Org\",\"countryOfOrganization\":\"US\",\"contactPerson\":\"Jane\",\"dataProcessingDescription\":\"desc\",\"qualityAssuranceMeasures\":\"qa\",\"dataLicensingTerms\":\"terms\",\"organizationWebsite\":\"http://valid.com\",\"contactEmail\":\"invalid-email\",\"dataAccuracyLevel\":1,\"dataGenerationTransparencyLevel\":1,\"dataDeliveryReliabilityLevel\":1,\"dataFrequencyLevel\":1,\"dataGranularityLevel\":1,\"dataConsistencyLevel\":1}", "contactEmail must be a valid email address"),
-                Arguments.of("{\"legalOrganizationName\":\"Org\",\"countryOfOrganization\":\"US\",\"contactPerson\":\"Jane\",\"dataProcessingDescription\":\"desc\",\"qualityAssuranceMeasures\":\"qa\",\"dataLicensingTerms\":\"terms\",\"organizationWebsite\":\"http://valid.com\",\"contactEmail\":\"valid@example.com\",\"dataAccuracyLevel\":5,\"dataGenerationTransparencyLevel\":1,\"dataDeliveryReliabilityLevel\":1,\"dataFrequencyLevel\":1,\"dataGranularityLevel\":1,\"dataConsistencyLevel\":1}", "dataAccuracyLevel must be an integer between 1 and 3")
+                Arguments.of(
+                        buildMetadata(mapper, m -> m.remove("legalOrganizationName")),
+                        "legalOrganizationName is required"
+                ),
+                Arguments.of(
+                        buildMetadata(mapper, m -> m.put("countryOfOrganization", "")),
+                        "countryOfOrganization is required"
+                ),
+                Arguments.of(
+                        buildMetadata(mapper, m -> m.put("organizationWebsite", "invalid-url")),
+                        "organizationWebsite must be a valid URL"
+                ),
+                Arguments.of(
+                        buildMetadata(mapper, m -> m.put("contactEmail", "invalid-email")),
+                        "contactEmail must be a valid email address"
+                ),
+                Arguments.of(
+                        buildMetadata(mapper, m -> m.put("dataAccuracyLevel", 5)),
+                        "dataAccuracyLevel must be an integer between 1 and 3"
+                )
         );
     }
 
-    private final String metadata = "{" +
-            "        \"legalOrganizationName\": \"University Press Analytics\"," +
-            "        \"countryOfOrganization\": \"United States\"," +
-            "        \"organizationWebsite\": \"https://www.example-press.org\"," +
-            "        \"contactPerson\": \"Jane Smith\"," +
-            "        \"contactEmail\": \"jane.smith@example-press.org\"," +
-            "        \"dataProcessingDescription\": \"Raw usage logs are processed using COUNTER Release 5 processing rules to filter robot and double-click activities. We use the open-source COUNTER-Robots library for robot detection.\"," +
-            "        \"qualityAssuranceMeasures\": \"Monthly data validation process including outlier detection, completeness checking, and comparison with historical patterns. Automated and manual review processes are in place.\"," +
-            "        \"dataLicensingTerms\": \"Data is provided under CC-BY license. Data recipients may use data for analysis and decision-making but must attribute the source.\"," +
-            "        \"dataAccuracyLevel\": 3," +
-            "        \"dataGenerationTransparencyLevel\": 2," +
-            "        \"dataDeliveryReliabilityLevel\": 3," +
-            "        \"dataFrequencyLevel\": 2," +
-            "        \"dataGranularityLevel\": 2," +
-            "        \"dataConsistencyLevel\": 2" +
-            "    }";
+    private final String metadata = buildMetadata(new ObjectMapper(), m -> {});
 
     @BeforeEach
     void setUp() {
@@ -102,9 +106,9 @@ public class ReportServiceTest {
         String accessDefinition = "public";
         ReportType reportType = ReportType.ITEM_REPORT;
 
-        assertThrows(JsonException.class, () ->
-                reportService.uploadAndCreateAsset(inputStream, title, accessDefinition, metadata, reportType));
-
+        ServiceResult<Void> result = reportService.uploadAndCreateAsset(inputStream, title, accessDefinition, metadata, reportType);
+        assertTrue(result.failed());
+        assertTrue(result.getFailureDetail().contains("Invalid report json:"));
     }
 
     @Test
@@ -113,10 +117,10 @@ public class ReportServiceTest {
         String title = "Test Report";
         ReportType reportType = ReportType.ITEM_REPORT;
 
-        Exception ex = assertThrows(IllegalArgumentException.class, () ->
-                reportService.uploadAndCreateAsset(inputStream, title, null, metadata, reportType));
+        ServiceResult<Void> result = reportService.uploadAndCreateAsset(inputStream, title, null, metadata, reportType);
 
-        assertEquals("Invalid access definition", ex.getMessage());
+        assertTrue(result.failed());
+        assertEquals("Invalid access definition", result.getFailureDetail());
     }
 
     @ParameterizedTest
@@ -128,10 +132,36 @@ public class ReportServiceTest {
         String accessDefinition = "public";
         ReportType reportType = ReportType.ITEM_REPORT;
 
-        IllegalArgumentException thrown = assertThrows(
-                IllegalArgumentException.class,
-                () -> reportService.uploadAndCreateAsset(inputStream, title, accessDefinition, jsonMetadata, reportType));
+        ServiceResult<Void> result = reportService.uploadAndCreateAsset(inputStream, title, accessDefinition, jsonMetadata, reportType);
 
-        assertTrue(thrown.getMessage().contains(expectedErrorMessage));
+        assertTrue(result.failed());
+        assertTrue(result.getFailureDetail().contains(expectedErrorMessage));
+    }
+
+    private static String buildMetadata(ObjectMapper mapper, Consumer<ObjectNode> modifier) {
+        ObjectNode metadata = mapper.createObjectNode();
+
+        metadata.put("legalOrganizationName", "Org");
+        metadata.put("countryOfOrganization", "US");
+        metadata.put("contactPerson", "Jane");
+        metadata.put("dataProcessingDescription", "desc");
+        metadata.put("qualityAssuranceMeasures", "qa");
+        metadata.put("dataLicensingTerms", "terms");
+        metadata.put("organizationWebsite", "http://valid.com");
+        metadata.put("contactEmail", "valid@example.com");
+        metadata.put("dataAccuracyLevel", 1);
+        metadata.put("dataGenerationTransparencyLevel", 1);
+        metadata.put("dataDeliveryReliabilityLevel", 1);
+        metadata.put("dataFrequencyLevel", 1);
+        metadata.put("dataGranularityLevel", 1);
+        metadata.put("dataConsistencyLevel", 1);
+
+        modifier.accept(metadata);
+
+        try {
+            return mapper.writeValueAsString(metadata);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Failed to serialize JSON metadata", e);
+        }
     }
 }

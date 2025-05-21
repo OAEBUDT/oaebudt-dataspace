@@ -38,14 +38,11 @@ public class ReportApiController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response createAsset(CreateAssetRequest request) {
-        try {
-            reportService.createAsset(request);
-            return Response.status(Response.Status.CREATED)
-                    .entity(Json.createObjectBuilder().add("message", "Asset created successfully").build().toString())
-                    .build();
-        } catch (IllegalArgumentException e) {
-            return badRequest("Something went wrong", e.getMessage());
-        }
+
+        return reportService.createAsset(request)
+                .map(unused -> Response.status(Response.Status.CREATED)
+                        .entity(Json.createObjectBuilder().add("message", "Asset created successfully").build().toString())
+                        .build()).orElse(serviceFailure -> badRequest("Something went wrong", serviceFailure.getFailureDetail()));
     }
 
 
@@ -59,24 +56,10 @@ public class ReportApiController {
                                @FormDataParam("metadata") String metadataJson,
                                @FormDataParam("reportType") ReportType reportType) {
 
-        try {
-            reportService.uploadAndCreateAsset(uploadedInputStream, title, accessDefinition, metadataJson, reportType);
-            return Response.status(Response.Status.CREATED)
-                    .entity(Json.createObjectBuilder().add("message", "Asset created successfully").build().toString())
-                    .build();
-        } catch (JsonException e) {
-            return badRequest("Failed to process uploaded JSON", e.getMessage());
-        } catch (JsonProcessingException e) {
-            return badRequest("Invalid JSON metadata", e.getMessage());
-        } catch (IllegalArgumentException e) {
-            return badRequest("Something went wrong", e.getMessage());
-        } catch (Exception e) {
-            monitor.warning("Unexpected error", e);
-            return Response.serverError()
-                    .entity(Json.createObjectBuilder().add("error", "Unexpected error").add("message", e.getMessage()).build().toString())
-                    .build();
-        }
-
+        return reportService.uploadAndCreateAsset(uploadedInputStream, title, accessDefinition, metadataJson, reportType)
+                .map(unused -> Response.status(Response.Status.CREATED)
+                        .entity(Json.createObjectBuilder().add("message", "Asset created successfully").build().toString())
+                        .build()).orElse(serviceFailure -> badRequest("Something went wrong", serviceFailure.getFailureDetail()));
     }
 
     private Response badRequest(String error, String message) {

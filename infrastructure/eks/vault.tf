@@ -1,5 +1,5 @@
 locals {
-  vault_servers_namespaces     = ["publisher", "recipient", "liblynx", "knowledgeunlatched", "jstor", "michigan", "punctumbooks", "ubiquitypress"]
+  vault_servers_namespaces     = ["publisher", "recipient", "liblynx", "jstor", "michigan", "punctumbooks", "ubiquitypress"]
   vault_server_service_account = "oaebudt-ds-vault"
   participants_dynamodb_tables = {
     for namespace in local.vault_servers_namespaces : namespace => {

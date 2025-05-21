@@ -1,11 +1,10 @@
 locals {
-  argocd_init_image_tag              = "0136337"
+  argocd_init_image_tag              = "646c13e"
   argocd_target_revision             = "develop"
   oaebudt_connector_release_names = [
     "publisher",
     "recipient",
     "liblynx",
-    "knowledgeunlatched",
     "jstor",
     "michigan",
     "punctumbooks",
@@ -28,7 +27,7 @@ resource "kubernetes_manifest" "oaebudt_connector_argocd_app" {
           argocd-image-updater.argoproj.io/write-back-method: git
     spec:
       destination:
-        namespace: test
+        namespace: ${each.value}
         server: https://kubernetes.default.svc
       project: default
       source:

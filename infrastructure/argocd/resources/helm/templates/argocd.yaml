@@ -5,7 +5,6 @@ global:
 configs:
   params:
     server.insecure: true
-# Allow helm-secrets schemes in argocd-cm
   cm:
     helm.valuesFileSchemes: >-
       secrets+gpg-import, secrets+gpg-import-kubernetes,
@@ -27,7 +26,6 @@ server:
       serviceType: ClusterIP
       backendProtocolVersion: GRPC
 
-# Install SOPS and the helm-secrets plugin via an init container in the argocd-repo-server deployment to enable decryption of Helm values files
 repoServer:
   env:
     - name: HELM_PLUGINS

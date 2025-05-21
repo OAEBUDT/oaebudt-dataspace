@@ -17,9 +17,9 @@ eks_node_group_name                             = "general-purpose"
 eks_node_ec2_capacity_type                      = "ON_DEMAND"
 eks_node_ec2_instance_types                     = ["t3a.large"]
 eks_node_scaling_config = {
-  desired_size = 2
-  max_size     = 2
-  min_size     = 1
+  desired_size = 3
+  max_size     = 3
+  min_size     = 3
 }
 metrics_server_chart_version     = "3.12.2"
 pod_identity_addon_version       = "v1.3.5-eksbuild.2"

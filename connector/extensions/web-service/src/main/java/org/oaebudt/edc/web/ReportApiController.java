@@ -1,8 +1,6 @@
 package org.oaebudt.edc.web;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.json.Json;
-import jakarta.json.JsonException;
 import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;

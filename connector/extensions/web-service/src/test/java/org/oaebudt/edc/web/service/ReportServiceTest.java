@@ -81,7 +81,7 @@ public class ReportServiceTest {
     }
 
     @Test
-    void uploadAndCreateAsset_shouldSaveReportAndCreateAsset() throws Exception {
+    void uploadAndCreateAsset_shouldSaveReportAndCreateAsset() {
         String json = "{\"data\": \"value\"}";
         InputStream inputStream = new ByteArrayInputStream(json.getBytes());
         String title = "Test Report";

@@ -26,6 +26,7 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
@@ -119,11 +120,10 @@ public class ReportService {
         Asset asset = Asset.Builder.newInstance()
                 .id(assetId)
                 .properties(Map.of(
-                        "name", title,
-                        "contentType", "application/json",
-                        "type", reportType.name()
+                        EDC_NAMESPACE + "name", title,
+                        EDC_NAMESPACE + "type", reportType.name()
                 ))
-                .properties(assetMetadata)
+                .properties(correctPropertiesContext(assetMetadata))
                 .dataAddress(dataAddress)
                 .build();
 
@@ -183,5 +183,14 @@ public class ReportService {
         if (request.url() == null || request.url().isBlank()) {
             throw new IllegalArgumentException("Please provide asset 'url'");
         }
+    }
+
+    private Map<String, Object> correctPropertiesContext(Map<String, Object> properties) {
+
+        return properties.entrySet().stream()
+                .collect(Collectors.toMap(
+                        entry -> entry.getKey().startsWith(EDC_NAMESPACE) ? entry.getKey() : "%s%s".formatted(EDC_NAMESPACE, entry.getKey()),
+                        Map.Entry::getValue
+                ));
     }
 }

@@ -397,7 +397,16 @@ class ManagementApiTransferTest {
                 .statusCode(201);
 
         JsonArray jsonArray = CONSUMER.getCatalogDatasets(PROVIDER);
+
         Assertions.assertThat(jsonArray.toString()).contains("TITLE_REPORT");
+        Assertions.assertThat(jsonArray.toString()).contains("legalOrganizationName");
+        Assertions.assertThat(jsonArray.toString()).contains("organizationWebsite");
+        Assertions.assertThat(jsonArray.toString()).contains("http://valid.com");
+        Assertions.assertThat(jsonArray.toString()).contains("contactEmail");
+        Assertions.assertThat(jsonArray.toString()).contains("dataAccuracyLevel");
+        Assertions.assertThat(jsonArray.toString()).contains("dataGenerationTransparencyLevel");
+        Assertions.assertThat(jsonArray.toString()).contains("dataDeliveryReliabilityLevel");
+        Assertions.assertThat(jsonArray.toString()).contains("dataFrequencyLevel");
 
         final String transferProcessId = CONSUMER.requestAssetFrom("TITLE_REPORT", PROVIDER)
                 .withTransferType("HttpData-PULL")

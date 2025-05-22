@@ -6,7 +6,7 @@ grafana:
 loki:
   persistence:
     enabled: true
-    size: 5Gi
+    size: 3Gi
   server:
   query_range:
     split_queries_by_interval: 0

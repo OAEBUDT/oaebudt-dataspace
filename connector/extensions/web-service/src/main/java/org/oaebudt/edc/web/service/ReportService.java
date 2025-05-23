@@ -23,7 +23,9 @@ import org.oaebudt.edc.web.repository.ReportStore;
 
 import java.io.InputStream;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -48,8 +50,8 @@ public class ReportService {
     }
 
     public ServiceResult<Void> createAsset(CreateAssetRequest request) {
-        validateCreateAsset(request);
-        ValidationResult validationResult = MetadataValidator.validate(request.metadata());
+        ValidationResult validationResult = validateCreateAsset(request);
+        validationResult.merge(MetadataValidator.validateMetadata(request.metadata()));
 
         if(validationResult.failed()) {
             return ServiceResult.badRequest(validationResult.getErrors());
@@ -77,7 +79,7 @@ public class ReportService {
 
             Map<String, Object> metadata = objectMapper.readValue(metadataJson, new TypeReference<>() {});
 
-            ValidationResult validationResult = MetadataValidator.validate(metadata);
+            ValidationResult validationResult = MetadataValidator.validateMetadata(metadata);
             if(validationResult.failed()) {
                 return ServiceResult.badRequest(validationResult.getErrors());
             }
@@ -170,20 +172,31 @@ public class ReportService {
                 });
     }
 
-    private void validateCreateAsset(CreateAssetRequest request) {
-        if (request.title() == null || request.title().isBlank()) {
-            throw new IllegalArgumentException("Title cannot be blank");
-        }
+    private ValidationResult validateCreateAsset(CreateAssetRequest request) {
+        ValidationResult result = ValidationResult.ok();
+
+        List<ValidationResult> validationResults = new ArrayList<>();
+
+        validationResults.add(validateRequiredString(request.title(), "title"));
+        validationResults.add(validateRequiredString(request.method(), "method"));
+        validationResults.add(validateRequiredString(request.url(), "url"));
         if (request.reportType() == null) {
-            throw new IllegalArgumentException("Invalid reportType");
+            validationResults.add(ValidationResult.fail("Invalid Report type"));
         }
-        if (request.method() == null || request.method().isBlank()) {
-            throw new IllegalArgumentException("Please provide 'method'");
-        }
-        if (request.url() == null || request.url().isBlank()) {
-            throw new IllegalArgumentException("Please provide asset 'url'");
-        }
+
+        return validationResults.stream().reduce(result, (a, b)-> {
+            a.merge(b);
+            return a;
+        });
     }
+
+    private ValidationResult validateRequiredString(String value, String key) {
+        if (value == null || value.isBlank()) {
+            return ValidationResult.fail(key + " is required and must be a non-empty string");
+        }
+        return ValidationResult.ok();
+    }
+
 
     private Map<String, Object> correctPropertiesContext(Map<String, Object> properties) {
 

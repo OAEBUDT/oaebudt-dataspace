@@ -1,6 +1,8 @@
 package org.oaebudt.edc.web.service;
 
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -10,27 +12,32 @@ public class MetadataValidator {
             "^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}$", Pattern.CASE_INSENSITIVE
     );
 
-    public static ValidationResult validate(Map<String, Object> metadata) {
+    public static ValidationResult validateMetadata(Map<String, Object> metadata) {
         ValidationResult result = ValidationResult.ok();
 
-        result.merge(validateRequiredString(metadata, "legalOrganizationName"));
-        result.merge(validateRequiredString(metadata, "countryOfOrganization"));
-        result.merge(validateRequiredString(metadata, "contactPerson"));
-        result.merge(validateRequiredString(metadata, "dataProcessingDescription"));
-        result.merge(validateRequiredString(metadata, "qualityAssuranceMeasures"));
-        result.merge(validateRequiredString(metadata, "dataLicensingTerms"));
+        List<ValidationResult> validationResults = new ArrayList<>();
 
-        result.merge(validateUrl(metadata, "organizationWebsite"));
-        result.merge(validateEmail(metadata, "contactEmail"));
+        validationResults.add(validateRequiredString(metadata, "legalOrganizationName"));
+        validationResults.add(validateRequiredString(metadata, "countryOfOrganization"));
+        validationResults.add(validateRequiredString(metadata, "contactPerson"));
+        validationResults.add(validateRequiredString(metadata, "dataProcessingDescription"));
+        validationResults.add(validateRequiredString(metadata, "qualityAssuranceMeasures"));
+        validationResults.add(validateRequiredString(metadata, "dataLicensingTerms"));
 
-        result.merge(validateLevel(metadata, "dataAccuracyLevel"));
-        result.merge(validateLevel(metadata, "dataGenerationTransparencyLevel"));
-        result.merge(validateLevel(metadata, "dataDeliveryReliabilityLevel"));
-        result.merge(validateLevel(metadata, "dataFrequencyLevel"));
-        result.merge(validateLevel(metadata, "dataGranularityLevel"));
-        result.merge(validateLevel(metadata, "dataConsistencyLevel"));
+        validationResults.add(validateUrl(metadata, "organizationWebsite"));
+        validationResults.add(validateEmail(metadata, "contactEmail"));
 
-        return result;
+        validationResults.add(validateLevel(metadata, "dataAccuracyLevel"));
+        validationResults.add(validateLevel(metadata, "dataGenerationTransparencyLevel"));
+        validationResults.add(validateLevel(metadata, "dataDeliveryReliabilityLevel"));
+        validationResults.add(validateLevel(metadata, "dataFrequencyLevel"));
+        validationResults.add(validateLevel(metadata, "dataGranularityLevel"));
+        validationResults.add(validateLevel(metadata, "dataConsistencyLevel"));
+
+        return validationResults.stream().reduce(result, (a, b) -> {
+            a.merge(b);
+            return a;
+        });
     }
 
 

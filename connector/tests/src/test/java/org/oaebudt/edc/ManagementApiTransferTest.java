@@ -12,7 +12,9 @@ import static org.mockserver.model.BinaryBody.binary;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.dockerjava.zerodep.shaded.org.apache.hc.core5.http.HttpStatus;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
@@ -26,6 +28,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -46,9 +49,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockserver.integration.ClientAndServer;
-import org.oaebudt.edc.utils.*;
 import org.oaebudt.edc.utils.HashiCorpVaultEndToEndExtension;
+import org.oaebudt.edc.utils.IssuerEndToEndEntension;
 import org.oaebudt.edc.utils.KeycloakEndToEndExtension;
+import org.oaebudt.edc.utils.MongoEndToEndExtension;
+import org.oaebudt.edc.utils.OaebudtParticipant;
+import org.oaebudt.edc.utils.PostgresEndToEndExtension;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 
@@ -65,6 +71,10 @@ class ManagementApiTransferTest {
     private static final String CONNECTOR_MODULE_PATH = ":launchers:runtime-embedded";
 
     private static final String IDENTITY_HUB_MODULE_PATH = ":launchers:identity-hub";
+
+    ObjectMapper objectMapper = new ObjectMapper();
+
+    private final String metadata = buildMetadata();
 
     private static final OaebudtParticipant PROVIDER = OaebudtParticipant.Builder.newInstance()
             .id("did:web:localhost%3A6100").name("provider")
@@ -344,12 +354,12 @@ class ManagementApiTransferTest {
         final var consumerEdrReceiver = ClientAndServer.startClientAndServer(getFreePort());
         consumerEdrReceiver.when(request("/edr")).respond(response());
 
-        String jsonBody = """
-            {
-              "groupName": "friends",
-              "participants": ["%s"]
-            }
-        """.formatted(CONSUMER.getId());
+        Map<String, Object> jsonBodyMap = Map.of(
+                "groupName", "friends",
+                "participants", List.of(CONSUMER.getId())
+        );
+
+        String jsonBody = objectMapper.writeValueAsString(jsonBodyMap);
 
         RestAssured
                 .given()
@@ -361,12 +371,12 @@ class ManagementApiTransferTest {
                 .then()
                 .statusCode(201);
 
-        String jsonContent = """
-            {
-              "userId": 123,
-              "status": "active"
-            }
-        """;
+        Map<String, Object> jsonContentMap = Map.of(
+                "userId", 123,
+                "status", "active"
+        );
+
+        String jsonContent = objectMapper.writeValueAsString(jsonContentMap);
 
         RestAssured
                 .given()
@@ -379,6 +389,7 @@ class ManagementApiTransferTest {
                 )
                 .multiPart("reportType", "TITLE_REPORT")
                 .multiPart("title", "Report_IR")
+                .multiPart("metadata", metadata)
                 .multiPart("accessDefinition", "allow-friends")// additional form data
                 .when()
                 .post(reportUri)
@@ -386,7 +397,16 @@ class ManagementApiTransferTest {
                 .statusCode(201);
 
         JsonArray jsonArray = CONSUMER.getCatalogDatasets(PROVIDER);
+
         Assertions.assertThat(jsonArray.toString()).contains("TITLE_REPORT");
+        Assertions.assertThat(jsonArray.toString()).contains("legalOrganizationName");
+        Assertions.assertThat(jsonArray.toString()).contains("organizationWebsite");
+        Assertions.assertThat(jsonArray.toString()).contains("http://valid.com");
+        Assertions.assertThat(jsonArray.toString()).contains("contactEmail");
+        Assertions.assertThat(jsonArray.toString()).contains("dataAccuracyLevel");
+        Assertions.assertThat(jsonArray.toString()).contains("dataGenerationTransparencyLevel");
+        Assertions.assertThat(jsonArray.toString()).contains("dataDeliveryReliabilityLevel");
+        Assertions.assertThat(jsonArray.toString()).contains("dataFrequencyLevel");
 
         final String transferProcessId = CONSUMER.requestAssetFrom("TITLE_REPORT", PROVIDER)
                 .withTransferType("HttpData-PULL")
@@ -420,19 +440,19 @@ class ManagementApiTransferTest {
     }
 
     @Test
-    public void shouldUploadReportAndConsumerShouldNotConsumeReport_InvalidAccessLevel() {
+    public void shouldUploadReportAndConsumerShouldNotConsumeReport_InvalidAccessLevel() throws JsonProcessingException {
         PROVIDER.setAuthorizationToken(KEYCLOAK_EXTENSION.getToken());
         CONSUMER.setAuthorizationToken(KEYCLOAK_EXTENSION.getToken());
         String reportUri =PROVIDER.getWebServiceUrl().get().toString() + "report/upload";
         String participantUri = PROVIDER.getWebServiceUrl().get().toString() + "participant/group";
         String accessToken = KEYCLOAK_EXTENSION.getToken();
 
-        String allowNobodyJsonBody = """
-            {
-              "groupName": "nobody",
-              "participants": []
-            }
-        """;
+        Map<String, Object> jsonMap = Map.of(
+                "groupName", "nobody",
+                "participants", List.of()
+        );
+
+        String allowNobodyJsonBody = objectMapper.writeValueAsString(jsonMap);
 
         RestAssured
                 .given()
@@ -445,12 +465,12 @@ class ManagementApiTransferTest {
                 .statusCode(201);
 
 
-        String jsonContent = """
-            {
-              "userId": 123,
-              "status": "active"
-            }
-        """;
+        Map<String, Object> jsonContentMap = Map.of(
+                "userId", 123,
+                "status", "active"
+        );
+
+        String jsonContent = objectMapper.writeValueAsString(jsonContentMap);
 
         RestAssured
                 .given()
@@ -463,6 +483,7 @@ class ManagementApiTransferTest {
                 )
                 .multiPart("reportType", "ITEM_REPORT")
                 .multiPart("title", "Report_IR")
+                .multiPart("metadata", metadata)
                 .multiPart("accessDefinition", "allow-nobody")// additional form data
                 .when()
                 .post(reportUri)
@@ -567,5 +588,31 @@ class ManagementApiTransferTest {
             .then()
             .log().ifValidationFails()
             .extract().response();
+    }
+
+    private static String buildMetadata() {
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode metadata = mapper.createObjectNode();
+
+        metadata.put("legalOrganizationName", "Org");
+        metadata.put("countryOfOrganization", "US");
+        metadata.put("contactPerson", "Jane");
+        metadata.put("dataProcessingDescription", "desc");
+        metadata.put("qualityAssuranceMeasures", "qa");
+        metadata.put("dataLicensingTerms", "terms");
+        metadata.put("organizationWebsite", "http://valid.com");
+        metadata.put("contactEmail", "valid@example.com");
+        metadata.put("dataAccuracyLevel", 1);
+        metadata.put("dataGenerationTransparencyLevel", 1);
+        metadata.put("dataDeliveryReliabilityLevel", 1);
+        metadata.put("dataFrequencyLevel", 1);
+        metadata.put("dataGranularityLevel", 1);
+        metadata.put("dataConsistencyLevel", 1);
+
+        try {
+            return mapper.writeValueAsString(metadata);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Failed to serialize JSON metadata", e);
+        }
     }
 }

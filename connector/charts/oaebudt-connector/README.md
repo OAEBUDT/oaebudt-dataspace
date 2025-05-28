@@ -108,13 +108,9 @@ A Helm chart for deploying a proof-of-concept (PoC) Data Space Connector, includ
 | keycloak.install | bool | `true` | Switch to enable or disable the Keycloak helm chart |
 | keycloak.keycloakConfigCli.enabled | bool | `true` |  |
 | keycloak.keycloakConfigCli.existingConfigmap | string | `"participant-realm"` |  |
-| keycloak.keycloakConfigCli.extraEnvVars[0].name | string | `"IMPORT_VARSUBSTITUTION_ENABLED"` |  |
-| keycloak.keycloakConfigCli.extraEnvVars[0].value | string | `"true"` |  |
-| keycloak.keycloakConfigCli.extraEnvVars[1].name | string | `"CLIENT_SECRET"` |  |
-| keycloak.keycloakConfigCli.extraEnvVars[1].valueFrom.secretKeyRef.key | string | `"clientSecret"` |  |
-| keycloak.keycloakConfigCli.extraEnvVars[1].valueFrom.secretKeyRef.name | string | `"keycloak-realm-secrets"` |  |
 | keycloak.participantRealm.accessTokenLifespan | int | `3600` |  |
 | keycloak.participantRealm.realm | string | `""` |  |
+| keycloak.participantRealm.realmClientSecret | string | `""` |  |
 | keycloak.participantRealm.userEmail | string | `""` |  |
 | keycloak.participantRealm.userFirstName | string | `""` |  |
 | keycloak.participantRealm.userLastName | string | `""` |  |

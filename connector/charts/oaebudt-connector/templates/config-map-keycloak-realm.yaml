@@ -55,7 +55,7 @@ data:
           "serviceAccountsEnabled": true,
           "clientAuthenticatorType": "client-secret",
           "publicClient": false,
-          "secret": "$(env:CLIENT_SECRET)"
+          "secret": {{ .Values.keycloak.participantRealm.realmClientSecret | required ".Values.keycloak.participantRealm.realmClientSecret is required " | quote}}
         }
       ]
     }

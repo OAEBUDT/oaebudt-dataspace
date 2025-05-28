@@ -362,17 +362,10 @@ keycloak:
   # Importation of a participant's realm configuration
   keycloakConfigCli:
     enabled: true  # Enable Keycloak configuration CLI
-    extraEnvVars:
-      - name: IMPORT_VARSUBSTITUTION_ENABLED
-        value: "true"
-      - name: CLIENT_SECRET
-        valueFrom:
-          secretKeyRef:
-            name: keycloak-realm-secrets
-            key: clientSecret
     existingConfigmap: "participant-realm" # Name of the ConfigMap containing the Keycloak realm to import
   participantRealm:
     realm: ""  # Name of the participant's realm (should match the realm file)
+    realmClientSecret: ""  # Client secret for the participant's realm
     accessTokenLifespan: 3600  # Access token lifespan in seconds (1 hour)
     username: ""  # Admin or initial user username (optional if not setting up users manually)
     userPassword: ""  # Password for the initial user

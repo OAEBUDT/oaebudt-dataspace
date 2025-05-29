@@ -18,6 +18,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.dockerjava.zerodep.shaded.org.apache.hc.core5.http.HttpStatus;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
+import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import jakarta.json.Json;
 import jakarta.json.JsonArray;
@@ -30,8 +31,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 import jakarta.json.JsonObjectBuilder;
 import org.assertj.core.api.Assertions;
@@ -43,6 +46,7 @@ import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.jboss.resteasy.util.HttpHeaderNames;
+import org.junit.Assert;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -378,7 +382,7 @@ class ManagementApiTransferTest {
 
         String jsonContent = objectMapper.writeValueAsString(jsonContentMap);
 
-        RestAssured
+        Response response = RestAssured
                 .given()
                 .header(HttpHeaderNames.AUTHORIZATION, "Bearer " + accessToken)
                 .multiPart(
@@ -392,9 +396,11 @@ class ManagementApiTransferTest {
                 .multiPart("metadata", metadata)
                 .multiPart("accessDefinition", "allow-friends")// additional form data
                 .when()
-                .post(reportUri)
-                .then()
-                .statusCode(201);
+                .post(reportUri);
+
+        response.then().statusCode(201);
+        String assetId = response.jsonPath().getString("assetId");
+
 
         JsonArray jsonArray = CONSUMER.getCatalogDatasets(PROVIDER);
 
@@ -408,7 +414,7 @@ class ManagementApiTransferTest {
         Assertions.assertThat(jsonArray.toString()).contains("dataDeliveryReliabilityLevel");
         Assertions.assertThat(jsonArray.toString()).contains("dataFrequencyLevel");
 
-        final String transferProcessId = CONSUMER.requestAssetFrom("TITLE_REPORT", PROVIDER)
+        final String transferProcessId = CONSUMER.requestAssetFrom(assetId, PROVIDER)
                 .withTransferType("HttpData-PULL")
                 .withCallbacks(Json.createArrayBuilder()
                         .add(createCallback("http://localhost:%s/edr".formatted(consumerEdrReceiver.getPort()), true, Set.of("transfer.process.started")))
@@ -437,6 +443,77 @@ class ManagementApiTransferTest {
         Assertions.assertThat(body.getString("reportType")).isEqualTo("TITLE_REPORT");
 
         consumerEdrReceiver.stop();
+    }
+    @Test
+    public void shouldUploadReportAndConsumerShouldAllowMultipleSameTypeReportInCatalog() throws IOException {
+        PROVIDER.setAuthorizationToken(KEYCLOAK_EXTENSION.getToken());
+        CONSUMER.setAuthorizationToken(KEYCLOAK_EXTENSION.getToken());
+        String reportUri = PROVIDER.getWebServiceUrl().get().toString() + "report/upload";
+        String participantUri = PROVIDER.getWebServiceUrl().get().toString() + "participant/group";
+        String accessToken = KEYCLOAK_EXTENSION.getToken();
+        final var consumerEdrReceiver = ClientAndServer.startClientAndServer(getFreePort());
+        consumerEdrReceiver.when(request("/edr")).respond(response());
+
+        Map<String, Object> jsonBodyMap = Map.of(
+                "groupName", "friends",
+                "participants", List.of(CONSUMER.getId())
+        );
+
+        String jsonBody = objectMapper.writeValueAsString(jsonBodyMap);
+
+        RestAssured
+                .given()
+                .header("Content-Type", "application/json")
+                .header(HttpHeaderNames.AUTHORIZATION, "Bearer " + accessToken)
+                .body(jsonBody)
+                .when()
+                .post(participantUri)
+                .then()
+                .statusCode(201);
+
+        Map<String, Object> jsonContentMap = Map.of(
+                "userId", 123,
+                "status", "active"
+        );
+
+        String jsonContent = objectMapper.writeValueAsString(jsonContentMap);
+
+        sendMultipartRequest(accessToken, jsonContent, metadata, reportUri);
+        sendMultipartRequest(accessToken, jsonContent, metadata, reportUri);
+
+
+        JsonArray jsonArray = CONSUMER.getCatalogDatasets(PROVIDER);
+
+        Pattern pattern = Pattern.compile("^TITLE_REPORT.*");
+
+        long count = jsonArray.stream()
+                .map(JsonObject.class::cast)
+                .map(obj -> obj.getString("@id", ""))
+                .filter(id -> pattern.matcher(id).matches())
+                .count();
+
+        Assertions.assertThat(count > 1).isTrue();
+
+    }
+
+    private static void sendMultipartRequest(String accessToken, String jsonContent, String metadata, String reportUri) {
+        RestAssured
+                .given()
+                .header(HttpHeaderNames.AUTHORIZATION, "Bearer " + accessToken)
+                .multiPart(
+                        "file",
+                        "data.json",
+                        new ByteArrayInputStream(jsonContent.getBytes(StandardCharsets.UTF_8)),
+                        "application/json"
+                )
+                .multiPart("reportType", "TITLE_REPORT")
+                .multiPart("title", "Report_IR")
+                .multiPart("metadata", metadata)
+                .multiPart("accessDefinition", "allow-friends")
+                .when()
+                .post(reportUri)
+                .then()
+                .statusCode(201);
     }
 
     @Test

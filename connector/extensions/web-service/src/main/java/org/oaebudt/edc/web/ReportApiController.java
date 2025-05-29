@@ -8,7 +8,6 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.oaebudt.edc.web.dto.CreateAssetRequest;
 import org.oaebudt.edc.web.model.ReportType;
@@ -25,10 +24,8 @@ import static jakarta.ws.rs.core.MediaType.WILDCARD;
 public class ReportApiController {
 
     private final ReportService reportService;
-    private final Monitor monitor;
 
-    public ReportApiController(Monitor monitor, ReportService reportService) {
-        this.monitor = monitor;
+    public ReportApiController(ReportService reportService) {
         this.reportService = reportService;
     }
 
@@ -38,8 +35,8 @@ public class ReportApiController {
     public Response createAsset(CreateAssetRequest request) {
 
         return reportService.createAsset(request)
-                .map(unused -> Response.status(Response.Status.CREATED)
-                        .entity(Json.createObjectBuilder().add("message", "Asset created successfully").build().toString())
+                .map(assetId -> Response.status(Response.Status.CREATED)
+                        .entity(Json.createObjectBuilder().add("message", "Asset created successfully").add("assetId", assetId).build().toString())
                         .build()).orElse(serviceFailure -> badRequest("Something went wrong", serviceFailure.getFailureDetail()));
     }
 
@@ -55,8 +52,8 @@ public class ReportApiController {
                                @FormDataParam("reportType") ReportType reportType) {
 
         return reportService.uploadAndCreateAsset(uploadedInputStream, title, accessDefinition, metadataJson, reportType)
-                .map(unused -> Response.status(Response.Status.CREATED)
-                        .entity(Json.createObjectBuilder().add("message", "Asset created successfully").build().toString())
+                .map(assetId -> Response.status(Response.Status.CREATED)
+                        .entity(Json.createObjectBuilder().add("message", "Asset created successfully").add("assetId", assetId).build().toString())
                         .build()).orElse(serviceFailure -> badRequest("Something went wrong", serviceFailure.getFailureDetail()));
     }
 

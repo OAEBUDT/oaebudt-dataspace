@@ -28,6 +28,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
@@ -49,7 +50,7 @@ public class ReportService {
         this.consumerApiBaseUrl = consumerApiBaseUrl;
     }
 
-    public ServiceResult<Void> createAsset(CreateAssetRequest request) {
+    public ServiceResult<String> createAsset(CreateAssetRequest request) {
         ValidationResult validationResult = validateCreateAsset(request);
         validationResult.merge(MetadataValidator.validateMetadata(request.metadata()));
 
@@ -57,7 +58,9 @@ public class ReportService {
             return ServiceResult.badRequest(validationResult.getErrors());
         }
 
+        String assetId = "%s-%s".formatted(request.reportType(), UUID.randomUUID());
         createAssetInConnector(
+                assetId,
                 request.title(),
                 request.metadata(),
                 request.reportType(),
@@ -68,10 +71,10 @@ public class ReportService {
                 request.authCode(),
                 request.headers()
         );
-        return ServiceResult.success();
+        return ServiceResult.success(assetId);
     }
 
-    public ServiceResult<Void> uploadAndCreateAsset(InputStream file, String title, String accessDefinition, String metadataJson, ReportType reportType) {
+    public ServiceResult<String> uploadAndCreateAsset(InputStream file, String title, String accessDefinition, String metadataJson, ReportType reportType) {
         try (JsonReader reader = Json.createReader(file)) {
             if (Objects.isNull(accessDefinition)) {
                 return ServiceResult.badRequest("Invalid access definition");
@@ -93,9 +96,10 @@ public class ReportService {
             reportStore.saveReport(enriched.toString(), reportType);
 
             String uri = consumerApiBaseUrl.resolve("report?reportType=" + reportType.name()).toString();
-            createAssetInConnector(title, metadata, reportType, accessDefinition, uri, "GET", null, null, Collections.emptyMap());
+            String assetId = "%s-%s".formatted(reportType, UUID.randomUUID());
+            createAssetInConnector(assetId, title, metadata, reportType, accessDefinition, uri, "GET", null, null, Collections.emptyMap());
 
-            return ServiceResult.success();
+            return ServiceResult.success(assetId);
         } catch (JsonProcessingException e) {
             return ServiceResult.badRequest("Invalid metadata json: " + e.getMessage());
         } catch (JsonException e) {
@@ -104,7 +108,7 @@ public class ReportService {
 
     }
 
-    private void createAssetInConnector(String title, Map<String, Object> assetMetadata, ReportType reportType,
+    private void createAssetInConnector(String assetId, String title, Map<String, Object> assetMetadata, ReportType reportType,
                                         String accessDefinition, String uri, String method,
                                         String authKey, String authCode, Map<String, Object> headers) {
 
@@ -117,8 +121,6 @@ public class ReportService {
                 .properties(headers)
                 .build();
 
-        String assetId = reportType.name();
-
         Asset asset = Asset.Builder.newInstance()
                 .id(assetId)
                 .properties(Map.of(
@@ -130,16 +132,16 @@ public class ReportService {
                 .build();
 
         assetService.create(asset)
-                .onSuccess(pd -> monitor.info("Asset '%s' created".formatted(reportType.name())))
+                .onSuccess(pd -> monitor.info("Asset '%s' created".formatted(assetId)))
                 .onFailure(failure -> {
                     if (failure.getReason() == ServiceFailure.Reason.CONFLICT) {
-                        monitor.info("Asset already exists: %s".formatted(reportType.name()));
+                        monitor.info("Asset already exists: %s".formatted(assetId));
                     } else {
                         monitor.warning("Failed to create asset: %s".formatted(failure.getReason()));
                     }
                 });
 
-        createContractDefinition(accessDefinition + "-" + reportType.name(), accessDefinition, assetId);
+        createContractDefinition(accessDefinition + "-" + assetId, accessDefinition, assetId);
     }
 
     private void createContractDefinition(String contractDefinitionId, String policyId, String assetId) {

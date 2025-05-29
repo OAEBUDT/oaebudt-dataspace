@@ -106,7 +106,7 @@ public class ReportServiceTest {
         String accessDefinition = "public";
         ReportType reportType = ReportType.ITEM_REPORT;
 
-        ServiceResult<Void> result = reportService.uploadAndCreateAsset(inputStream, title, accessDefinition, metadata, reportType);
+        ServiceResult<String> result = reportService.uploadAndCreateAsset(inputStream, title, accessDefinition, metadata, reportType);
         assertTrue(result.failed());
         assertTrue(result.getFailureDetail().contains("Invalid report json:"));
     }
@@ -117,7 +117,7 @@ public class ReportServiceTest {
         String title = "Test Report";
         ReportType reportType = ReportType.ITEM_REPORT;
 
-        ServiceResult<Void> result = reportService.uploadAndCreateAsset(inputStream, title, null, metadata, reportType);
+        ServiceResult<String> result = reportService.uploadAndCreateAsset(inputStream, title, null, metadata, reportType);
 
         assertTrue(result.failed());
         assertEquals("Invalid access definition", result.getFailureDetail());
@@ -132,7 +132,7 @@ public class ReportServiceTest {
         String accessDefinition = "public";
         ReportType reportType = ReportType.ITEM_REPORT;
 
-        ServiceResult<Void> result = reportService.uploadAndCreateAsset(inputStream, title, accessDefinition, jsonMetadata, reportType);
+        ServiceResult<String> result = reportService.uploadAndCreateAsset(inputStream, title, accessDefinition, jsonMetadata, reportType);
 
         assertTrue(result.failed());
         assertTrue(result.getFailureDetail().contains(expectedErrorMessage));

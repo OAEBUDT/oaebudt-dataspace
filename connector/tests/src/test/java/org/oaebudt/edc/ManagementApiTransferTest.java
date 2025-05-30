@@ -31,7 +31,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -46,7 +45,6 @@ import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.jboss.resteasy.util.HttpHeaderNames;
-import org.junit.Assert;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -478,25 +476,24 @@ class ManagementApiTransferTest {
 
         String jsonContent = objectMapper.writeValueAsString(jsonContentMap);
 
-        sendMultipartRequest(accessToken, jsonContent, metadata, reportUri);
-        sendMultipartRequest(accessToken, jsonContent, metadata, reportUri);
+        uploadReportMultipart(accessToken, jsonContent, metadata, reportUri);
+        uploadReportMultipart(accessToken, jsonContent, metadata, reportUri);
 
 
-        JsonArray jsonArray = CONSUMER.getCatalogDatasets(PROVIDER);
+        JsonArray datasets = CONSUMER.getCatalogDatasets(PROVIDER);
 
         Pattern pattern = Pattern.compile("^TITLE_REPORT.*");
 
-        long count = jsonArray.stream()
+        long count = datasets.stream()
                 .map(JsonObject.class::cast)
                 .map(obj -> obj.getString("@id", ""))
                 .filter(id -> pattern.matcher(id).matches())
                 .count();
 
-        Assertions.assertThat(count > 1).isTrue();
-
+        Assertions.assertThat(count).isGreaterThan(1);
     }
 
-    private static void sendMultipartRequest(String accessToken, String jsonContent, String metadata, String reportUri) {
+    private static void uploadReportMultipart(String accessToken, String jsonContent, String metadata, String reportUri) {
         RestAssured
                 .given()
                 .header(HttpHeaderNames.AUTHORIZATION, "Bearer " + accessToken)

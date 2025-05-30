@@ -58,7 +58,7 @@ public class ReportService {
             return ServiceResult.badRequest(validationResult.getErrors());
         }
 
-        String assetId = "%s-%s".formatted(request.reportType(), UUID.randomUUID());
+        String assetId = getUniqueAssetId(request.reportType());
         createAssetInConnector(
                 assetId,
                 request.title(),
@@ -72,6 +72,10 @@ public class ReportService {
                 request.headers()
         );
         return ServiceResult.success(assetId);
+    }
+
+    private String getUniqueAssetId(ReportType reportType) {
+        return "%s-%s".formatted(reportType, UUID.randomUUID());
     }
 
     public ServiceResult<String> uploadAndCreateAsset(InputStream file, String title, String accessDefinition, String metadataJson, ReportType reportType) {
@@ -96,7 +100,7 @@ public class ReportService {
             reportStore.saveReport(enriched.toString(), reportType);
 
             String uri = consumerApiBaseUrl.resolve("report?reportType=" + reportType.name()).toString();
-            String assetId = "%s-%s".formatted(reportType, UUID.randomUUID());
+            String assetId = getUniqueAssetId(reportType);
             createAssetInConnector(assetId, title, metadata, reportType, accessDefinition, uri, "GET", null, null, Collections.emptyMap());
 
             return ServiceResult.success(assetId);

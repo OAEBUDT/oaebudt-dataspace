@@ -21,6 +21,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.function.Consumer;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -92,11 +93,13 @@ public class ReportServiceTest {
         when(contractDefinitionService.findById(anyString())).thenReturn(null);
         when(contractDefinitionService.create(any(ContractDefinition.class))).thenReturn(ServiceResult.success());
 
-        reportService.uploadAndCreateAsset(inputStream, title, accessDefinition, metadata, reportType);
+        ServiceResult<String> result = reportService.uploadAndCreateAsset(inputStream, title, accessDefinition, metadata, reportType);
 
         verify(reportStore).saveReport(anyString(), eq(reportType));
         verify(assetService).create(any(Asset.class));
         verify(contractDefinitionService).create(any(ContractDefinition.class));
+        Pattern pattern = Pattern.compile("^ITEM_REPORT.*");
+        assertTrue(pattern.matcher(result.getContent()).matches());
     }
 
     @Test

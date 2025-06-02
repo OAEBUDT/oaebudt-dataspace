@@ -4,7 +4,7 @@ helm:
     value: 605134435349.dkr.ecr.us-east-1.amazonaws.com/oaebudt-dataspace/connector
     forcestring: false
   - name: image.tag
-    value: 023d8b7
+    value: e27b7d8
     forcestring: true
   - name: image.name
     value: 605134435349.dkr.ecr.us-east-1.amazonaws.com/oaebudt-dataspace/connector

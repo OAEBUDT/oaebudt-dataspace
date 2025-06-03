@@ -201,12 +201,13 @@ class ManagementApiTransferTest {
 
         createIdentityHubParticipant(IDENTITY_HUB_PROVIDER, providerManifest, OaebudtParticipant.IH_API_SUPERUSER_KEY);
         createIdentityHubParticipant(IDENTITY_HUB_CONSUMER, consumerManifest, OaebudtParticipant.IH_API_SUPERUSER_KEY);
+
+        PROVIDER.setAuthorizationToken(KEYCLOAK_EXTENSION.getToken());
+        CONSUMER.setAuthorizationToken(KEYCLOAK_EXTENSION.getToken());
     }
 
     @Test
     public void shouldSupportPushTransfer() {
-        PROVIDER.setAuthorizationToken(KEYCLOAK_EXTENSION.getToken());
-        CONSUMER.setAuthorizationToken(KEYCLOAK_EXTENSION.getToken());
 
         final var providerDataSource = ClientAndServer.startClientAndServer(getFreePort());
         providerDataSource.when(request("/source")).respond(response("data"));
@@ -236,8 +237,6 @@ class ManagementApiTransferTest {
 
     @Test
     public void shouldSupportPullTransfer() throws IOException {
-        PROVIDER.setAuthorizationToken(KEYCLOAK_EXTENSION.getToken());
-        CONSUMER.setAuthorizationToken(KEYCLOAK_EXTENSION.getToken());
 
         final var providerDataSource = ClientAndServer.startClientAndServer(getFreePort());
         providerDataSource.when(request("/source")).respond(response("data"));
@@ -283,7 +282,6 @@ class ManagementApiTransferTest {
 
     @Test
     public void shouldGetContractOfferViaFederatedCatalog() {
-        PROVIDER.setAuthorizationToken(KEYCLOAK_EXTENSION.getToken());
 
         final Map<String, Object> dataAddressProperties = Map.of(
                 "type", "HttpData-PULL",
@@ -348,8 +346,6 @@ class ManagementApiTransferTest {
 
     @Test
     public void shouldUploadReportAndConsumerShouldConsumeReport() throws IOException {
-        PROVIDER.setAuthorizationToken(KEYCLOAK_EXTENSION.getToken());
-        CONSUMER.setAuthorizationToken(KEYCLOAK_EXTENSION.getToken());
         String reportUri = PROVIDER.getWebServiceUrl().get().toString() + "report/upload";
         String participantUri = PROVIDER.getWebServiceUrl().get().toString() + "participant/group";
         String accessToken = KEYCLOAK_EXTENSION.getToken();
@@ -394,9 +390,10 @@ class ManagementApiTransferTest {
                 .multiPart("metadata", metadata)
                 .multiPart("accessDefinition", "allow-friends")// additional form data
                 .when()
-                .post(reportUri);
+                .post(reportUri)
+                .then().statusCode(201)
+                .extract().response();
 
-        response.then().statusCode(201);
         String assetId = response.jsonPath().getString("assetId");
 
 
@@ -444,8 +441,6 @@ class ManagementApiTransferTest {
     }
     @Test
     public void shouldUploadReportAndConsumerShouldAllowMultipleSameTypeReportInCatalog() throws IOException {
-        PROVIDER.setAuthorizationToken(KEYCLOAK_EXTENSION.getToken());
-        CONSUMER.setAuthorizationToken(KEYCLOAK_EXTENSION.getToken());
         String reportUri = PROVIDER.getWebServiceUrl().get().toString() + "report/upload";
         String participantUri = PROVIDER.getWebServiceUrl().get().toString() + "participant/group";
         String accessToken = KEYCLOAK_EXTENSION.getToken();
@@ -482,15 +477,10 @@ class ManagementApiTransferTest {
 
         JsonArray datasets = CONSUMER.getCatalogDatasets(PROVIDER);
 
-        Pattern pattern = Pattern.compile("^TITLE_REPORT.*");
-
-        long count = datasets.stream()
+        Assertions.assertThat(datasets)
                 .map(JsonObject.class::cast)
                 .map(obj -> obj.getString("@id", ""))
-                .filter(id -> pattern.matcher(id).matches())
-                .count();
-
-        Assertions.assertThat(count).isGreaterThan(1);
+                .anyMatch(it -> it.startsWith("TITLE_REPORT"));
     }
 
     private static void uploadReportMultipart(String accessToken, String jsonContent, String metadata, String reportUri) {
@@ -515,8 +505,6 @@ class ManagementApiTransferTest {
 
     @Test
     public void shouldUploadReportAndConsumerShouldNotConsumeReport_InvalidAccessLevel() throws JsonProcessingException {
-        PROVIDER.setAuthorizationToken(KEYCLOAK_EXTENSION.getToken());
-        CONSUMER.setAuthorizationToken(KEYCLOAK_EXTENSION.getToken());
         String reportUri =PROVIDER.getWebServiceUrl().get().toString() + "report/upload";
         String participantUri = PROVIDER.getWebServiceUrl().get().toString() + "participant/group";
         String accessToken = KEYCLOAK_EXTENSION.getToken();

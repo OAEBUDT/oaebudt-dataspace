@@ -59,17 +59,20 @@ public class ReportService {
         }
 
         String assetId = getUniqueAssetId(request.reportType());
+
+        DataAddress dataAddress = getDataAddress( request.url(),
+                request.method(),
+                request.authHeaderKey(),
+                request.authCode(),
+                request.headers());
+
         createAssetInConnector(
                 assetId,
                 request.title(),
                 request.metadata(),
                 request.reportType(),
                 request.accessDefinition(),
-                request.url(),
-                request.method(),
-                request.authHeaderKey(),
-                request.authCode(),
-                request.headers()
+                dataAddress
         );
         return ServiceResult.success(assetId);
     }
@@ -101,7 +104,8 @@ public class ReportService {
 
             String uri = consumerApiBaseUrl.resolve("report?reportType=" + reportType.name()).toString();
             String assetId = getUniqueAssetId(reportType);
-            createAssetInConnector(assetId, title, metadata, reportType, accessDefinition, uri, "GET", null, null, Collections.emptyMap());
+            DataAddress dataAddress = getDataAddress(uri, "GET", null, null, Collections.emptyMap());
+            createAssetInConnector(assetId, title, metadata, reportType, accessDefinition, dataAddress);
 
             return ServiceResult.success(assetId);
         } catch (JsonProcessingException e) {
@@ -113,17 +117,7 @@ public class ReportService {
     }
 
     private void createAssetInConnector(String assetId, String title, Map<String, Object> assetMetadata, ReportType reportType,
-                                        String accessDefinition, String uri, String method,
-                                        String authKey, String authCode, Map<String, Object> headers) {
-
-        DataAddress dataAddress = HttpDataAddress.Builder.newInstance()
-                .type("HttpData")
-                .baseUrl(uri)
-                .authKey(authKey)
-                .authCode(authCode)
-                .method(method)
-                .properties(headers)
-                .build();
+                                        String accessDefinition, DataAddress dataAddress) {
 
         Asset asset = Asset.Builder.newInstance()
                 .id(assetId)
@@ -146,6 +140,17 @@ public class ReportService {
                 });
 
         createContractDefinition(accessDefinition + "-" + assetId, accessDefinition, assetId);
+    }
+
+    private DataAddress getDataAddress(String uri, String method, String authKey, String authCode, Map<String, Object> headers) {
+        return HttpDataAddress.Builder.newInstance()
+                .type("HttpData")
+                .baseUrl(uri)
+                .authKey(authKey)
+                .authCode(authCode)
+                .method(method)
+                .properties(headers)
+                .build();
     }
 
     private void createContractDefinition(String contractDefinitionId, String policyId, String assetId) {

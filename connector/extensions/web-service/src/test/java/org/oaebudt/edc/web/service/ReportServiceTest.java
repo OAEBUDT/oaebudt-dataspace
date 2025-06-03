@@ -3,6 +3,7 @@ package org.oaebudt.edc.web.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.assertj.core.api.Assertions;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.controlplane.services.spi.asset.AssetService;
@@ -21,7 +22,6 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.function.Consumer;
-import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -98,8 +98,8 @@ public class ReportServiceTest {
         verify(reportStore).saveReport(anyString(), eq(reportType));
         verify(assetService).create(any(Asset.class));
         verify(contractDefinitionService).create(any(ContractDefinition.class));
-        Pattern pattern = Pattern.compile("^ITEM_REPORT.*");
-        assertTrue(pattern.matcher(result.getContent()).matches());
+        Assertions.assertThat(result.succeeded()).isTrue();
+        Assertions.assertThat(result.getContent()).startsWith("ITEM_REPORT");
     }
 
     @Test

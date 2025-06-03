@@ -28,6 +28,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
@@ -49,7 +50,7 @@ public class ReportService {
         this.consumerApiBaseUrl = consumerApiBaseUrl;
     }
 
-    public ServiceResult<Void> createAsset(CreateAssetRequest request) {
+    public ServiceResult<String> createAsset(CreateAssetRequest request) {
         ValidationResult validationResult = validateCreateAsset(request);
         validationResult.merge(MetadataValidator.validateMetadata(request.metadata()));
 
@@ -57,21 +58,30 @@ public class ReportService {
             return ServiceResult.badRequest(validationResult.getErrors());
         }
 
+        String assetId = getUniqueAssetId(request.reportType());
+
+        DataAddress dataAddress = getDataAddress( request.url(),
+                request.method(),
+                request.authHeaderKey(),
+                request.authCode(),
+                request.headers());
+
         createAssetInConnector(
+                assetId,
                 request.title(),
                 request.metadata(),
                 request.reportType(),
                 request.accessDefinition(),
-                request.url(),
-                request.method(),
-                request.authHeaderKey(),
-                request.authCode(),
-                request.headers()
+                dataAddress
         );
-        return ServiceResult.success();
+        return ServiceResult.success(assetId);
     }
 
-    public ServiceResult<Void> uploadAndCreateAsset(InputStream file, String title, String accessDefinition, String metadataJson, ReportType reportType) {
+    private String getUniqueAssetId(ReportType reportType) {
+        return "%s-%s".formatted(reportType, UUID.randomUUID());
+    }
+
+    public ServiceResult<String> uploadAndCreateAsset(InputStream file, String title, String accessDefinition, String metadataJson, ReportType reportType) {
         try (JsonReader reader = Json.createReader(file)) {
             if (Objects.isNull(accessDefinition)) {
                 return ServiceResult.badRequest("Invalid access definition");
@@ -93,9 +103,11 @@ public class ReportService {
             reportStore.saveReport(enriched.toString(), reportType);
 
             String uri = consumerApiBaseUrl.resolve("report?reportType=" + reportType.name()).toString();
-            createAssetInConnector(title, metadata, reportType, accessDefinition, uri, "GET", null, null, Collections.emptyMap());
+            String assetId = getUniqueAssetId(reportType);
+            DataAddress dataAddress = getDataAddress(uri, "GET", null, null, Collections.emptyMap());
+            createAssetInConnector(assetId, title, metadata, reportType, accessDefinition, dataAddress);
 
-            return ServiceResult.success();
+            return ServiceResult.success(assetId);
         } catch (JsonProcessingException e) {
             return ServiceResult.badRequest("Invalid metadata json: " + e.getMessage());
         } catch (JsonException e) {
@@ -104,20 +116,8 @@ public class ReportService {
 
     }
 
-    private void createAssetInConnector(String title, Map<String, Object> assetMetadata, ReportType reportType,
-                                        String accessDefinition, String uri, String method,
-                                        String authKey, String authCode, Map<String, Object> headers) {
-
-        DataAddress dataAddress = HttpDataAddress.Builder.newInstance()
-                .type("HttpData")
-                .baseUrl(uri)
-                .authKey(authKey)
-                .authCode(authCode)
-                .method(method)
-                .properties(headers)
-                .build();
-
-        String assetId = reportType.name();
+    private void createAssetInConnector(String assetId, String title, Map<String, Object> assetMetadata, ReportType reportType,
+                                        String accessDefinition, DataAddress dataAddress) {
 
         Asset asset = Asset.Builder.newInstance()
                 .id(assetId)
@@ -130,16 +130,27 @@ public class ReportService {
                 .build();
 
         assetService.create(asset)
-                .onSuccess(pd -> monitor.info("Asset '%s' created".formatted(reportType.name())))
+                .onSuccess(pd -> monitor.info("Asset '%s' created".formatted(assetId)))
                 .onFailure(failure -> {
                     if (failure.getReason() == ServiceFailure.Reason.CONFLICT) {
-                        monitor.info("Asset already exists: %s".formatted(reportType.name()));
+                        monitor.info("Asset already exists: %s".formatted(assetId));
                     } else {
                         monitor.warning("Failed to create asset: %s".formatted(failure.getReason()));
                     }
                 });
 
-        createContractDefinition(accessDefinition + "-" + reportType.name(), accessDefinition, assetId);
+        createContractDefinition(accessDefinition + "-" + assetId, accessDefinition, assetId);
+    }
+
+    private DataAddress getDataAddress(String uri, String method, String authKey, String authCode, Map<String, Object> headers) {
+        return HttpDataAddress.Builder.newInstance()
+                .type("HttpData")
+                .baseUrl(uri)
+                .authKey(authKey)
+                .authCode(authCode)
+                .method(method)
+                .properties(headers)
+                .build();
     }
 
     private void createContractDefinition(String contractDefinitionId, String policyId, String assetId) {

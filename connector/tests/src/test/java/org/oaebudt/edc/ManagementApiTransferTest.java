@@ -18,6 +18,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.dockerjava.zerodep.shaded.org.apache.hc.core5.http.HttpStatus;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
+import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import jakarta.json.Json;
 import jakarta.json.JsonArray;
@@ -32,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 import jakarta.json.JsonObjectBuilder;
 import org.assertj.core.api.Assertions;
@@ -199,12 +201,13 @@ class ManagementApiTransferTest {
 
         createIdentityHubParticipant(IDENTITY_HUB_PROVIDER, providerManifest, OaebudtParticipant.IH_API_SUPERUSER_KEY);
         createIdentityHubParticipant(IDENTITY_HUB_CONSUMER, consumerManifest, OaebudtParticipant.IH_API_SUPERUSER_KEY);
+
+        PROVIDER.setAuthorizationToken(KEYCLOAK_EXTENSION.getToken());
+        CONSUMER.setAuthorizationToken(KEYCLOAK_EXTENSION.getToken());
     }
 
     @Test
     public void shouldSupportPushTransfer() {
-        PROVIDER.setAuthorizationToken(KEYCLOAK_EXTENSION.getToken());
-        CONSUMER.setAuthorizationToken(KEYCLOAK_EXTENSION.getToken());
 
         final var providerDataSource = ClientAndServer.startClientAndServer(getFreePort());
         providerDataSource.when(request("/source")).respond(response("data"));
@@ -234,8 +237,6 @@ class ManagementApiTransferTest {
 
     @Test
     public void shouldSupportPullTransfer() throws IOException {
-        PROVIDER.setAuthorizationToken(KEYCLOAK_EXTENSION.getToken());
-        CONSUMER.setAuthorizationToken(KEYCLOAK_EXTENSION.getToken());
 
         final var providerDataSource = ClientAndServer.startClientAndServer(getFreePort());
         providerDataSource.when(request("/source")).respond(response("data"));
@@ -281,7 +282,6 @@ class ManagementApiTransferTest {
 
     @Test
     public void shouldGetContractOfferViaFederatedCatalog() {
-        PROVIDER.setAuthorizationToken(KEYCLOAK_EXTENSION.getToken());
 
         final Map<String, Object> dataAddressProperties = Map.of(
                 "type", "HttpData-PULL",
@@ -346,8 +346,6 @@ class ManagementApiTransferTest {
 
     @Test
     public void shouldUploadReportAndConsumerShouldConsumeReport() throws IOException {
-        PROVIDER.setAuthorizationToken(KEYCLOAK_EXTENSION.getToken());
-        CONSUMER.setAuthorizationToken(KEYCLOAK_EXTENSION.getToken());
         String reportUri = PROVIDER.getWebServiceUrl().get().toString() + "report/upload";
         String participantUri = PROVIDER.getWebServiceUrl().get().toString() + "participant/group";
         String accessToken = KEYCLOAK_EXTENSION.getToken();
@@ -378,7 +376,7 @@ class ManagementApiTransferTest {
 
         String jsonContent = objectMapper.writeValueAsString(jsonContentMap);
 
-        RestAssured
+        Response response = RestAssured
                 .given()
                 .header(HttpHeaderNames.AUTHORIZATION, "Bearer " + accessToken)
                 .multiPart(
@@ -393,8 +391,11 @@ class ManagementApiTransferTest {
                 .multiPart("accessDefinition", "allow-friends")// additional form data
                 .when()
                 .post(reportUri)
-                .then()
-                .statusCode(201);
+                .then().statusCode(201)
+                .extract().response();
+
+        String assetId = response.jsonPath().getString("assetId");
+
 
         JsonArray jsonArray = CONSUMER.getCatalogDatasets(PROVIDER);
 
@@ -408,7 +409,7 @@ class ManagementApiTransferTest {
         Assertions.assertThat(jsonArray.toString()).contains("dataDeliveryReliabilityLevel");
         Assertions.assertThat(jsonArray.toString()).contains("dataFrequencyLevel");
 
-        final String transferProcessId = CONSUMER.requestAssetFrom("TITLE_REPORT", PROVIDER)
+        final String transferProcessId = CONSUMER.requestAssetFrom(assetId, PROVIDER)
                 .withTransferType("HttpData-PULL")
                 .withCallbacks(Json.createArrayBuilder()
                         .add(createCallback("http://localhost:%s/edr".formatted(consumerEdrReceiver.getPort()), true, Set.of("transfer.process.started")))
@@ -438,11 +439,72 @@ class ManagementApiTransferTest {
 
         consumerEdrReceiver.stop();
     }
+    @Test
+    public void shouldUploadReportAndConsumerShouldAllowMultipleSameTypeReportInCatalog() throws IOException {
+        String reportUri = PROVIDER.getWebServiceUrl().get().toString() + "report/upload";
+        String participantUri = PROVIDER.getWebServiceUrl().get().toString() + "participant/group";
+        String accessToken = KEYCLOAK_EXTENSION.getToken();
+        final var consumerEdrReceiver = ClientAndServer.startClientAndServer(getFreePort());
+        consumerEdrReceiver.when(request("/edr")).respond(response());
+
+        Map<String, Object> jsonBodyMap = Map.of(
+                "groupName", "friends",
+                "participants", List.of(CONSUMER.getId())
+        );
+
+        String jsonBody = objectMapper.writeValueAsString(jsonBodyMap);
+
+        RestAssured
+                .given()
+                .header("Content-Type", "application/json")
+                .header(HttpHeaderNames.AUTHORIZATION, "Bearer " + accessToken)
+                .body(jsonBody)
+                .when()
+                .post(participantUri)
+                .then()
+                .statusCode(201);
+
+        Map<String, Object> jsonContentMap = Map.of(
+                "userId", 123,
+                "status", "active"
+        );
+
+        String jsonContent = objectMapper.writeValueAsString(jsonContentMap);
+
+        uploadReportMultipart(accessToken, jsonContent, metadata, reportUri);
+        uploadReportMultipart(accessToken, jsonContent, metadata, reportUri);
+
+
+        JsonArray datasets = CONSUMER.getCatalogDatasets(PROVIDER);
+
+        Assertions.assertThat(datasets)
+                .map(JsonObject.class::cast)
+                .map(obj -> obj.getString("@id", ""))
+                .anyMatch(it -> it.startsWith("TITLE_REPORT"));
+    }
+
+    private static void uploadReportMultipart(String accessToken, String jsonContent, String metadata, String reportUri) {
+        RestAssured
+                .given()
+                .header(HttpHeaderNames.AUTHORIZATION, "Bearer " + accessToken)
+                .multiPart(
+                        "file",
+                        "data.json",
+                        new ByteArrayInputStream(jsonContent.getBytes(StandardCharsets.UTF_8)),
+                        "application/json"
+                )
+                .multiPart("reportType", "TITLE_REPORT")
+                .multiPart("title", "Report_IR")
+                .multiPart("metadata", metadata)
+                .multiPart("accessDefinition", "allow-friends")
+                .when()
+                .post(reportUri)
+                .then()
+                .statusCode(201);
+    }
 
     @Test
     public void shouldUploadReportAndConsumerShouldNotConsumeReport_InvalidAccessLevel() throws JsonProcessingException {
-        PROVIDER.setAuthorizationToken(KEYCLOAK_EXTENSION.getToken());
-        CONSUMER.setAuthorizationToken(KEYCLOAK_EXTENSION.getToken());
         String reportUri =PROVIDER.getWebServiceUrl().get().toString() + "report/upload";
         String participantUri = PROVIDER.getWebServiceUrl().get().toString() + "participant/group";
         String accessToken = KEYCLOAK_EXTENSION.getToken();

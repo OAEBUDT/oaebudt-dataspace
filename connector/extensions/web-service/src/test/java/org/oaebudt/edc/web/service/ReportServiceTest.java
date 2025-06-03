@@ -3,6 +3,7 @@ package org.oaebudt.edc.web.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.assertj.core.api.Assertions;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.controlplane.services.spi.asset.AssetService;
@@ -92,11 +93,13 @@ public class ReportServiceTest {
         when(contractDefinitionService.findById(anyString())).thenReturn(null);
         when(contractDefinitionService.create(any(ContractDefinition.class))).thenReturn(ServiceResult.success());
 
-        reportService.uploadAndCreateAsset(inputStream, title, accessDefinition, metadata, reportType);
+        ServiceResult<String> result = reportService.uploadAndCreateAsset(inputStream, title, accessDefinition, metadata, reportType);
 
         verify(reportStore).saveReport(anyString(), eq(reportType));
         verify(assetService).create(any(Asset.class));
         verify(contractDefinitionService).create(any(ContractDefinition.class));
+        Assertions.assertThat(result.succeeded()).isTrue();
+        Assertions.assertThat(result.getContent()).startsWith("ITEM_REPORT");
     }
 
     @Test
@@ -106,7 +109,7 @@ public class ReportServiceTest {
         String accessDefinition = "public";
         ReportType reportType = ReportType.ITEM_REPORT;
 
-        ServiceResult<Void> result = reportService.uploadAndCreateAsset(inputStream, title, accessDefinition, metadata, reportType);
+        ServiceResult<String> result = reportService.uploadAndCreateAsset(inputStream, title, accessDefinition, metadata, reportType);
         assertTrue(result.failed());
         assertTrue(result.getFailureDetail().contains("Invalid report json:"));
     }
@@ -117,7 +120,7 @@ public class ReportServiceTest {
         String title = "Test Report";
         ReportType reportType = ReportType.ITEM_REPORT;
 
-        ServiceResult<Void> result = reportService.uploadAndCreateAsset(inputStream, title, null, metadata, reportType);
+        ServiceResult<String> result = reportService.uploadAndCreateAsset(inputStream, title, null, metadata, reportType);
 
         assertTrue(result.failed());
         assertEquals("Invalid access definition", result.getFailureDetail());
@@ -132,7 +135,7 @@ public class ReportServiceTest {
         String accessDefinition = "public";
         ReportType reportType = ReportType.ITEM_REPORT;
 
-        ServiceResult<Void> result = reportService.uploadAndCreateAsset(inputStream, title, accessDefinition, jsonMetadata, reportType);
+        ServiceResult<String> result = reportService.uploadAndCreateAsset(inputStream, title, accessDefinition, jsonMetadata, reportType);
 
         assertTrue(result.failed());
         assertTrue(result.getFailureDetail().contains(expectedErrorMessage));

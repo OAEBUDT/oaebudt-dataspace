@@ -83,8 +83,7 @@ public class WebApiExtension implements ServiceExtension {
         portMappingRegistry.register(new PortMapping(WEB, reportApiConfiguration.port(), reportApiConfiguration.path()));
         portMappingRegistry.register(new PortMapping(CONSUMER, consumerApiConfiguration.port(), consumerApiConfiguration.path()));
 
-        webService.registerResource(WEB, new ReportApiController(
-                context.getMonitor(), reportService));
+        webService.registerResource(WEB, new ReportApiController(reportService));
         webService.registerResource(WEB, new ParticipantGroupApiController(participantGroupService, monitor));
         webService.registerResource(CONSUMER, new ConsumerApiController(reportStore));
     }

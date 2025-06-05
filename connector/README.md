@@ -1,64 +1,94 @@
-# oaebudt-dataspace-connector
+# OAEBUDT Dataspace Connector
 
-# Helm Deployment Instructions
+This guide provides step-by-step instructions for deploying the OAEBUDT Dataspace Connector using Helm on a Kubernetes cluster. It is intended for administrators managing deployments for pilot participants.
 
-A Helm chart for the **OAEBUDT** connector has been developed at `connector/charts/oaebudt-connector`.  
-This chart is designed to simplify and standardize the deployment of the OAEBUDT connector for different pilot participants on a Kubernetes cluster.
+## Prerequisites
 
-To deploy a Helm release for a specific participant connector from the six partners in the **OAEBUDT** pilot, a dedicated `values-<pilot-partner>.yaml` file has been created. This file is populated with the necessary configuration for the chosen participant connector.
+Before deploying the dataspace connector, ensure the following tools are installed and properly configured:
 
-## Release Name Convention
+- [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html) (configured using `aws configure`)
+- An AWS account with appropriate IAM permissions
+- [kubectl](https://kubernetes.io/docs/tasks/tools/) (for accessing and managing EKS clusters)
+- [Helm CLI](https://helm.sh/docs/intro/install/) (version 3.6 or higher; required for deploying Helm charts)
 
-The release name should correspond to the specific participant in the pilot, chosen from the list of six partners. Ensure the release name aligns with the correct participant.
+---
 
-## Namespace Naming Convention
+## Helm Deployment Overview
 
-The namespace follows a specific format, detailed below:
+A Helm chart for the **OAEBUDT** connector is available at `connector/charts/oaebudt-connector`.  
+This chart streamlines and standardizes the deployment process for different pilot participants on Kubernetes.
 
-**Namespace Format**:  
-`participant-name ([PILOT PARTNER]) - namespace (participant-id)`
+For each of the six pilot partners, a dedicated `values-<pilot-partner>.yaml` file is provided.  
+This file contains the specific configuration required for each participant's connector deployment.
 
-Here are the participant mappings for the namespaces:
+### Participant Namespace Mapping
 
 | Participant        | Namespace ID     |
-|--------------------|------------------|
-| jstor              | participant-a    |
-| liblynx            | participant-b    |
-| michigan           | participant-c    |
-| punctumbooks       | participant-d    |
-| knowledgeunlatched | participant-e    |
-| ubiquitypress      | participant-f    |
+|--------------------|-----------------|
+| jstor              | jstor           |
+| liblynx            | liblynx         |
+| michigan           | michigan        |
+| punctumbooks       | punctumbooks    |
+| ubiquitypress      | ubiquitypress   |
+| knowledgeunlatched | knowledgeunlatched |
 
-**Important**: The namespace must match the `participant-id` of the connector and should remain consistent. This is crucial because verifiable credentials are tied to the chart and referenced by the `participant.id`, as shown in the table above.
+---
 
 ## API Endpoint
 
-The API endpoints will be generated based on the global domain name defined in the `values-<pilot-partner>.yaml` file.
+API endpoints are generated based on the global domain name specified in the corresponding `values-<pilot-partner>.yaml` file.  
+Ensure this value is set correctly for each deployment to avoid endpoint conflicts.
 
-## Deployment Prerequisites
+---
 
-Before deploying, ensure the following prerequisites are met:
+## Deployment Steps
 
-- A running Kubernetes cluster (version 1.22 or higher recommended).
-- Helm installed (version 3.6 or higher).
-- A correctly configured `values-<pilot-partner>.yaml` file located under `connector/charts/oaebudt-connector/` for the selected participant.
+### 1. Prepare the Values File
 
-## Deployment Command
+- Locate or create the appropriate `values-<pilot-partner>.yaml` file under `connector/charts/oaebudt-connector/`.
+- Edit this file to include all necessary configuration values for the selected participant.
 
-To deploy the connector for the selected participant, run the following command:
+### 2. Deploy the Connector
+
+Run the following commands to deploy the connector for a specific participant:
 
 ```bash
 cd connector/charts
 helm install <release-name> ./oaebudt-connector \
-  -n <participant-id>  \
-  -f ./oaebudt-connector/values-<release-name>.yaml \
+  -n <participant-namespace> \
+  -f ./oaebudt-connector/values-<pilot-partner>.yaml \
   --create-namespace
 ```
-Example for deploying the knowledgeunlatched connector:
+
+**Parameters:**
+- `<release-name>`: A unique name for this Helm release (e.g., `knowledgeunlatched`)
+- `<participant-namespace>`: The Kubernetes namespace for the participant (see table above)
+- `<pilot-partner>`: The participant identifier (e.g., `knowledgeunlatched`)
+
+**Example:** Deploying the Knowledge Unlatched connector:
+
 ```bash
 cd connector/charts
 helm install knowledgeunlatched ./oaebudt-connector \
-  -n participant-e   \
+  -n knowledgeunlatched \
   -f ./oaebudt-connector/values-knowledgeunlatched.yaml \
   --create-namespace
 ```
+
+---
+
+## Post-Deployment
+
+- Verify the deployment status using `kubectl get pods -n <participant-namespace>`.
+- Check logs for troubleshooting: `kubectl logs <pod-name> -n <participant-namespace>`.
+- To upgrade or reconfigure, edit the values file and run `helm upgrade`.
+
+---
+
+## Additional Resources
+
+- [Helm Documentation](https://helm.sh/docs/)
+- [Kubernetes Documentation](https://kubernetes.io/docs/)
+- [OAEBUDT Project Repository](../)
+
+---

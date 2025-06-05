@@ -4,7 +4,7 @@ This folder contains Terraform configurations used to provision cloud infrastruc
 
 ---
 
-## 📦 Contents
+##  Contents
 
 - **`backend/`**: Contains Terraform configurations for managing the S3 backend used for storing Terraform state. This ensures state persistence, security, and consistency across deployments.
 
@@ -12,23 +12,22 @@ This folder contains Terraform configurations used to provision cloud infrastruc
 
 - **`eks/`**: Terraform configurations to set up a complete Elastic Kubernetes Service (EKS) cluster, including VPC, subnets, security groups, IAM roles, and node groups for running containerized applications.
 
-- **`docs/`**: Documentation 
+- **`argocd/`**: Terraform configurations to provision a full Argo CD deployment, enabling **continuous deployment** of the connectors to the EKS cluster.
+
+- **`docs/`**: Contains assets. 
 
 ---
 
-## ⚙️ Requirements
+## Prerequisites
 
 Before deploying the infrastructure, make sure the following tools are installed and properly configured:
 
 - [Terraform CLI](https://developer.hashicorp.com/terraform/downloads)
 - [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html) (configured using `aws configure`)
 - AWS account with appropriate IAM permissions
-- [kubectl](https://kubernetes.io/docs/tasks/tools/) (for accessing EKS)
-- [Helm CLI](https://helm.sh/docs/intro/install/) (optional, for deploying Helm charts after the infrastructure setup)
-
 ---
 
-## 🚀 How to Deploy
+## How to Deploy the Infrastructure
 
 1. **Authenticate with AWS**  
    First, authenticate your AWS account via AWS SSO (Single Sign-On) or using your credentials.
@@ -36,9 +35,29 @@ Before deploying the infrastructure, make sure the following tools are installed
     ```bash
     aws sso login
 
+For each folder in the `infrastructure` directory (except for `docs`), you need to run the following Terraform commands in this specific order:
+
+1. `backend`
+2. `base`
+3. `eks`
+4. `argocd`
+
+**It is important to follow this order to ensure proper deployment.**
+
 2. **Terraform**
 
     ```bash
     terraform init
     terraform plan
     terraform apply
+
+
+## How to Administer the Infrastructure
+
+After the infrastructure is deployed, you can manage your infrastructure resources using Terraform by adding, modifying, or deleting resources as needed.
+
+**Note:** Some AWS cloud resources are not provisioned using Terraform. These include:
+- Hosted Zone in Route 53
+- AWS Certificate Manager certificates for the hosted zone
+- Secrets such as `dev-oaebudt-ds-eks-helm-secret-age-key`
+ 

@@ -123,6 +123,13 @@ spec:
                 name: {{ .Release.Name }}-keycloak
                 port:
                   name: http
+          - path: /admin
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Release.Name }}-keycloak
+                port:
+                  name: http
   {{- if .Values.ingress.tls }}
   tls:
     {{- range .Values.ingress.tls }}

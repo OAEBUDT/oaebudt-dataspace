@@ -13,39 +13,6 @@ data:
       "accessTokenLifespan": {{ .Values.keycloak.participantRealm.accessTokenLifespan | default 1500 }},
       "roles": {
         "realm": [
-          {
-            "name": "admin",
-            "description": "${admin}",
-            "composite": true,
-            "composites": {
-              "client": {
-                "realm-management": [
-                  "manage-users",
-                  "manage-authorization",
-                  "realm-admin",
-                  "query-groups",
-                  "manage-realm",
-                  "view-realm",
-                  "query-users",
-                  "manage-events",
-                  "view-users",
-                  "create-client",
-                  "manage-clients",
-                  "manage-identity-providers",
-                  "view-events",
-                  "query-clients",
-                  "view-authorization",
-                  "query-realms",
-                  "impersonation",
-                  "view-identity-providers",
-                  "view-clients"
-                ]
-              }
-            },
-            "clientRole": false,
-            "attributes": {}
-          }{{- if gt (len .Values.keycloak.participantRealm.userRealmRoles) 0 }},{{- end }}
-
           {{- $roleLength := len .Values.keycloak.participantRealm.userRealmRoles -}}
           {{- range $index, $role := .Values.keycloak.participantRealm.userRealmRoles }}
           {

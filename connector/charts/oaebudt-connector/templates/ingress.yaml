@@ -123,7 +123,7 @@ spec:
                 name: {{ .Release.Name }}-keycloak
                 port:
                   name: http
-          - path: /admin
+          - path: /resources
             pathType: Prefix
             backend:
               service:

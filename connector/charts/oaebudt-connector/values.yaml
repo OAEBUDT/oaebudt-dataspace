@@ -345,6 +345,9 @@ keycloak:
           sleep 2;
           done
           echo "PostgreSQL is ready."
+  extraEnvVars:
+    - name: KC_PROXY_HEADERS
+      value: "xforwarded"
   postgresql:
     enabled: false
   auth:

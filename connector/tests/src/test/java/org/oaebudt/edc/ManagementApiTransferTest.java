@@ -28,6 +28,7 @@ import jakarta.json.JsonObject;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
@@ -295,7 +296,7 @@ class ManagementApiTransferTest {
                 .add("@type", "QuerySpec")
                 .build();
 
-        await().untilAsserted(() ->
+        await().atMost(Duration.ofSeconds(15)).untilAsserted(() ->
                 given()
                         .baseUri(CONSUMER.getCatalogUrl().toString())
                         .contentType(ContentType.JSON).body(requestBody)

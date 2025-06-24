@@ -61,3 +61,7 @@ After the infrastructure is deployed, you can manage your infrastructure resourc
 - AWS Certificate Manager certificates for the hosted zone
 - Secrets such as `dev-oaebudt-ds-eks-helm-secret-age-key`
  
+
+ ## Licensing
+
+This project is licensed under the Apache License 2.0. See the [LICENSE](../LICENSE) 

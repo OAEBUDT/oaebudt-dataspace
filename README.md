@@ -60,3 +60,6 @@ This diagram shows how the components are deployed and orchestrated in the AWS c
 ![AWS Deployment Architecture](./docs/PoC-AWS-Deployment-architecture.png)
 
 ---
+ ## Licensing
+
+This project is licensed under the Apache License 2.0. See the [LICENSE](LICENSE) 

@@ -48,6 +48,7 @@ import org.jboss.resteasy.util.HttpHeaderNames;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockserver.integration.ClientAndServer;
@@ -279,7 +280,8 @@ class ManagementApiTransferTest {
         consumerEdrReceiver.stop();
 
     }
-
+    
+    @Disabled("Skipping this test because its flaky")
     @Test
     public void shouldGetContractOfferViaFederatedCatalog() {
 

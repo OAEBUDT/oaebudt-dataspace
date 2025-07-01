@@ -1,0 +1,851 @@
+{
+	"info": {
+		"_postman_id": "33ccb9da-4d5d-43fa-8c9b-4f3f7e867d9c",
+		"name": "OAEBUDT IDS",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "41314594"
+	},
+	"item": [
+		{
+			"name": "Publisher",
+			"item": [
+				{
+					"name": "Partner Groups Management",
+					"item": [
+						{
+							"name": "Create Partner Group",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"groupName\": \"{{PARTNER_GROUP_NAME}}\",\n  \"participants\": [\n    \"{{DID_PARTICIPANT_1}}\",\n    \"{{DID_PARTICIPANT_2}}\"\n  ]\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{DOMAIN_NAME}}/api/web/participant/group",
+									"host": [
+										"{{DOMAIN_NAME}}"
+									],
+									"path": [
+										"api",
+										"web",
+										"participant",
+										"group"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Retrieve Participant Group",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{DOMAIN_NAME}}/api/web/participant/group",
+									"host": [
+										"{{DOMAIN_NAME}}"
+									],
+									"path": [
+										"api",
+										"web",
+										"participant",
+										"group"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Assets Management",
+					"item": [
+						{
+							"name": "Create Asset (File-Based Report)",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "file",
+											"type": "file",
+											"src": "MdzGkoc6v/ITEM-REPORT.json"
+										},
+										{
+											"key": "title",
+											"value": "{{REPORT_TITLE}}",
+											"type": "text"
+										},
+										{
+											"key": "reportType",
+											"value": "{{REPORT_TYPE}}",
+											"type": "text"
+										},
+										{
+											"key": "accessDefinition",
+											"value": "allow-{{PARTNER_GROUP_NAME}}",
+											"type": "text"
+										},
+										{
+											"key": "metadata",
+											"value": "{\n  \"legalOrganizationName\": \"University XYZ\",\n  \"countryOfOrganization\": \"United States\",\n  \"organizationWebsite\": \"https://www.example-press.org\",\n  \"contactPerson\": \"Jane Smith\",\n  \"contactEmail\": \"jane.smith@example-press.org\",\n  \"dataProcessingDescription\": \"Raw usage logs are processed using COUNTER Release 5 processing rules...\",\n  \"qualityAssuranceMeasures\": \"Monthly data validation process including outlier detection, completeness checking...\",\n  \"dataLicensingTerms\": \"Data is provided under CC-BY license...\",\n  \"dataAccuracyLevel\": 3,\n  \"dataGenerationTransparencyLevel\": 2,\n  \"dataDeliveryReliabilityLevel\": 3,\n  \"dataFrequencyLevel\": 2,\n  \"dataGranularityLevel\": 2,\n  \"dataConsistencyLevel\": 2\n}",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{DOMAIN_NAME}}/api/web/report/upload",
+									"host": [
+										"{{DOMAIN_NAME}}"
+									],
+									"path": [
+										"api",
+										"web",
+										"report",
+										"upload"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create Asset (Web-Hosted Report)",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"title\": \"{{REPORT_TITLE}}\",\n  \"metadata\": {\n    \"legalOrganizationName\": \"University XYZ\",\n    \"countryOfOrganization\": \"United States\",\n    \"organizationWebsite\": \"https://www.example-press.org\",\n    \"contactPerson\": \"Jane Smith\",\n    \"contactEmail\": \"jane.smith@example-press.org\",\n    \"dataProcessingDescription\": \"Raw usage logs are processed using COUNTER Release 5 processing rules...\",\n    \"qualityAssuranceMeasures\": \"Monthly data validation process including outlier detection, completeness checking...\",\n    \"dataLicensingTerms\": \"Data is provided under CC-BY license...\",\n    \"dataAccuracyLevel\": 3,\n    \"dataGenerationTransparencyLevel\": 2,\n    \"dataDeliveryReliabilityLevel\": 3,\n    \"dataFrequencyLevel\": 2,\n    \"dataGranularityLevel\": 2,\n    \"dataConsistencyLevel\": 2 \n  },\n  \"reportType\": \"{{REPORT_TYPE}}\",\n  \"accessDefinition\": \"allow-{{PARTNER_GROUP_NAME}}\",\n  \"url\": \"{{REPORT_URL}}\",\n  \"method\": \"GET\",\n  \"headers\": {}\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{DOMAIN_NAME}}/api/web/report",
+									"host": [
+										"{{DOMAIN_NAME}}"
+									],
+									"path": [
+										"api",
+										"web",
+										"report"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"pm.test(\"Status is OK or conflict\", function() {",
+							"  pm.expect(pm.response.code).to.be.oneOf([200, 204, 409])",
+							"})"
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Recipient",
+			"item": [
+				{
+					"name": "Fetch Catalog",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"packages": {},
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"@context\": {\n    \"@vocab\": \"https://w3id.org/edc/v0.0.1/ns/\"\n  },\n  \"@type\": \"QuerySpec\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{DOMAIN_NAME}}/api/catalog/v1alpha/catalog/query",
+							"host": [
+								"{{DOMAIN_NAME}}"
+							],
+							"path": [
+								"api",
+								"catalog",
+								"v1alpha",
+								"catalog",
+								"query"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Initiate Contract negotiation",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"@context\": [\n    \"https://w3id.org/edc/connector/management/v0.0.1\"\n  ],\n  \"@type\": \"ContractRequest\",\n  \"counterPartyAddress\": \"{{DATA_PUBLISHER_DOMAIN_NAME}}/api/dsp\",\n  \"counterPartyId\": \"{{DATA_PUBLISHER_DID}}\",\n  \"protocol\": \"dataspace-protocol-http\",\n  \"policy\": {\n    \"@type\": \"Offer\",\n    \"@id\": \"{{ASSET_POLICY_ID}}\",\n    \"assigner\": \"{{DATA_PUBLISHER_DID}}\",\n    \"permission\": {\n      \"action\": \"use\",\n      \"constraint\": {\n        \"leftOperand\": \"TrustedGroup\",\n        \"operator\": \"eq\",\n        \"rightOperand\": \"{{PARTNER_GROUP_NAME}}\"\n      }\n    },\n    \"prohibition\": [],\n    \"obligation\": [],\n    \"target\": \"{{ASSET_ID}}\"\n  },\n  \"callbackAddresses\": []\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{DOMAIN_NAME}}/api/management/v3/contractnegotiations",
+							"host": [
+								"{{DOMAIN_NAME}}"
+							],
+							"path": [
+								"api",
+								"management",
+								"v3",
+								"contractnegotiations"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Contract Negotiations",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n   \"@context\": [\n        \"https://w3id.org/edc/connector/management/v0.0.1\"\n    ],\n    \"@type\": \"QuerySpec\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{DOMAIN_NAME}}/api/management/v3/contractnegotiations/request",
+							"host": [
+								"{{DOMAIN_NAME}}"
+							],
+							"path": [
+								"api",
+								"management",
+								"v3",
+								"contractnegotiations",
+								"request"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Initiate Transfer Process",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"@context\": [\n        \"https://w3id.org/edc/connector/management/v0.0.1\"\n    ],\n    \"@type\": \"TransferRequestDto\",\n    \"connectorId\": \"{{DATA_PUBLISHER_DID}}\",\n    \"counterPartyAddress\": \"{{DATA_PUBLISHER_DOMAIN_NAME}}/api/dsp\",\n    \"counterPartyId\": \"{{DATA_PUBLISHER_DID}}\",\n    \"contractId\": \"{{CONTRACT_AGREEMENT_ID}}\",\n    \"protocol\": \"dataspace-protocol-http\",\n    \"transferType\": \"HttpData-PULL\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{DOMAIN_NAME}}/api/management/v3/transferprocesses",
+							"host": [
+								"{{DOMAIN_NAME}}"
+							],
+							"path": [
+								"api",
+								"management",
+								"v3",
+								"transferprocesses"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Transfer Process by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{DOMAIN_NAME}}/api/management/v3/transferprocesses/{{TRANSFER_PROCESS_ID}}",
+							"host": [
+								"{{DOMAIN_NAME}}"
+							],
+							"path": [
+								"api",
+								"management",
+								"v3",
+								"transferprocesses",
+								"{{TRANSFER_PROCESS_ID}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get transfer processes",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"packages": {},
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"@context\": [\n        \"https://w3id.org/edc/connector/management/v0.0.1\"\n    ],\n    \"@type\": \"QuerySpec\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{DOMAIN_NAME}}/api/management/v3/transferprocesses/request",
+							"host": [
+								"{{DOMAIN_NAME}}"
+							],
+							"path": [
+								"api",
+								"management",
+								"v3",
+								"transferprocesses",
+								"request"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get cached Endpoint Data Reference",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"packages": {},
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"@context\": [\n    \"https://w3id.org/edc/connector/management/v0.0.1\"\n  ],\n  \"@type\": \"QuerySpec\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{DOMAIN_NAME}}/api/management/v3/edrs/request",
+							"host": [
+								"{{DOMAIN_NAME}}"
+							],
+							"path": [
+								"api",
+								"management",
+								"v3",
+								"edrs",
+								"request"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get access token for EDR",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// get the authorization token and save it as an environment variable",
+									"if(pm.response.code < 300 && pm.response.code >= 200){",
+									"  //using the first authorization token found",
+									"  const authorization = pm.response.json()[\"authorization\"];",
+									"  pm.environment.set(\"AUTHORIZATION\", authorization);",
+									"}",
+									"",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{DOMAIN_NAME}}/api/management/v3/edrs/{{TRANSFER_PROCESS_ID}}/dataaddress",
+							"host": [
+								"{{DOMAIN_NAME}}"
+							],
+							"path": [
+								"api",
+								"management",
+								"v3",
+								"edrs",
+								"{{TRANSFER_PROCESS_ID}}",
+								"dataaddress"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Fetch the Usage Data Report",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "<access-token-from-edr>"
+							}
+						],
+						"url": {
+							"raw": "{{DATA_PUBLISHER_DOMAIN_NAME}}/api/public",
+							"host": [
+								"{{DATA_PUBLISHER_DOMAIN_NAME}}"
+							],
+							"path": [
+								"api",
+								"public"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Token Retrieval",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "grant_type",
+									"value": "password",
+									"type": "text"
+								},
+								{
+									"key": "client_id",
+									"value": "{{CLIENT_ID}}",
+									"type": "text"
+								},
+								{
+									"key": "client_secret",
+									"value": "{{CLIENT_SECRET}}",
+									"type": "text"
+								},
+								{
+									"key": "username",
+									"value": "{{USERNAME}}",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "{{PASSWORD}}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{DOMAIN_NAME}}/realms/{{REALM_NAME}}/protocol/openid-connect/token",
+							"host": [
+								"{{DOMAIN_NAME}}"
+							],
+							"path": [
+								"realms",
+								"{{REALM_NAME}}",
+								"protocol",
+								"openid-connect",
+								"token"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "noauth"
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "oauth2",
+		"oauth2": [
+			{
+				"key": "password",
+				"value": "{{PASSWORD}}",
+				"type": "string"
+			},
+			{
+				"key": "username",
+				"value": "{{USERNAME}}",
+				"type": "string"
+			},
+			{
+				"key": "clientSecret",
+				"value": "{{CLIENT_SECRET}}",
+				"type": "string"
+			},
+			{
+				"key": "clientId",
+				"value": "{{CLIENT_ID}}",
+				"type": "string"
+			},
+			{
+				"key": "accessTokenUrl",
+				"value": "{{DOMAIN_NAME}}/realms/{{REALM_NAME}}/protocol/openid-connect/token",
+				"type": "string"
+			},
+			{
+				"key": "grant_type",
+				"value": "password_credentials",
+				"type": "string"
+			},
+			{
+				"key": "tokenName",
+				"value": "Access Token",
+				"type": "string"
+			},
+			{
+				"key": "addTokenTo",
+				"value": "header",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "DOMAIN_NAME",
+			"value": "https://recipient.oaebudt.think-it.io",
+			"type": "string"
+		},
+		{
+			"key": "REALM_NAME",
+			"value": "recipient",
+			"type": "string"
+		},
+		{
+			"key": "CLIENT_ID",
+			"value": "recipient",
+			"type": "string"
+		},
+		{
+			"key": "CLIENT_SECRET",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "USERNAME",
+			"value": "recipient",
+			"type": "string"
+		},
+		{
+			"key": "PASSWORD",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "PARTNER_GROUP_NAME",
+			"value": "group-1",
+			"type": "default"
+		},
+		{
+			"key": "DID_PARTICIPANT_1",
+			"value": "did:web:recipient.oaebudt.think-it.io",
+			"type": "default"
+		},
+		{
+			"key": "DID_PARTICIPANT_2",
+			"value": "did:web:recipient-2.oaebudt.think-it.io",
+			"type": "string"
+		},
+		{
+			"key": "REPORT_TITLE",
+			"value": "ITEM Report Publisher XYZ 1st semester",
+			"type": "default"
+		},
+		{
+			"key": "REPORT_TYPE",
+			"value": "ITEM_REPORT",
+			"type": "default"
+		},
+		{
+			"key": "REPORT_URL",
+			"value": "https://report.oaebudt.think-it.io/report.json",
+			"type": "default"
+		},
+		{
+			"key": "DATA_PUBLISHER_DOMAIN_NAME",
+			"value": "https://publisher.oaebudt.think-it.io",
+			"type": "default"
+		},
+		{
+			"key": "DATA_PUBLISHER_DID",
+			"value": "did:web:publisher.oaebudt.think-it.io",
+			"type": "default"
+		},
+		{
+			"key": "ASSET_ID",
+			"value": "",
+			"type": "default"
+		},
+		{
+			"key": "ASSET_POLICY_ID",
+			"value": "",
+			"type": "default"
+		}
+	]
+}

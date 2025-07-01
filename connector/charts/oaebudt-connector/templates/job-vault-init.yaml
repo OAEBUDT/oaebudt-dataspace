@@ -1,0 +1,100 @@
+{{- if .Release.IsInstall }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Release.Name }}-vault-init
+  labels:
+    {{- include "oaebudt-connector.labels" . | nindent 4 }}
+spec:
+  parallelism: 1
+  completions: 1
+  backoffLimit: 2
+  template:
+    metadata:
+      name: {{ .Release.Name }}-vault-init
+      labels:
+        {{- include "oaebudt-connector.labels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ .Release.Name }}-vault-init-sa
+      restartPolicy: Never
+      containers:
+        - name: vault-init
+          image: bitnami/kubectl:1.32.3
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -e
+              echo "Installing required tools..."
+              apt-get update && apt-get install -y curl jq unzip
+              curl -o vault.zip https://releases.hashicorp.com/vault/1.19.2/vault_1.19.2_linux_amd64.zip
+              unzip vault.zip && mv vault /usr/local/bin/ && chmod +x /usr/local/bin/vault
+
+              echo "Checking if Vault is already initialized..."
+              if curl -s http://{{ .Release.Name }}-vault:8200/v1/sys/health | grep -q '"initialized":true'; then
+                echo "Vault is already initialized. Skipping initialization steps."
+                echo "IMPORTANT: This job is expected to perform the initial Vault setup and create the root token needed by the connector."
+                echo "Since Vault is already initialized, the root token won't be created, and the connector won't be able to authenticate."
+                echo "As a result, the Helm chart release will fail due to missing initialization and bootstrapping of Vault."
+                echo "To reinitialize Vault, you must first clean the backend storage used by Vault."
+                exit 42
+              fi
+
+              echo "Waiting for Vault to be ready..."
+              until curl -s http://{{ .Release.Name }}-vault:8200/v1/sys/health | grep -q '"initialized":false'; do
+                echo "Vault not ready yet. Retrying in 3s..."
+                sleep 3
+              done
+
+              echo "Initializing Vault with KMS auto-unseal and recovery key..."
+              vault operator init -recovery-shares=1 -recovery-threshold=1 -format=json > /tmp/init.json
+
+              RECOVERY_KEY=$(jq -r ".recovery_keys_b64[0]" /tmp/init.json)
+              ROOT_TOKEN=$(jq -r ".root_token" /tmp/init.json)
+
+              echo "Recovery Key: $RECOVERY_KEY"
+              echo "Root Token: $ROOT_TOKEN"
+
+              echo "Creating a KV secret engine at path=secret..."
+              VAULT_TOKEN=$ROOT_TOKEN vault secrets enable -path=secret -version=2 kv
+
+              echo "Creating Kubernetes Secret with root token..."
+              kubectl create secret generic {{ tpl .Values.vault.hashicorp.tokenSecret . }} \
+                --from-literal={{ .Values.vault.hashicorp.tokenSecretKey }}=$ROOT_TOKEN \
+                --from-literal=recovery-key=$RECOVERY_KEY
+
+              echo "Vault initialized successfully with KMS auto-unseal."
+              echo "Root token and recovery key stored in Kubernetes Secret: {{ tpl .Values.vault.hashicorp.tokenSecret . }}"
+          env:
+            - name: VAULT_ADDR
+              value: "http://{{ .Release.Name }}-vault:8200"
+          securityContext:
+            runAsUser: 0
+            allowPrivilegeEscalation: true
+{{- end }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ .Release.Name }}-vault-init-sa
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ .Release.Name }}-vault-init-role
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["create", "get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ .Release.Name }}-vault-init-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ .Release.Name }}-vault-init-role
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Release.Name }}-vault-init-sa

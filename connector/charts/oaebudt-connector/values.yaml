@@ -1,0 +1,378 @@
+# Default values for oaebudt-dataspace.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+global:
+  # -- Global dataspace domain (required for ingress)
+  domain: ""
+
+# This is to override the chart name.
+nameOverride: ""
+fullnameOverride: ""
+
+# OAEBUDT participant ID and DID configuration
+participant:
+  # The participant ID determines the name of the credentials to be added to the Identity Hub.
+  # Therefore, the participant ID must match the folder name in the credentials' mount path.
+  id: ""
+  # For internal Kubernetes clusters, use a DID like did:web:did-service.oaebudt.svc.cluster.local,
+  # where 'did-service' is the name of the Kubernetes service exposing the DID endpoint,
+  # and 'oaebudt' is the namespace where the service and the connector are deployed.
+  did: ""
+
+# Decentralized Claims Protocol configuration
+dcp:
+  tls:
+    enabled: false
+  # List of trusted DID issuers
+  trustedIssuers: []
+  identityHub:
+    # -- Use a base64 key
+    superuserKey: "c3VwZXItdXNlcg==.K+CKuM+8XNuEfLggseLntVljpgLnRzPMNo1WT6dWU1HUJP07l50k8AUreEIy3gcYTBn4vxzMWIg+1TDPYsxpug=="
+    # The DID-related credentials are defined in a ConfigMap and mounted into the pod,
+    # using the participant ID as a reference for both the ConfigMap name and the mount path.
+    credentials:
+      configMap: "{{ .Values.participant.id | lower }}-credentials"
+      mountPath: "/etc/dataspace/did/credentials/{{ .Values.participant.id }}/"
+  verifiableCredentials:
+    dataprocessor: |
+    membership: |
+
+# Federated catalog configuration
+catalog:
+  # Targets Nodes
+  nodes: []
+    # Example node:
+    #  - name: participant-b
+    #    did: "did:web:did.participant-b.svc.cluster.local"
+  crawler:
+    # -- Initial delay for the crawling to start. Leave blank for a random delay
+    initialDelay: 120
+    # -- File path to a JSON file containing TargetNode entries
+    targetsFile: "/etc/dataspace/participants.json"
+
+# Connector endpoints configuration
+endpoints:
+  # Reports endpoint.
+  web:
+    port: 8100
+    path: /api/web
+    authType: "keycloak"
+  # Reports edr.
+  consumer:
+    port: 8101
+    path: /api/consumer
+  # Default endpoint for incoming API calls.
+  default:
+    port: 7100
+    path: /api
+  # Provides access to the Federated Catalog for asset discovery; requires authentication.
+  catalog:
+    port: 7102
+    path: /api/catalog
+    authType: "keycloak"
+  # Handles internal control operations such as contract negotiations and transfer processes.
+  control:
+    port: 7103
+    path: /api/control
+  # Manages data transfer protocol negotiations between connectors.
+  protocol:
+    port: 7104
+    path: /api/dsp
+  # Offers administrative control over the connector, including policies and assets; requires authentication.
+  management:
+    port: 7105
+    path: /api/management
+    authType: "keycloak"
+  # Exposes information about the current version and build of the connector.
+  version:
+    port: 7106
+    path: /api/version
+  # Public endpoint for data retrieval when HTTP Pull is used; must be accessible from the internet.
+  public:
+    port: 17100
+    path: /api/public
+  # Resolves and interacts with Decentralized Identifiers (DIDs).
+  did:
+    port: 80
+    path: /
+  # Manages issuance and retrieval of Verifiable Credentials (VCs).
+  credentials:
+    port: 6102
+    path: /api/credentials
+  # Provides CRUD operations for Decentralized Identifiers (DIDs) and their documents.
+  identity:
+    port: 6103
+    path: /api/identity
+    authType: "keycloak"
+  # Enables clients to request credentials in the form of Verifiable Presentations (VPs) as defined by the DCP specification.
+  presentation:
+    port: 6104
+    path: /api/presentation
+  # Issues and validates security tokens for authenticated access within the Identity Hub.
+  sts:
+    port: 6106
+    path: /api/sts
+
+# This sets the container image
+image:
+  repository: 605134435349.dkr.ecr.us-east-1.amazonaws.com/oaebudt-dataspace/connector
+  pullPolicy: IfNotPresent
+  tag: "0.1"
+
+# This section is for setting up autoscaling
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+# This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
+replicaCount: 1
+
+# This is for setting Kubernetes Annotations to a Pod.
+podAnnotations: {}
+
+# This is for setting Kubernetes Labels to a Pod.
+podLabels: {}
+
+# This is for the secrets for pulling an image from a private repository
+imagePullSecrets: []
+
+# This section builds out the service account
+serviceAccount:
+  create: false
+  automount: true
+  annotations: {}
+  name: ""
+  # Existing image pull secret bound to the service account to use to obtain the container image from private registries
+  imagePullSecrets: []
+
+podSecurityContext: {}
+# fsGroup: 2000
+
+securityContext:
+  runAsUser: 0
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+# runAsUser: 1000
+
+livenessProbe:
+  # Whether to enable kubernetes [liveness-probe]
+  enabled: true
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+  successThreshold: 1
+readinessProbe:
+  # Whether to enable kubernetes [readiness-probes]
+  enabled: true
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+  successThreshold: 1
+
+# Resource management for the container
+resources:
+  limits:
+    cpu: 300m
+    memory: 1536Mi
+  requests:
+    cpu: 100m
+    memory: 256Mi
+
+# Node selector
+nodeSelector: {}
+# Tolerations
+tolerations: []
+# Affinity to configure which nodes the pods can be scheduled on
+affinity: {}
+
+service:
+  # Service type to expose the running application on a set of Pods as a network service.
+  type: ClusterIP
+  labels: {}
+  annotations: {}
+
+# This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
+ingress:
+  enabled: true
+  className: "alb"
+  annotations:
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS":443}]'
+    alb.ingress.kubernetes.io/ssl-redirect: "443"
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/healthcheck-path: /api/check/liveness
+    alb.ingress.kubernetes.io/healthcheck-port: "7100"
+    alb.ingress.kubernetes.io/group.name: "oaebudt-dataspace"
+  #  kubernetes.io/ingress.class: nginx
+  #  kubernetes.io/tls-acme: "true"
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+# PostgreSQL chart configuration
+postgresql:
+  ## ref: https://github.com/bitnami/charts/blob/main/bitnami/postgresql/values.yaml
+  # -- Switch to enable or disable the PostgreSQL helm chart
+  install: true
+  schema:
+    # -- Enable auto-creation of the schema on boot
+    autoCreate: true
+  auth:
+    postgresPassword: "oaebudt_postgres"
+    # -- Database name must begin with a letter (a-z) or underscore (_)
+    # -- Subsequent characters can be letters, digits (0-9), or underscores
+    # -- Maximum name length is 31 characters by default
+    database: "oaebudt_connector"
+    # -- Username must begin with a letter (a-z) or underscore (_)
+    # -- Subsequent characters can be letters, digits (0-9), or underscores
+    # -- Maximum name length is 31 characters by default
+    username: "oaebudt_connector"
+    password: "oaebudt_connector"
+  primary:
+    persistence:
+      size: 2Gi
+    initdb:
+      scripts:
+        # SQL script to initialize a second database and a user for Keycloak
+        00_init_extensions.sql: |
+          CREATE USER keycloak WITH PASSWORD 'keycloak';
+          CREATE DATABASE keycloak OWNER keycloak;
+          GRANT ALL PRIVILEGES ON DATABASE keycloak TO keycloak;
+      # The superuser credentials used to execute the initialization script
+      user: "postgres"
+      password: "oaebudt_postgres"
+
+# HashiCorp Vault chart configuration
+vault:
+  ## ref: https://github.com/hashicorp/vault-helm/blob/main/values.yaml
+  # -- Switch to enable or disable the HashiCorp Vault helm chart
+  install: true
+  injector:
+    enabled: false
+  server:
+    standalone:
+      enabled: true
+      config: |-
+        ui = true 
+        listener "tcp" {
+          tls_disable = 1
+          address = "[::]:8200"
+          cluster_address = "[::]:8201"
+        }
+        storage "dynamodb" {
+          region         = "us-east-1"
+          table          = "dev-oaebudt-ds-vault-dynamodb-table"
+          ha_enabled     = "false"
+        }
+        seal "awskms" {
+          region     = "us-east-1"
+          kms_key_id = "45e0519a-0d2f-424b-99cc-a9d0c70b5d74"
+        }
+    dataStorage:
+      enabled: false
+    serviceAccount:
+      name: "oaebudt-ds-vault"
+  hashicorp:
+    url: "http://{{ .Release.Name }}-vault:8200"
+    timeout: 30
+    tokenSecret: "{{ .Release.Name }}-vault-token"
+    tokenSecretKey: "root-token"
+    healthCheck:
+      enabled: true
+      standbyOk: true
+    paths:
+      secret: /v1/secret
+      health: /v1/sys/health
+      folder: ""
+
+# MongoDB chart configuration
+mongodb:
+  ## ref: https://github.com/bitnami/charts/blob/main/bitnami/mongodb/values.yaml
+  # -- Switch to enable or disable the MongoDB helm chart
+  install: true
+  # Resource management for the container
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+  persistence:
+    size: 2Gi
+  auth:
+    rootUser: root
+    rootPassword: "oaebudt_root"
+    # User credentials for the database used by the report service (the backend)
+    usernames:
+      - "oaebudt_report"
+    passwords:
+      - "oaebudt_report"
+    # The database name must be 'oaebudt' because it is currently hardcoded in the backend
+    databases:
+      - "oaebudt"
+
+# Keycloak chart configuration
+keycloak:
+  ## ref: https://github.com/bitnami/charts/blob/main/bitnami/keycloak/values.yaml
+  # -- Switch to enable or disable the Keycloak helm chart
+  install: true
+  # Resource management for the container
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+  initContainers:
+    - name: wait-for-postgresql
+      image: alpine:3.21.3
+      command:
+        - sh
+        - -c
+        - |
+          echo "Installing dependencies..."
+          apk add --no-cache curl netcat-openbsd
+          
+          echo "Waiting for PostgreSQL..."
+          until nc -z {{ .Release.Name }}-postgresql 5432; do
+          echo "waiting for postgres...";
+          sleep 2;
+          done
+          echo "PostgreSQL is ready."
+  extraEnvVars:
+    - name: KC_PROXY_HEADERS
+      value: "xforwarded"
+  postgresql:
+    enabled: false
+  auth:
+    adminUser: admin
+    adminPassword: "oaebudt_keycloak"
+  # We template the database credentials into a secret and reference its keys here,
+  # because if we used plain (non-secret) credentials, we couldn't dynamically inject them into values.yaml
+  externalDatabase:
+    existingSecret: "keycloak-db"
+    existingSecretHostKey: "host"
+    existingSecretPortKey: "port"
+    existingSecretUserKey: "user"
+    existingSecretDatabaseKey: "database"
+    existingSecretPasswordKey: "password"
+  # Importation of a participant's realm configuration
+  keycloakConfigCli:
+    enabled: true  # Enable Keycloak configuration CLI
+    existingConfigmap: "participant-realm" # Name of the ConfigMap containing the Keycloak realm to import
+  participantRealm:
+    realm: ""  # Name of the participant's realm (should match the realm file)
+    realmClientSecret: ""  # Client secret for the participant's realm
+    accessTokenLifespan: 3600  # Access token lifespan in seconds (1 hour)
+    username: ""  # Admin or initial user username (optional if not setting up users manually)
+    userPassword: ""  # Password for the initial user
+    userEmail: ""  # Email address for the initial user
+    userFirstName: ""  # First name of the initial user
+    userLastName: ""  # Last name of the initial user
+    userRealmRoles: []  # List of realm-level roles assigned to the initial user

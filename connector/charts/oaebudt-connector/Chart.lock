@@ -1,0 +1,15 @@
+dependencies:
+- name: postgresql
+  repository: oci://registry-1.docker.io/bitnamicharts
+  version: 16.6.3
+- name: vault
+  repository: https://helm.releases.hashicorp.com
+  version: 0.30.0
+- name: mongodb
+  repository: oci://registry-1.docker.io/bitnamicharts
+  version: 16.5.0
+- name: keycloak
+  repository: oci://registry-1.docker.io/bitnamicharts
+  version: 24.5.8
+digest: sha256:a3c0c6d9a372adea280493b310740f597d1aa0a8bffd9e0d4f2e93a306563541
+generated: "2025-04-25T11:44:35.819235+01:00"

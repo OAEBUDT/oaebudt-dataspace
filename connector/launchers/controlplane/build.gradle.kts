@@ -1,17 +1,11 @@
 plugins {
     `java-library`
-    id("application")
     alias(libs.plugins.shadow)
-}
-
-group = "org.oaebudt.edc"
-
-repositories {
-    mavenCentral()
 }
 
 dependencies {
     runtimeOnly(libs.edc.bom.controlplane)
+    runtimeOnly(libs.edc.bom.controlplane.sql)
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {

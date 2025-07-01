@@ -6,3 +6,8 @@ out/
 ### Mac OS ###
 .DS_Store
 .gradle
+build/
+######
+/connector/charts/oaebudt-connector/values-draft/
+/connector/deployment/assets/
+/connector/launchers/jwt-signer/

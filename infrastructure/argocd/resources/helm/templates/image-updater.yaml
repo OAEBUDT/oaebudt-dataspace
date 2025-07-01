@@ -1,0 +1,19 @@
+---
+serviceAccount:
+  name: ${service_account}
+
+authScripts:
+  enabled: true
+  scripts:
+    auth.sh: |
+      #!/bin/sh
+      aws ecr --region ${aws_region} get-authorization-token --output text --query 'authorizationData[].authorizationToken' | base64 -d
+config:
+  registries:
+    - name: ECR
+      api_url: https://${aws_ecr_prefix}
+      prefix: ${aws_ecr_prefix}
+      ping: yes
+      insecure: false
+      credentials: ext:/scripts/auth.sh
+      credsexpire: 10h

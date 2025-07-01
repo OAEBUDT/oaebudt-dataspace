@@ -1,0 +1,75 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.participant.id }}-connector
+  {{- with .Values.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  labels:
+    {{- include "oaebudt-connector.labels" . | nindent 4 }}
+    {{- with .Values.service.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.endpoints.did.port }}
+      targetPort: did
+      protocol: TCP
+      name: did
+    - port: {{ .Values.endpoints.web.port }}
+      targetPort: web
+      protocol: TCP
+      name: web
+    - port: {{ .Values.endpoints.consumer.port }}
+      targetPort: consumer
+      protocol: TCP
+      name: consumer
+    - port: {{ .Values.endpoints.default.port }}
+      targetPort: default
+      protocol: TCP
+      name: default
+    - port: {{ .Values.endpoints.control.port }}
+      targetPort: control
+      protocol: TCP
+      name: control
+    - port: {{ .Values.endpoints.catalog.port }}
+      targetPort: catalog
+      protocol: TCP
+      name: catalog
+    - port: {{ .Values.endpoints.management.port }}
+      targetPort: management
+      protocol: TCP
+      name: management
+    - port: {{ .Values.endpoints.protocol.port }}
+      targetPort: protocol
+      protocol: TCP
+      name: protocol
+    - port: {{ .Values.endpoints.version.port }}
+      targetPort: version
+      protocol: TCP
+      name: version
+    - port: {{ .Values.endpoints.public.port }}
+      targetPort: public
+      protocol: TCP
+      name: public
+    - port: {{ .Values.endpoints.credentials.port }}
+      targetPort: credentials
+      protocol: TCP
+      name: credentials
+    - port: {{ .Values.endpoints.identity.port }}
+      targetPort: identity
+      protocol: TCP
+      name: identity
+    - port: {{ .Values.endpoints.presentation.port }}
+      targetPort: presentation
+      protocol: TCP
+      name: presentation
+    - port: {{ .Values.endpoints.sts.port }}
+      targetPort: sts
+      protocol: TCP
+      name: sts
+  selector:
+    {{- include "oaebudt-connector.selectorLabels" . | nindent 4 }}

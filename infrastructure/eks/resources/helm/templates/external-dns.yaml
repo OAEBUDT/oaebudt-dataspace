@@ -1,0 +1,6 @@
+---
+policy: ${external_dns_policy}
+domainFilters:
+  - ${domain_name}
+serviceAccount:
+  name: ${service_account}

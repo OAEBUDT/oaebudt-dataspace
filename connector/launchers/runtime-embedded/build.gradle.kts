@@ -1,31 +1,26 @@
 plugins {
     `java-library`
-    id("application")
     alias(libs.plugins.shadow)
 }
 
-group = "org.oaebudt.edc"
-project.version = "0.11.1"
-
-repositories {
-    mavenCentral()
-}
-
 dependencies {
+    runtimeOnly(project(":core:core-service"))
+    runtimeOnly(project(":extensions:web-service"))
+    runtimeOnly(project(":extensions:keycloak-auth"))
+    runtimeOnly(project(":extensions:catalog-node-resolver"))
+    runtimeOnly(project(":extensions:dcp-impl"))
+
     runtimeOnly(project(":launchers:controlplane")) {
-        // this will remove the RemoteDataPlaneSelectorService
         exclude(group = "org.eclipse.edc", "data-plane-selector-client")
-        // exclude the Remote STS client
-        exclude(group = "org.eclipse.edc", "identity-trust-sts-remote-client")
     }
     runtimeOnly(project(":launchers:dataplane")) {
-        // this will remove the RemoteDataPlaneSelectorService
         exclude(group = "org.eclipse.edc", "data-plane-selector-client")
     }
+
+    runtimeOnly(libs.edc.fc.core)
+    runtimeOnly(libs.edc.fc.api)
+
     runtimeOnly(libs.edc.vault.hashicorp)
-    runtimeOnly(libs.edc.bom.controlplane.sql)
-    runtimeOnly(libs.edc.bom.dataplane.sql)
-    implementation(libs.edc.iam.mock)
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {

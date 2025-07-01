@@ -1,0 +1,150 @@
+{{- if .Values.ingress.enabled -}}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "oaebudt-connector.fullname" . }}
+  labels:
+    {{- include "oaebudt-connector.labels" . | nindent 4 }}
+  {{- with .Values.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- with .Values.ingress.className }}
+  ingressClassName: {{ . }}
+  {{- end }}
+  rules:
+    - host: {{ .Values.global.domain | required ".Values.global.domain is required" | quote }}
+      http:
+        paths:
+          - path: {{ .Values.endpoints.web.path }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Values.participant.id }}-connector
+                port:
+                  name: web
+          - path: {{ .Values.endpoints.consumer.path }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Values.participant.id }}-connector
+                port:
+                  name: consumer
+          - path: {{ .Values.endpoints.catalog.path }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Values.participant.id }}-connector
+                port:
+                  name: catalog
+          - path: {{ .Values.endpoints.control.path }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Values.participant.id }}-connector
+                port:
+                  name: control
+          - path: {{ .Values.endpoints.protocol.path }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Values.participant.id }}-connector
+                port:
+                  name: protocol
+          - path: {{ .Values.endpoints.management.path }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Values.participant.id }}-connector
+                port:
+                  name: management
+          - path: {{ .Values.endpoints.version.path }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Values.participant.id }}-connector
+                port:
+                  name: version
+          - path: {{ .Values.endpoints.public.path }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Values.participant.id }}-connector
+                port:
+                  name: public
+          - path: {{ .Values.endpoints.did.path }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Values.participant.id }}-connector
+                port:
+                  name: did
+          - path: {{ .Values.endpoints.credentials.path }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Values.participant.id }}-connector
+                port:
+                  name: credentials
+          - path: {{ .Values.endpoints.identity.path }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Values.participant.id }}-connector
+                port:
+                  name: identity
+          - path: {{ .Values.endpoints.presentation.path }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Values.participant.id }}-connector
+                port:
+                  name: presentation
+          - path: {{ .Values.endpoints.sts.path }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Values.participant.id }}-connector
+                port:
+                  name: sts
+          - path: {{ .Values.endpoints.default.path }}/check
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Values.participant.id }}-connector
+                port:
+                  name: default
+          - path: /realms
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Release.Name }}-keycloak
+                port:
+                  name: http
+          - path: /admin
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Release.Name }}-keycloak
+                port:
+                  name: http
+          - path: /resources
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Release.Name }}-keycloak
+                port:
+                  name: http
+  {{- if .Values.ingress.tls }}
+  tls:
+    {{- range .Values.ingress.tls }}
+    - hosts:
+        {{- range .hosts }}
+        - {{ . | quote }}
+        {{- end }}
+      secretName: {{ .secretName }}
+    {{- end }}
+  {{- end }}
+{{- end }}

@@ -1,0 +1,171 @@
+name: oaeudt-mvd
+services:
+  # Participant A connector
+  participant-a-connector:
+    image: oaebudt-connector:latest
+    build:
+      context: ../../
+      dockerfile: launchers/runtime-embedded/Dockerfile
+    container_name: participant-a-connector
+    env_file: env/participant-a-connector.env
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+      - "8082:8082"
+      - "8083:8083"
+      - "8084:8084"
+      - "8085:8085"
+      - "11001:11001"
+    restart: unless-stopped
+    depends_on:
+      - participant-a-db
+      - participant-a-vault
+    networks:
+      - oaebudt-mvd
+
+  # Participant B connector
+  participant-b-connector:
+    image: oaebudt-connector:latest
+    container_name: participant-b-connector
+    env_file: env/participant-b-connector.env
+    ports:
+      - "9080:8080"
+      - "9081:8081"
+      - "9082:8082"
+      - "9083:8083"
+      - "9084:8084"
+      - "9085:8085"
+      - "21001:11001"
+    restart: unless-stopped
+    depends_on:
+      - participant-a-connector
+      - participant-b-db
+      - participant-b-vault
+    networks:
+      - oaebudt-mvd
+
+  # PostgreSQL instance for participant A
+  participant-a-db:
+    image: postgres:17.4
+    container_name: participant-a-db
+    environment:
+      POSTGRES_DB: connector_a
+      POSTGRES_USER: connector_a
+      POSTGRES_PASSWORD: connector_a
+    ports:
+      - "5432:5432"
+    volumes:
+      - participant-a-db-data:/var/lib/postgresql/data
+      - ./init/participant-a-init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    restart: unless-stopped
+    networks:
+      - oaebudt-mvd
+
+  # PostgreSQL instance for participant B
+  participant-b-db:
+    image: postgres:17.4
+    container_name: participant-b-db
+    environment:
+      POSTGRES_DB: connector_b
+      POSTGRES_USER: connector_b
+      POSTGRES_PASSWORD: connector_b
+    ports:
+      - "6432:5432"
+    volumes:
+      - participant-b-db-data:/var/lib/postgresql/data
+      - ./init/participant-b-init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    restart: unless-stopped
+    networks:
+      - oaebudt-mvd
+
+  # Vault instance for participant A
+  participant-a-vault:
+    image: hashicorp/vault:1.18
+    container_name: participant-a-vault
+    environment:
+      VAULT_DEV_ROOT_TOKEN_ID: participant_a
+      VAULT_DEV_LISTEN_ADDRESS: 0.0.0.0:8200
+    ports:
+      - "8200:8200"
+    cap_add:
+      - IPC_LOCK
+    volumes:
+      - ./init/seed-vault.sh:/seed-vault.sh
+    networks:
+      - oaebudt-mvd
+    entrypoint:
+      - sh
+      - -c
+      - 'apk add --no-cache openssl && vault server -dev & sleep 5 && sh /seed-vault.sh participant-a && tail -f /dev/null'
+
+  # Vault instance for participant B
+  participant-b-vault:
+    image: hashicorp/vault:1.18
+    container_name: participant-b-vault
+    environment:
+      VAULT_DEV_ROOT_TOKEN_ID: participant_b
+      VAULT_DEV_LISTEN_ADDRESS: 0.0.0.0:8200
+    ports:
+      - "9200:8200"
+    cap_add:
+      - IPC_LOCK
+    volumes:
+      - ./init/seed-vault.sh:/seed-vault.sh
+    networks:
+      - oaebudt-mvd
+    entrypoint:
+      - sh
+      - -c
+      - 'apk add --no-cache openssl && vault server -dev & sleep 5 && sh /seed-vault.sh participant-b && tail -f /dev/null'
+
+  # Keycloak instance for participant A
+  participant-a-auth-api:
+    image: quay.io/keycloak/keycloak:26.1.4
+    container_name: participant-a-auth-api
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: participant_a
+      KC_BOOTSTRAP_ADMIN_PASSWORD: participant_a
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://participant-a-db/keycloak_a
+      KC_DB_USERNAME: keycloak_a
+      KC_DB_PASSWORD: keycloak_a
+    ports:
+      - "6060:8080"
+    volumes:
+      - ./init/participant-a-keycloak-realm.json:/opt/keycloak/data/import/realm-config.json
+    restart: unless-stopped
+    depends_on:
+      - participant-a-db
+    networks:
+      - oaebudt-mvd
+    command: ["start-dev", "--import-realm"]
+
+  # Keycloak instance for participant B
+  participant-b-auth-api:
+    image: quay.io/keycloak/keycloak:26.1.4
+    container_name: participant-b-auth-api
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: participant_b
+      KC_BOOTSTRAP_ADMIN_PASSWORD: participant_b
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://participant-b-db/keycloak_b
+      KC_DB_USERNAME: keycloak_b
+      KC_DB_PASSWORD: keycloak_b
+    ports:
+      - "7070:8080"
+    volumes:
+      - ./init/participant-b-keycloak-realm.json:/opt/keycloak/data/import/realm-config.json
+    restart: unless-stopped
+    depends_on:
+      - participant-b-db
+    networks:
+      - oaebudt-mvd
+    command: ["start-dev", "--import-realm"]
+
+volumes:
+  participant-a-db-data:
+  participant-b-db-data:
+
+networks:
+  oaebudt-mvd:
+    driver: bridge

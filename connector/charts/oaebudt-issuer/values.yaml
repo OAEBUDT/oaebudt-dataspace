@@ -1,0 +1,105 @@
+# values.yaml - Configuration for deploying the NGINX server that hosts the DID document
+# for the OAEBUDT Dataspace DID Issuer. This is required for the DCP workflow to function properly,
+# enabling validation and signed credential issuance for participants within the Dataspace.
+
+# The release name must be overridden to 'issuer' to ensure the service is named 'issuer',
+# resulting in the fully qualified Kubernetes DNS name: issuer.oaebudt.svc.cluster.local —
+# which must match the service endpoint defined in the DID document.
+nameOverride: ""
+fullnameOverride: ""
+
+# Set the service type for Kubernetes
+service:
+  type: ClusterIP
+
+# Mount an extra volume from a ConfigMap named 'did-document'
+extraVolumes:
+  - name: did-document
+    configMap:
+      name: did-document
+      items:
+        - key: did.json
+          path: did.json
+  - name: did-document-index
+    configMap:
+      name: did-document
+      items:
+        - key: did.json
+          path: did.json
+
+
+# Mount the volume to the NGINX server at the well-known path
+extraVolumeMounts:
+  - name: did-document
+    mountPath: /opt/bitnami/nginx/html/.well-known/
+    readOnly: true
+  - name: did-document-index
+    mountPath: /opt/bitnami/nginx/html/
+    readOnly: true
+
+# Create the ConfigMap that holds the DID document
+extraDeploy:
+  - apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: did-document
+    data:
+      did.json: |
+        {
+          "service":[],
+          "verificationMethod":[
+            {
+              "id":"did:web:operas.oaebudt.think-it.io#key-1",
+              "type":"JsonWebKey2020",
+              "controller":"did:web:operas.oaebudt.think-it.io",
+              "publicKeyMultibase":null,
+              "publicKeyJwk":{
+                "kty":"OKP",
+                "crv":"Ed25519",
+                "x":"VU0WtUeeXU2hPcRAOr1jrOD9TOnX9sh3UN4INhVzl1M"
+              }
+            }
+          ],
+          "authentication":[
+            "key-1"
+          ],
+          "id":"did:web:operas.oaebudt.think-it.io",
+          "@context":[
+            "https://www.w3.org/ns/did/v1",
+            {
+              "@base":"did:web:operas.oaebudt.think-it.io"
+            }
+          ]
+        }
+
+# Define the NGINX server block to serve the DID document
+serverBlock: |
+  server {
+    listen 0.0.0.0:8080;
+    root /opt/bitnami/nginx/html;
+  
+    location / {
+          index did.json index.html index.htm;
+      }
+  
+    location = /.well-known/did.json {
+      default_type application/json;
+      add_header Access-Control-Allow-Origin *;
+      add_header Cache-Control "public, max-age=3600";
+    }
+  }
+
+# Expose the DID document publicly
+ingress:
+  enabled: true
+  pathType: Prefix
+  ingressClassName: alb
+  annotations:
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS":443}]'
+    alb.ingress.kubernetes.io/ssl-redirect: "443"
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/healthcheck-path: /
+    alb.ingress.kubernetes.io/group.name: "oaebudt-dataspace"
+  hostname: operas.oaebudt.think-it.io
+  path: /

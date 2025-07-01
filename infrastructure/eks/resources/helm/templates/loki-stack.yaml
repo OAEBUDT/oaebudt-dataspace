@@ -1,0 +1,18 @@
+---
+grafana:
+  enabled: true
+  image:
+    tag: 10.2.5
+loki:
+  persistence:
+    enabled: true
+    size: 3Gi
+  server:
+  query_range:
+    split_queries_by_interval: 0
+    parallelise_shardable_queries: false
+  querier:
+    max_concurrent: 2048
+  frontend:
+    max_outstanding_per_tenant: 4096
+    compress_responses: true

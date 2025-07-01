@@ -1,18 +1,39 @@
-import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
-import com.github.jengelman.gradle.plugins.shadow.ShadowJavaPlugin
-
 plugins {
     `java-library`
-    id("com.bmuschko.docker-remote-api") version "9.4.0"
-    id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("org.sonarqube") version "6.0.1.5171"
 }
 
-group = "org.oaebudt.edc"
+buildscript {
+    dependencies {
+        val edcGradlePluginsVersion: String by project
+        classpath("org.eclipse.edc.edc-build:org.eclipse.edc.edc-build.gradle.plugin:${edcGradlePluginsVersion}")
+    }
+}
+
+val edcGradlePluginsVersion: String by project
 
 allprojects {
     apply(plugin = "java")
+    plugins.apply("application")
+    plugins.apply("jacoco")
+
+    tasks.withType<Test> {
+        useJUnitPlatform()
+        finalizedBy(tasks.named("jacocoTestReport"))
+    }
+
+    tasks.named<JacocoReport>("jacocoTestReport") {
+        dependsOn(tasks.named("test"))
+        reports {
+            xml.required.set(true)
+            html.required.set(true)
+        }
+    }
 
     repositories {
+        maven {
+            url = uri("https://oss.sonatype.org/content/repositories/snapshots/")
+        }
         mavenCentral()
     }
 
@@ -24,38 +45,18 @@ allprojects {
         }
     }
 
-    // needed for E2E tests
     tasks.register("printClasspath") {
         dependsOn(tasks.compileJava)
         doLast {
             println(sourceSets["main"].runtimeClasspath.asPath)
         }
     }
-
 }
 
-subprojects {
-    afterEvaluate {
-        if (project.plugins.hasPlugin("com.github.johnrengelman.shadow") &&
-            file("${project.projectDir}/src/main/docker/Dockerfile").exists()
-        ) {
-
-            //actually apply the plugin to the (sub-)project
-            apply(plugin = "com.bmuschko.docker-remote-api")
-            // configure the "dockerize" task
-            val dockerTask: DockerBuildImage = tasks.create("dockerize", DockerBuildImage::class) {
-                val dockerContextDir = project.projectDir
-                dockerFile.set(file("$dockerContextDir/src/main/docker/Dockerfile"))
-                images.add("${project.name}:${project.version}")
-                images.add("${project.name}:latest")
-                // specify platform with the -Dplatform flag:
-                if (System.getProperty("platform") != null)
-                    platform.set(System.getProperty("platform"))
-                buildArgs.put("JAR", "build/libs/${project.name}.jar")
-                inputDir.set(file(dockerContextDir))
-            }
-            // make sure  always runs after "dockerize" and after "copyOtel"
-            dockerTask.dependsOn(tasks.named(ShadowJavaPlugin.SHADOW_JAR_TASK_NAME))
-        }
+sonar {
+    properties {
+        property("sonar.projectKey", "OAEBUDT_oaebudt-dataspace")
+        property("sonar.organization", "oaebudt")
+        property("sonar.host.url", "https://sonarcloud.io")
     }
 }

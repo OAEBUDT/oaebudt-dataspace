@@ -1,0 +1,4 @@
+{
+  "participant-a": "did:web:localhost%3A6100",
+  "participant-b": "did:web:localhost%3A6200"
+}

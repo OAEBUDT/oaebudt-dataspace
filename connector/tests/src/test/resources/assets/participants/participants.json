@@ -1,0 +1,4 @@
+{
+  "consumer": "did:web:localhost%3A6100",
+  "provider": "did:web:localhost%3A6200"
+}

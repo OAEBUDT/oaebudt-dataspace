@@ -1,0 +1,5 @@
+---
+clusterName: ${cluster_name}
+serviceAccount:
+  name: ${service_account}
+vpcId: ${vpc_id}

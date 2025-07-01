@@ -1,0 +1,61 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: participant-realm
+  labels:
+    {{- include "oaebudt-connector.labels" . | nindent 4 }}
+data:
+  {{ .Values.keycloak.participantRealm.realm }}-realm.json: |
+    {
+      "realm": {{ .Values.keycloak.participantRealm.realm | required ".Values.keycloak.participantRealm.realm is required " | quote}},
+      "enabled": true,
+      "accessTokenLifespan": {{ .Values.keycloak.participantRealm.accessTokenLifespan | default 1500 }},
+      "roles": {
+        "realm": [
+          {{- $roleLength := len .Values.keycloak.participantRealm.userRealmRoles -}}
+          {{- range $index, $role := .Values.keycloak.participantRealm.userRealmRoles }}
+          {
+            "name": "{{ $role }}",
+            "description": "Role for {{ $role }}"
+          }{{- if ne $index (sub $roleLength 1) }},{{- end -}}
+          {{- end }}
+        ]
+      },
+      "users": [
+        {
+          "username": {{ .Values.keycloak.participantRealm.username | required ".Values.keycloak.participantRealm.username is required " | quote}},
+          "email": {{ .Values.keycloak.participantRealm.userEmail | required ".Values.keycloak.participantRealm.userEmail is required " | quote }},
+          "emailVerified": false,
+          "firstName": {{ .Values.keycloak.participantRealm.userFirstName | required ".Values.keycloak.participantRealm.userFirstName is required " | quote }},
+          "lastName": {{ .Values.keycloak.participantRealm.userLastName| required ".Values.keycloak.participantRealm.userLastName is required " | quote }},
+          "enabled": true,
+          "credentials": [
+            {
+              "type": "password",
+              "value": {{ .Values.keycloak.participantRealm.userPassword | required ".Values.keycloak.participantRealm.userPassword is required " | quote }},
+              "temporary": false
+            }
+          ],
+          "realmRoles": [{{- $length := len .Values.keycloak.participantRealm.userRealmRoles -}}
+            {{- range $index, $role := .Values.keycloak.participantRealm.userRealmRoles -}}
+              "{{ $role }}"{{- if ne $index (sub $length 1) }},{{- end -}}
+            {{- end -}}]
+        }
+      ],
+      "clients": [
+        {
+          "clientId": {{ .Values.keycloak.participantRealm.realm | required ".Values.keycloak.participantRealm.realm is required " | quote}},
+          "enabled": true,
+          "protocol": "openid-connect",
+          "redirectUris": [{{ printf "https://%s%s/*" .Values.global.domain .Values.endpoints.web.path |quote }}],
+          "webOrigins": [{{ printf "https://%s" .Values.global.domain | quote }}],
+          "standardFlowEnabled": true,
+          "directAccessGrantsEnabled": true,
+          "serviceAccountsEnabled": true,
+          "clientAuthenticatorType": "client-secret",
+          "publicClient": false,
+          "secret": {{ .Values.keycloak.participantRealm.realmClientSecret | required ".Values.keycloak.participantRealm.realmClientSecret is required " | quote}}
+        }
+      ]
+    }

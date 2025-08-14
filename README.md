@@ -26,7 +26,7 @@ The goal of the OAEBUDT Dataspace is to set up a federated data infrastructure t
 
 ## 🧱 Built With
 
-The dataspace is based on components from the [Eclipse Dataspace Connector (EDC)](https://projects.eclipse.org/projects/technology.edc), providing:
+The dataspace is based on components from the [Eclipse Dataspace Components (EDC)](https://projects.eclipse.org/projects/technology.edc), providing:
 
 - Secure and policy-driven data transfer
 - Identity and access management
@@ -36,7 +36,7 @@ The dataspace is based on components from the [Eclipse Dataspace Connector (EDC)
 
 ## 📁 Project Structure
 
-- [`connector/`](./connector): Contains the Eclipse Dataspace Connector setup and its extensions, encapsulated within a Helm chart. This enables seamless deployment and management of the connector in Kubernetes environments, following Helm best practices.
+- [`connector/`](./connector): Contains the EDC Connector setup and its extensions, encapsulated within a Helm chart. This enables seamless deployment and management of the connector in Kubernetes environments, following Helm best practices.
 
 - [`infrastructure/`](./infrastructure): Includes Terraform scripts and configurations for deploying resources on AWS. It follows modular and environment-specific best practices for maintainable infrastructure-as-code.
 

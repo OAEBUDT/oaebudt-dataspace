@@ -372,6 +372,8 @@ keycloak:
     existingSecretPasswordKey: "password"
   # Importation of a participant's realm configuration
   keycloakConfigCli:
+    image:
+      repository: bitnamilegacy/keycloak-config-cli
     enabled: true  # Enable Keycloak configuration CLI
     existingConfigmap: "participant-realm" # Name of the ConfigMap containing the Keycloak realm to import
   participantRealm:

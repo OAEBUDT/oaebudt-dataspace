@@ -112,6 +112,7 @@ A Helm chart for deploying a proof-of-concept (PoC) Data Space Connector, includ
 | keycloak.install | bool | `true` | Switch to enable or disable the Keycloak helm chart |
 | keycloak.keycloakConfigCli.enabled | bool | `true` |  |
 | keycloak.keycloakConfigCli.existingConfigmap | string | `"participant-realm"` |  |
+| keycloak.keycloakConfigCli.image.repository | string | `"bitnamilegacy/keycloak-config-cli"` |  |
 | keycloak.participantRealm.accessTokenLifespan | int | `3600` |  |
 | keycloak.participantRealm.realm | string | `""` |  |
 | keycloak.participantRealm.realmClientSecret | string | `""` |  |

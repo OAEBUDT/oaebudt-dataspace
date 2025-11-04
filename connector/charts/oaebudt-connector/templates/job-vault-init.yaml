@@ -20,7 +20,7 @@ spec:
       restartPolicy: Never
       containers:
         - name: vault-init
-          image: bitnami/kubectl:1.32.3
+          image: bitnamilegacy/kubectl:1.32.3
           command: ["/bin/sh", "-c"]
           args:
             - |

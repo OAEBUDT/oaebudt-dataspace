@@ -100,6 +100,9 @@ A Helm chart for deploying a proof-of-concept (PoC) Data Space Connector, includ
 | keycloak.externalDatabase.existingSecretPasswordKey | string | `"password"` |  |
 | keycloak.externalDatabase.existingSecretPortKey | string | `"port"` |  |
 | keycloak.externalDatabase.existingSecretUserKey | string | `"user"` |  |
+| keycloak.extraEnvVars[0].name | string | `"KC_PROXY_HEADERS"` |  |
+| keycloak.extraEnvVars[0].value | string | `"xforwarded"` |  |
+| keycloak.image.repository | string | `"bitnamilegacy/keycloak"` |  |
 | keycloak.initContainers[0].command[0] | string | `"sh"` |  |
 | keycloak.initContainers[0].command[1] | string | `"-c"` |  |
 | keycloak.initContainers[0].command[2] | string | `"echo \"Installing dependencies...\"\napk add --no-cache curl netcat-openbsd\n\necho \"Waiting for PostgreSQL...\"\nuntil nc -z {{ .Release.Name }}-postgresql 5432; do\necho \"waiting for postgres...\";\nsleep 2;\ndone\necho \"PostgreSQL is ready.\"\n"` |  |
@@ -131,6 +134,7 @@ A Helm chart for deploying a proof-of-concept (PoC) Data Space Connector, includ
 | mongodb.auth.rootPassword | string | `"oaebudt_root"` |  |
 | mongodb.auth.rootUser | string | `"root"` |  |
 | mongodb.auth.usernames[0] | string | `"oaebudt_report"` |  |
+| mongodb.image.repository | string | `"bitnamilegacy/mongodb"` |  |
 | mongodb.install | bool | `true` | Switch to enable or disable the MongoDB helm chart |
 | mongodb.persistence.size | string | `"2Gi"` |  |
 | mongodb.resources.requests.cpu | string | `"100m"` |  |
@@ -146,6 +150,7 @@ A Helm chart for deploying a proof-of-concept (PoC) Data Space Connector, includ
 | postgresql.auth.password | string | `"oaebudt_connector"` |  |
 | postgresql.auth.postgresPassword | string | `"oaebudt_postgres"` |  |
 | postgresql.auth.username | string | `"oaebudt_connector"` | Maximum name length is 31 characters by default |
+| postgresql.image.repository | string | `"bitnamilegacy/postgresql"` |  |
 | postgresql.install | bool | `true` | Switch to enable or disable the PostgreSQL helm chart |
 | postgresql.primary.initdb.password | string | `"oaebudt_postgres"` |  |
 | postgresql.primary.initdb.scripts."00_init_extensions.sql" | string | `"CREATE USER keycloak WITH PASSWORD 'keycloak';\nCREATE DATABASE keycloak OWNER keycloak;\nGRANT ALL PRIVILEGES ON DATABASE keycloak TO keycloak;\n"` |  |

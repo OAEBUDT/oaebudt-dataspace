@@ -78,6 +78,7 @@ A Helm chart for deploying a proof-of-concept (PoC) Data Space Connector, includ
 | endpoints.web.port | int | `8100` |  |
 | fullnameOverride | string | `""` |  |
 | global.domain | string | `""` | Global dataspace domain (required for ingress) |
+| global.security.allowInsecureImages | bool | `true` |  |
 | image.pullPolicy | string | `"IfNotPresent"` |  |
 | image.repository | string | `"605134435349.dkr.ecr.us-east-1.amazonaws.com/oaebudt-dataspace/connector"` |  |
 | image.tag | string | `"0.1"` |  |

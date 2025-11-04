@@ -5,6 +5,8 @@
 global:
   # -- Global dataspace domain (required for ingress)
   domain: ""
+  security:
+    allowInsecureImages: true
 
 # This is to override the chart name.
 nameOverride: ""

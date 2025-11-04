@@ -1,4 +1,3 @@
-{{- if .Release.IsInstall }}
 ---
 apiVersion: batch/v1
 kind: Job
@@ -6,6 +5,8 @@ metadata:
   name: {{ .Release.Name }}-vault-init
   labels:
     {{- include "oaebudt-connector.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/hook: Skip
 spec:
   parallelism: 1
   completions: 1
@@ -71,7 +72,6 @@ spec:
           securityContext:
             runAsUser: 0
             allowPrivilegeEscalation: true
-{{- end }}
 ---
 apiVersion: v1
 kind: ServiceAccount
